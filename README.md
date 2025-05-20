@@ -1,7 +1,7 @@
 # Sylang: A Constructed Language for LLM Token Efficiency
 
 <div align="center">
-  <img src="images/token-reduction.png" alt="Sylang Token Reduction" width="600">
+  <img src="images/benchmark-results.png" alt="Sylang Token Reduction" width="600">
 </div>
 
 Sylang (pronounced "slang") is a revolutionary constructed language specifically designed to optimize token efficiency in Large Language Model (LLM) interactions. By deliberately engineering a language where morphological structure aligns with tokenization patterns, Sylang achieves a remarkable **55-60% reduction in token usage** compared to English while maintaining semantic clarity.
