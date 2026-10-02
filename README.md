@@ -1,5 +1,65 @@
 # Sylang: A Constructed Language for LLM Token Efficiency
 
+## Current status: experimental executable baseline
+
+Sylang is a research project. **The historical 45–60% token-saving, accuracy,
+latency and neuron-monosemanticity claims below are unverified proposals, not
+reproduced results.** The original material is retained for historical context.
+The current milestone is a small, versioned, deterministic codec and evaluation
+scaffold; it is not a complete language or natural-language translator.
+
+`core-v0.1` represents three relations (`see`, `help`, `contain`), explicit
+polarity, tense, aspect and evidence, and bounded conditionals. Controlled English,
+JSON, DSL, Prime and M preserve the same semantic tree. Unsupported meanings and
+unknown fields are rejected. L1 and model training remain deferred.
+
+Run from the repository root with Python 3.12 (tested with 3.12.7):
+
+```sh
+python -m unittest discover -s tests -v
+python -m evaluation run --output benchmarks/results/offline.json
+python -m sylang_core --from m --to prime --input example.m
+```
+
+For the last command, `example.m` can contain:
+
+```text
+M0.1:p("Aster",s,"Beacon",-,p,c,r)
+```
+
+Token measurement is optional. Install the reviewed local tokenizer loader,
+explicitly fetch the two pinned data files (~19.9 MB), then evaluate:
+
+```sh
+python -m pip install --only-binary=:all: --no-deps -r requirements-tokenizers.txt
+python tools/fetch_tokenizers.py --download
+python -m evaluation run --tokenizer-manifest benchmarks/tokenizers.lock.json --output benchmarks/results/tokenizers.json
+python -m evaluation export-comprehension --output benchmarks/results/comprehension-tasks.jsonl
+```
+
+The restricted `--no-deps` installation uses only `Tokenizer.from_file`; Hub
+download APIs are not used. The downloader fetches only fixed tokenizer JSON data
+and checks sizes and hashes. No model weights, remote model code, inference,
+training or serving jobs are involved. The default evaluation is offline and
+uses only the Python standard library.
+
+- [Executable grammar and bounds](docs/experimental-grammar.md)
+- [Evaluation protocol and comprehension interface](docs/evaluation.md)
+- [Technical research review, 2026-10-02](docs/research/technical-review-2026-10-02.md)
+- [Decisions, evidence boundaries and next gates](docs/decisions.md)
+- [Observed baseline results](docs/baseline-results.md)
+
+Exact codec round trips do not establish model comprehension. Token counts do
+not establish inference speed or monetary savings. The native Qwen tokenizers
+also apply NFC normalization, which can change codepoint-exact literal text.
+
+---
+
+## Historical proposal (May 2025; claims not validated)
+
+The remaining sections preserve the original proposal and illustrations. They
+are not the specification or evidence for `core-v0.1`.
+
 <div align="center">
   <img src="images/benchmark-results.png" alt="Sylang Token Reduction" width="600">
 </div>

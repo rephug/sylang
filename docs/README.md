@@ -1,6 +1,17 @@
 # Sylang Documentation
 
-This directory contains comprehensive documentation for the Sylang constructed language and its tokenizer.
+The current executable experiment is `core-v0.1`:
+
+- [Grammar, schema and bounds](experimental-grammar.md)
+- [Evaluation and comprehension interface](evaluation.md)
+- [Measured baseline results](baseline-results.md)
+- [Technical review, 2026-10-02](research/technical-review-2026-10-02.md)
+- [Decisions and unresolved scope](decisions.md)
+
+The older tokenizer and research documents indexed below are historical proposals.
+Their savings, accuracy, latency and neuron-monosemanticity claims have not been
+validated by this repository. They are not normative specifications for the
+current experiment.
 
 ## Directory Structure
 

@@ -1,0 +1,1 @@
+The payload is the complete semantic tree as JSON. Read JSON string escapes and preserve the exact structure and values.

@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:sylang:core-v0.1",
+  "title": "Sylang experimental core-v0.1 semantic tree",
+  "$comment": "Structural schema only. The executable validator additionally enforces Unicode scalar strings, root depth <= 8 and total node count <= 127. Source documents are limited to 262144 UTF-8 bytes. This is a proposed subset, not the full historical Prime specification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "statement"],
+  "properties": {
+    "version": {"const": "core-v0.1"},
+    "statement": {"$ref": "#/$defs/node"}
+  },
+  "$defs": {
+    "label": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256,
+      "description": "An opaque Unicode scalar string. No normalization, trimming or case folding. The executable validator rejects unpaired surrogates."
+    },
+    "node": {
+      "oneOf": [
+        {"$ref": "#/$defs/predicate"},
+        {"$ref": "#/$defs/conditional"}
+      ]
+    },
+    "predicate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "subject", "relation", "object", "polarity", "tense", "aspect", "evidence"],
+      "properties": {
+        "kind": {"const": "pred"},
+        "subject": {"$ref": "#/$defs/label"},
+        "relation": {"enum": ["see", "help", "contain"]},
+        "object": {"$ref": "#/$defs/label"},
+        "polarity": {"enum": ["positive", "negative"]},
+        "tense": {"enum": ["past", "present", "future"]},
+        "aspect": {"enum": ["simple", "progressive", "completed"]},
+        "evidence": {"enum": ["unspecified", "direct", "reported", "inferred"]}
+      }
+    },
+    "conditional": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "condition", "consequence"],
+      "properties": {
+        "kind": {"const": "if"},
+        "condition": {"$ref": "#/$defs/node"},
+        "consequence": {"$ref": "#/$defs/node"}
+      }
+    }
+  }
+}

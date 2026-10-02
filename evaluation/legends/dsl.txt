@@ -1,0 +1,1 @@
+The envelope is core("core-v0.1",NODE). A predicate is pred(subject=STRING,relation=RELATION,object=STRING,polarity=POLARITY,tense=TENSE,aspect=ASPECT,evidence=EVIDENCE). A conditional is if(condition=NODE,consequence=NODE). STRING uses JSON quotation/escapes; the enum values are bare words matching the output schema. The envelope supplies version and wraps the node as statement.

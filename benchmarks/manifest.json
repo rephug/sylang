@@ -1,0 +1,11 @@
+{
+  "schema": "sylang-fixtures-v1",
+  "file": "gold_suite.jsonl",
+  "sha256": "514bfd44281002154e3e41fc1484b92ca35a95377f46e704ee7d874af0f673e3",
+  "bytes": 11587,
+  "count": 33,
+  "license": "MIT",
+  "provenance": "Newly authored synthetic fixtures; no private documents or user data.",
+  "generator": "build_fixtures.py",
+  "semantic_schema": "core-v0.1"
+}
