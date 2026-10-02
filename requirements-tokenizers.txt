@@ -1,0 +1,2 @@
+# Optional CPU-only local tokenizer measurement. No model weights or remote code.
+tokenizers==0.22.2

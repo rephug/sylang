@@ -1,0 +1,4 @@
+# The fixture manifest hashes exact UTF-8 bytes; keep JSONL reproducible on Windows.
+benchmarks/*.jsonl text eol=lf
+benchmarks/results/*.json text eol=lf
+benchmarks/results/*.jsonl text eol=lf

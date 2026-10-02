@@ -21,6 +21,11 @@ wheels/
 *.egg
 
 # Virtual environments
+.venv/
+.cache/
+.uv-cache/
+# Generated local prompts are reproducible from the committed fixture suite.
+benchmarks/results/comprehension-tasks.jsonl
 venv/
 env/
 ENV/
