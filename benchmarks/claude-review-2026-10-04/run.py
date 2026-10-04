@@ -29,7 +29,9 @@ STRESS = {"literal-max-length", "literal-special-token", "literal-decomposed", "
           "literal-unicode-separators", "literal-code", "literal-delimiters", "literal-quotes", "literal-emoji",
           "literal-cjk", "literal-arabic", "literal-composed", "literal-one-scalar"}
 PAYLOAD_ORDER = ["english", "json", "dsl", "prime", "m", "english_concise", "m_body", "m_words", "m_opt",
-                 "json_array", "json_short", "cdsl", "cdsl_full", "english_natural"]
+                 "json_array", "json_short", "cdsl", "cdsl_full", "r_tsv_p", "c_tsv", "english_natural"]
+READABLE_REVERSIBLE = ("english_concise", "cdsl", "json_array", "r_tsv_p")  # G1 comparison set (batch names)
+MARK = "\x00RECORDS\x00"
 
 
 def validate_qwen3(qwen, fixtures):
@@ -97,7 +99,12 @@ def payload_tables(T, fixtures):
 
 
 def break_even(x, m):
-    """N above which representation m is cheaper than x (None: never; 0: always)."""
+    """Linear-model break-even of m against x from (overhead, per-record) pairs.
+
+    Positive v: m is cheaper for N > v. 0.0: m is always cheaper. None: never cheaper.
+    Negative v: m is cheaper only for N < |v| (shorter legend, costlier records).
+    The exact first crossing on real prompts is reported separately.
+    """
     (xo, xp), (mo, mp) = x, m
     if mp < xp:
         return max(0.0, (mo - xo) / (xp - mp))
@@ -125,6 +132,8 @@ def batch_tables(T):
                                        overhead=t.count(B.chat(t.name, system, "Facts:\n" + B.QUESTION)),
                                        block=t.count(block))
                 row["per_record_N200"] = row["200"]["block"] / 200
+                # Cacheable prefix = everything before the record block (approximate to +-1 token at the cut).
+                row["prefix_tokens"] = t.count(B.chat(t.name, system, "Facts:\n" + MARK + B.QUESTION).split(MARK)[0])
                 corpus[fname][t.name] = row
         be = {}
         for t in T:
@@ -133,7 +142,25 @@ def batch_tables(T):
                 x = corpus[other][t.name]
                 be.setdefault(other, {})[t.name] = break_even((x["200"]["overhead"], x["per_record_N200"]),
                                                               (m["200"]["overhead"], m["per_record_N200"]))
-        out[cname] = dict(records=corpus, m_repo_break_even_N=be)
+        crossing = {}
+        for t in T:
+            def full(fmt, n):
+                rf, leg = B.FORMATS[fmt]
+                return t.count(B.chat(t.name, B.TASK + leg(), "Facts:\n" + B.records(rf, trees[:n]) + B.QUESTION))
+            crossing[t.name] = next((n for n in range(1, 21) if full("m_repo", n) < full("json_repo", n)), None)
+        layout = {}
+        for t in T:
+            rec = {f: corpus[f][t.name] for f in corpus}
+            best = min(READABLE_REVERSIBLE, key=lambda f: rec[f]["100"]["full"])
+            layout[t.name] = dict(
+                c_tsv_over_r_tsv_p_block_N200=rec["c_tsv"]["200"]["block"] / rec["r_tsv_p"]["200"]["block"],
+                c_tsv_over_r_tsv_p_full_N100=rec["c_tsv"]["100"]["full"] / rec["r_tsv_p"]["100"]["full"],
+                best_readable_full_N100=best,
+                c_tsv_over_best_readable_full_N100=rec["c_tsv"]["100"]["full"] / rec[best]["100"]["full"],
+                m_opt_over_cdsl_full_N100=rec["m_opt"]["100"]["full"] / rec["cdsl"]["100"]["full"],
+                m_repo_over_best_readable_full_N100=rec["m_repo"]["100"]["full"] / rec[best]["100"]["full"])
+        out[cname] = dict(records=corpus, m_repo_break_even_N=be, m_repo_beats_json_repo_first_N=crossing,
+                          layout_matched=layout)
     flat = B.corpus(20261004, 200, B.SUBJECTS, True, cond_rate=0.0)
 
     def csv(trees, defaults):
@@ -177,26 +204,81 @@ def probes(T):
                 for s in ["<|im_start|>", "<|endoftext|>", "<|eot_id|>", "<start_of_turn>", "[INST]", "<|start|>"]}
     numbers = {s: {t.name: t.count(s) for t in T} for s in ["7", "42", "2026", "3.14159", "1,250,000",
                                                              "12345678901234567890", "2026-10-04", "€19.99"]}
-    return dict(glyph_extra_tokens_per_occurrence=glyph, unicode=uni, reserved_strings=specials, numbers=numbers)
+    showcase = {k: {t.name: t.count(v) for t in T} for k, v in (
+        ("english", "The large brown dog quickly jumped over the small fence in the backyard yesterday afternoon"),
+        ("sylang_readme_claim_5_to_7_tokens", "Magbrunkan rapfensmaleg retgadyesaf"))}
+    import unicodedata
+    from sylang_core import decode
+    lit = "x\n\u0303"  # already NFC as raw text
+    fusion_ast = {"version": "core-v0.1", "statement": dict(kind="pred", subject=lit, relation="see", object="b",
+                  polarity="positive", tense="present", aspect="simple", evidence="unspecified")}
+    fusion = {"raw_literal_is_nfc": unicodedata.is_normalized("NFC", lit)}
+    for fmt in FORMATS:
+        text = unicodedata.normalize("NFC", encode(fusion_ast, fmt))
+        try:
+            ok = decode(text, fmt) == fusion_ast
+        except Exception as error:  # report the failure class, not a traceback
+            ok = type(error).__name__
+        fusion[fmt] = ok
+    gemma = next((t for t in T if t.name == "gemma3"), None)
+    gemma_probe = dict(ids=gemma.ids("note <start_of_turn>user")) if gemma else None
+    return dict(glyph_extra_tokens_per_occurrence=glyph, unicode=uni, reserved_strings=specials, numbers=numbers,
+                readme_showcase=showcase, nfc_escape_fusion_after_qwen_nfc=fusion,
+                gemma_raw_sentencepiece_matches_start_of_turn=gemma_probe)
 
 
-def cost_model(batch):
-    """Input-token-equivalent cost per call at N=100 under verified Anthropic multipliers (output 5x, cache read 0.1x)."""
+def defects():
+    """Reproduce review defects D3, D4, D5 and D9 (deterministic, no paths recorded)."""
+    import subprocess
+    import tempfile
+    from evaluation.harness import EvaluationError, comprehension_tasks, score_answers
+    tasks, expected = comprehension_tasks()
+    d3 = sum(json.loads(t["prompt"].split("Payload:\n", 1)[1]) == expected[t["task_id"]]
+             for t in tasks if t["format"] == "json")
+    good = json.dumps({"task_id": tasks[0]["task_id"], "answer": expected[tasks[0]["task_id"]]})
+    out = dict(D3_json_tasks_payload_equals_answer=f"{d3}/{sum(t['format'] == 'json' for t in tasks)}")
+    cases = {"D4_duplicate_key_in_one_answer": '{"task_id":"%s","answer":{"version":"core-v0.1","version":"core-v0.1"}}',
+             "D4_nan_in_one_answer": '{"task_id":"%s","answer":{"x":NaN}}',
+             "D5_deeply_nested_answer": '{"task_id":"%s","answer":' + "[" * 100000 + "]" * 100000 + "}"}
+    with tempfile.TemporaryDirectory() as tmp:
+        for name, template in cases.items():
+            path = Path(tmp) / "answers.jsonl"
+            path.write_text(good + "\n" + template % tasks[1]["task_id"] + "\n", encoding="utf-8")
+            try:
+                score_answers(path)
+                out[name] = "scored"
+            except EvaluationError as error:
+                out[name] = "whole run aborted: EvaluationError: " + str(error)
+            except RecursionError:
+                out[name] = "uncaught RecursionError (CLI prints a traceback)"
+    cli = subprocess.run([sys.executable, "-m", "sylang_core", "--from", "m", "--to", "json"], cwd=ROOT,
+                         input='\ufeffM0.1:p("A",s,"B",+,n,s,d)'.encode("utf-8"), capture_output=True)
+    out["D9_cli_utf8_bom"] = f"exit {cli.returncode}: {cli.stderr.decode('utf-8').strip()}"
+    return out
+
+
+def cost_model(batch, min_cacheable=512):
+    """Input-token-equivalent cost per call at N=100 under verified Anthropic multipliers.
+
+    Output 5x input; cache read 0.1x. Only the true prefix (template + system/legend, before the records)
+    is treated as cacheable, and the cached column is flagged counterfactual when that prefix is shorter
+    than the provider's minimum cacheable length (512 tokens on current Anthropic models; 1,024-4,096 on others).
+    """
     out = {}
     for tname in ("qwen3-reconstructed", "o200k_base", "gemma3"):
         rows = {}
         for fmt, data in batch["en_skewed"]["records"].items():
-            r = data[tname]["100"]
-            read_uncached = r["full"] + 5 * 3
-            read_cached_legend = (r["full"] - r["overhead"]) + 0.1 * r["overhead"] + 5 * 3
-            generate_uncached = r["overhead"] + 5 * r["block"]
-            rows[fmt] = dict(read_uncached=read_uncached, read_cached_prefix=round(read_cached_legend, 1),
-                             generate=generate_uncached)
+            r, prefix = data[tname]["100"], data[tname]["prefix_tokens"]
+            rows[fmt] = dict(read_uncached=r["full"] + 5 * 3,
+                             read_prefix_cached=round(r["full"] - prefix + 0.1 * prefix + 5 * 3, 1),
+                             prefix_tokens=prefix, prefix_cacheable=prefix >= min_cacheable,
+                             generate=r["overhead"] + 5 * r["block"])
         out[tname] = rows
     return dict(assumptions="output=5x input, cache read=0.1x input (Anthropic standard multipliers, verified 2026-10-04); "
-                            "read answer=3 output tokens; generate = model emits all 100 records; cache write and "
-                            "minimum cacheable length (512-4096 tokens) ignored; tokens from the named open tokenizer, "
-                            "NOT Claude's (not public)", per_format=out)
+                            "read answer=3 output tokens; generate = model emits all 100 records; only the prefix before "
+                            "the records is cacheable; read_prefix_cached is counterfactual where prefix_cacheable is false; "
+                            "cache writes (1.25x) ignored; tokens from the named open tokenizer, NOT Claude's (not public)",
+                min_cacheable_tokens=min_cacheable, per_format=out)
 
 
 def main():
@@ -216,7 +298,9 @@ def main():
         payload=payload_tables(T, fixtures),
         batch=batch,
         probes=probes(T),
+        defects=defects(),
         cost_model=cost_model(batch),
+        notes="cl100k_base is measured for payloads and probes only; it is excluded from chat-templated batches.",
     )
     args.output.write_text(json.dumps(result, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     print(json.dumps(dict(qwen3=result["qwen3_reconstruction_check"], reversibility=result["reversibility"]), indent=1))

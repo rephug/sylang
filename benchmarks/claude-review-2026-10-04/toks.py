@@ -73,14 +73,33 @@ class Tok:
                     adapter_ids=self.vocab)
 
 
+def _load_ranks(path):
+    """Parse a .tiktoken/.model rank file directly (avoids tiktoken copying it into its cache dir)."""
+    ranks = {}
+    for line in Path(path).read_bytes().splitlines():
+        if line:
+            token, rank = line.split()
+            ranks[base64.b64decode(token)] = int(rank)
+    return ranks
+
+
+def _nfc():
+    """NFC as the Hugging Face tokenizers runtime applies it (its Unicode tables), else Python's."""
+    try:
+        from tokenizers import normalizers
+        rust = normalizers.NFC()
+        return rust.normalize_str
+    except ImportError:  # pragma: no cover - fallback when the optional package is absent
+        return lambda t: unicodedata.normalize("NFC", t)
+
+
 def _tiktoken_tok(name, family, source, path, pat, specials, normalizer=None, ranks=None, offset=0):
     import tiktoken
-    from tiktoken.load import load_tiktoken_bpe
-    ranks = ranks if ranks is not None else load_tiktoken_bpe(str(path))
+    ranks = ranks if ranks is not None else _load_ranks(path)
     base = max(ranks.values()) + 1
     special_map = {s: base + i for i, s in enumerate(specials)}
     enc = tiktoken.Encoding(name=name, pat_str=pat, mergeable_ranks=ranks, special_tokens=special_map)
-    norm = (lambda t: unicodedata.normalize(normalizer, t)) if normalizer else (lambda t: t)
+    norm = _nfc() if normalizer == "NFC" else (lambda t: t)
 
     def encode(text):
         # Mirrors the repository policy encode_special_tokens=False: reserved strings in

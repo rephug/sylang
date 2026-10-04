@@ -361,3 +361,108 @@ def d_m_opt(text):
 
 RENDER["m_opt"] = r_m_opt
 DECODE["m_opt"] = d_m_opt
+
+
+# ---------- layout-matched TSV pair (added after the verification pass) ----------
+# One record per line; TAB-separated fields; bare labels with backslash escapes for
+# backslash/TAB/LF/CR; a label equal to a keyword is written with a leading backslash.
+# Conditionals use prefix order: KW <TAB> CONDITION <TAB> CONSEQUENCE.
+# r_tsv_p carries the relation/features as words; c_tsv as one fused code.
+_TSV_KW = {"if", "?"}
+_TSV_ESC = {"\\": "\\\\", "\t": "\\t", "\n": "\\n", "\r": "\\r"}
+_TSV_UNESC = {"\\": "\\", "t": "\t", "n": "\n", "r": "\r"}
+_C_REL = {"see": "s", "help": "h", "contain": "c"}
+_C_FEAT = (("tense", {"past": "p", "future": "f"}), ("aspect", {"progressive": "g", "completed": "c"}),
+           ("evidence", {"direct": "d", "reported": "r", "inferred": "i"}))
+
+
+def _tsv_label(s):
+    out = "".join(_TSV_ESC.get(ch, ch) for ch in s)
+    return "\\" + out if s in _TSV_KW else out
+
+
+def _tsv_unlabel(field):
+    if field.startswith("\\") and field[1:] in _TSV_KW:
+        return field[1:]
+    out, i = [], 0
+    while i < len(field):
+        ch = field[i]
+        if ch == "\\":
+            if i + 1 >= len(field) or field[i + 1] not in _TSV_UNESC:
+                raise DecodeError("bad escape")
+            out.append(_TSV_UNESC[field[i + 1]])
+            i += 2
+        elif ch in "\t\n\r":
+            raise DecodeError("raw separator in label")
+        else:
+            out.append(ch)
+            i += 1
+    s = "".join(out)
+    if not s or s in _TSV_KW:
+        raise DecodeError("empty or unescaped keyword label")
+    return s
+
+
+def _mid_words(n):
+    return (("not " if n["polarity"] == "negative" else "") + n["relation"]
+            + "".join(" " + n[f] for f in FEATURE_ORDER if n[f] != DEFAULTS[f]))
+
+
+def _mid_code(n):
+    head = _C_REL[n["relation"]]
+    head = head.upper() if n["polarity"] == "negative" else head
+    return head + "".join(table.get(n[f], "") for f, table in _C_FEAT)
+
+
+def _tsv(node, mid, kw):
+    if node["kind"] == "if":
+        return "\t".join([kw, _tsv(node["condition"], mid, kw), _tsv(node["consequence"], mid, kw)])
+    return _tsv_label(node["subject"]) + "\t" + mid(node) + "\t" + _tsv_label(node["object"])
+
+
+def _tsv_mid_table(mid):
+    import itertools
+    from sylang_core.codec import ASPECTS, EVIDENCES, POLARITIES, RELATIONS, TENSES
+    table = {}
+    for rel, pol, t, a, e in itertools.product(RELATIONS, POLARITIES, TENSES, ASPECTS, EVIDENCES):
+        n = dict(relation=rel, polarity=pol, tense=t, aspect=a, evidence=e)
+        key = mid(n)
+        assert key not in table, key  # injective middle field
+        table[key] = n
+    return table
+
+
+_TSV_MIDS = {"r_tsv_p": (_mid_words, "if"), "c_tsv": (_mid_code, "?")}
+_TSV_INV = {name: _tsv_mid_table(mid) for name, (mid, _) in _TSV_MIDS.items()}
+
+
+def _d_tsv(name, text):
+    mid, kw = _TSV_MIDS[name]
+    fields, k = text.split("\t"), [0]
+
+    def take():
+        if k[0] >= len(fields):
+            raise DecodeError("eof")
+        k[0] += 1
+        return fields[k[0] - 1]
+
+    def node():
+        f = take()
+        if f == kw:
+            c = node()
+            q = node()
+            return {"kind": "if", "condition": c, "consequence": q}
+        s, m, o = _tsv_unlabel(f), take(), _tsv_unlabel(take())
+        if m not in _TSV_INV[name]:
+            raise DecodeError("unknown middle field")
+        return dict(kind="pred", subject=s, object=o, **_TSV_INV[name][m])
+
+    n = node()
+    if k[0] != len(fields):
+        raise DecodeError("trailing fields")
+    return _doc(n)
+
+
+for _name, (_mid, _kw) in _TSV_MIDS.items():
+    RENDER[_name] = (lambda mid, kw: (lambda node: _tsv(node, mid, kw)))(_mid, _kw)
+    DECODE[_name] = (lambda name: (lambda text: _d_tsv(name, text)))(_name)
