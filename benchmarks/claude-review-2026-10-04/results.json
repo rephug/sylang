@@ -1,0 +1,6502 @@
+{
+ "schema": "sylang-claude-review-2026-10-04-v1",
+ "inference_run": false,
+ "training_run": false,
+ "environment": {
+  "python": "3.12.3",
+  "platform": "Linux-6.18.44-fc-v64-x86_64-with-glibc2.39"
+ },
+ "fixture_manifest_sha256": "514bfd44281002154e3e41fc1484b92ca35a95377f46e704ee7d874af0f673e3",
+ "tokenizers": [
+  {
+   "name": "qwen3-reconstructed",
+   "family": "Qwen3 (151,643 BPE + 22 added; NFC)",
+   "source": "dashscope wheel resources/qwen.tiktoken (Alibaba) + Qwen3 regex/NFC from committed results",
+   "file": "qwen.tiktoken",
+   "sha256": "b2b1b8dfb5cc5f024bafc373121c6aba3f66f9a5a0269e243470a1de16a33186",
+   "normalizer": "NFC",
+   "adapter_ids": 151665
+  },
+  {
+   "name": "o200k_base",
+   "family": "OpenAI o200k (GPT-4o/4.1/5, o-series; gpt-oss base)",
+   "source": "OpenAI o200k_base.tiktoken via litellm wheel cache; SHA-256 = tiktoken expected_hash",
+   "file": "fb374d419588a4632f3f557e76b4b70aebbca790",
+   "sha256": "446a9538cb6c348e3516120d7c08b09f57c36495e2acfffe59a5bf8b0cfb1a2d",
+   "normalizer": null,
+   "adapter_ids": 200007
+  },
+  {
+   "name": "cl100k_base",
+   "family": "OpenAI cl100k (GPT-4/3.5; basis of several open tokenizers)",
+   "source": "OpenAI cl100k_base.tiktoken via litellm wheel cache; SHA-256 = tiktoken expected_hash",
+   "file": "9b5ad71b2ce5302211f9c61530b329a4922fc6a4",
+   "sha256": "223921b76ee99bde995b7ff738513eef100fb51d18c93597a113bcffe865b2a7",
+   "normalizer": null,
+   "adapter_ids": 100258
+  },
+  {
+   "name": "llama3",
+   "family": "Meta Llama 3.x (128k tiktoken BPE)",
+   "source": "llama-models wheel llama3/tokenizer.model",
+   "file": "tokenizer.model",
+   "sha256": "82e9d31979e92ab929cd544440f129d9ecd797b69e327f80f17e1c50d5551b55",
+   "normalizer": null,
+   "adapter_ids": 128011
+  },
+  {
+   "name": "llama4",
+   "family": "Meta Llama 4 (200k tiktoken BPE)",
+   "source": "llama-models wheel llama4/tokenizer.model",
+   "file": "tokenizer.model",
+   "sha256": "d0bdbaf59b0762c8c807617e2d8ea51420eb1b1de266df2495be755c8e0ed6ed",
+   "normalizer": null,
+   "adapter_ids": 200014
+  },
+  {
+   "name": "tekken",
+   "family": "Mistral Tekken v3 (131k)",
+   "source": "mistral-common wheel data/tekken_240911.json",
+   "file": "tekken_240911.json",
+   "sha256": "1948e2d48b0e7377f1bb5f1210f1ae5f984934e75713fc07e2452729b8365316",
+   "normalizer": null,
+   "adapter_ids": 130078
+  },
+  {
+   "name": "gemma3",
+   "family": "Google Gemma 3 (262k SentencePiece, byte fallback)",
+   "source": "storage.googleapis.com/gemma-data/tokenizers/tokenizer_gemma3.model (Google)",
+   "file": "gemma3.model",
+   "sha256": "1299c11d7cf632ef3b4e11937501358ada021bbdf7c47638d13c0ee982f2e79c",
+   "normalizer": null,
+   "adapter_ids": 262144
+  }
+ ],
+ "qwen3_reconstruction_check": {
+  "compared": 330,
+  "count_mismatches": 0,
+  "text_fidelity_mismatches": 0
+ },
+ "reversibility": {
+  "trees": 2249,
+  "seed": 20261004,
+  "decode_failures": {
+   "english_concise": 0,
+   "m_body": 0,
+   "m_words": 0,
+   "json_array": 0,
+   "json_short": 0,
+   "cdsl": 0,
+   "cdsl_full": 0,
+   "m_opt": 0,
+   "r_tsv_p": 0,
+   "c_tsv": 0
+  }
+ },
+ "payload": {
+  "all33": {
+   "fixtures": 33,
+   "tokens": {
+    "english": {
+     "qwen3-reconstructed": 1166,
+     "o200k_base": 1140,
+     "cl100k_base": 1181,
+     "llama3": 1178,
+     "llama4": 1155,
+     "tekken": 1300,
+     "gemma3": 1176
+    },
+    "json": {
+     "qwen3-reconstructed": 2245,
+     "o200k_base": 2260,
+     "cl100k_base": 2262,
+     "llama3": 2260,
+     "llama4": 2155,
+     "tekken": 2440,
+     "gemma3": 2171
+    },
+    "dsl": {
+     "qwen3-reconstructed": 1912,
+     "o200k_base": 1959,
+     "cl100k_base": 1927,
+     "llama3": 1924,
+     "llama4": 1901,
+     "tekken": 2192,
+     "gemma3": 1961
+    },
+    "prime": {
+     "qwen3-reconstructed": 1872,
+     "o200k_base": 1880,
+     "cl100k_base": 1887,
+     "llama3": 1884,
+     "llama4": 1821,
+     "tekken": 2105,
+     "gemma3": 1797
+    },
+    "m": {
+     "qwen3-reconstructed": 1030,
+     "o200k_base": 1037,
+     "cl100k_base": 1045,
+     "llama3": 1042,
+     "llama4": 1019,
+     "tekken": 1164,
+     "gemma3": 1159
+    },
+    "english_concise": {
+     "qwen3-reconstructed": 730,
+     "o200k_base": 737,
+     "cl100k_base": 745,
+     "llama3": 742,
+     "llama4": 721,
+     "tekken": 865,
+     "gemma3": 743
+    },
+    "m_body": {
+     "qwen3-reconstructed": 898,
+     "o200k_base": 905,
+     "cl100k_base": 913,
+     "llama3": 910,
+     "llama4": 887,
+     "tekken": 1032,
+     "gemma3": 994
+    },
+    "m_words": {
+     "qwen3-reconstructed": 1014,
+     "o200k_base": 1021,
+     "cl100k_base": 1029,
+     "llama3": 1026,
+     "llama4": 1003,
+     "tekken": 1164,
+     "gemma3": 1028
+    },
+    "m_opt": {
+     "qwen3-reconstructed": 670,
+     "o200k_base": 678,
+     "cl100k_base": 686,
+     "llama3": 683,
+     "llama4": 658,
+     "tekken": 806,
+     "gemma3": 666
+    },
+    "json_array": {
+     "qwen3-reconstructed": 1030,
+     "o200k_base": 1045,
+     "cl100k_base": 1047,
+     "llama3": 1045,
+     "llama4": 1011,
+     "tekken": 1189,
+     "gemma3": 1042
+    },
+    "json_short": {
+     "qwen3-reconstructed": 1076,
+     "o200k_base": 1091,
+     "cl100k_base": 1093,
+     "llama3": 1091,
+     "llama4": 1047,
+     "tekken": 1240,
+     "gemma3": 1065
+    },
+    "cdsl": {
+     "qwen3-reconstructed": 664,
+     "o200k_base": 672,
+     "cl100k_base": 680,
+     "llama3": 677,
+     "llama4": 649,
+     "tekken": 810,
+     "gemma3": 675
+    },
+    "cdsl_full": {
+     "qwen3-reconstructed": 798,
+     "o200k_base": 806,
+     "cl100k_base": 814,
+     "llama3": 811,
+     "llama4": 783,
+     "tekken": 945,
+     "gemma3": 809
+    },
+    "r_tsv_p": {
+     "qwen3-reconstructed": 586,
+     "o200k_base": 612,
+     "cl100k_base": 604,
+     "llama3": 603,
+     "llama4": 594,
+     "tekken": 743,
+     "gemma3": 633
+    },
+    "c_tsv": {
+     "qwen3-reconstructed": 552,
+     "o200k_base": 565,
+     "cl100k_base": 570,
+     "llama3": 569,
+     "llama4": 548,
+     "tekken": 688,
+     "gemma3": 609
+    },
+    "english_natural": {
+     "qwen3-reconstructed": 590,
+     "o200k_base": 595,
+     "cl100k_base": 608,
+     "llama3": 604,
+     "llama4": 576,
+     "tekken": 716,
+     "gemma3": 593
+    },
+    "_utf8_bytes": {
+     "english": 3801,
+     "json": 8611,
+     "dsl": 6559,
+     "prime": 6262,
+     "m": 2408,
+     "english_concise": 2311,
+     "m_body": 2243,
+     "m_words": 3204,
+     "m_opt": 1893,
+     "json_array": 3872,
+     "json_short": 3293,
+     "cdsl": 2231,
+     "cdsl_full": 3411,
+     "r_tsv_p": 2015,
+     "c_tsv": 1654,
+     "english_natural": 2081
+    }
+   }
+  },
+  "plain20_no_literal_stress": {
+   "fixtures": 20,
+   "tokens": {
+    "english": {
+     "qwen3-reconstructed": 555,
+     "o200k_base": 535,
+     "cl100k_base": 555,
+     "llama3": 555,
+     "llama4": 555,
+     "tekken": 565,
+     "gemma3": 554
+    },
+    "json": {
+     "qwen3-reconstructed": 1279,
+     "o200k_base": 1285,
+     "cl100k_base": 1279,
+     "llama3": 1279,
+     "llama4": 1225,
+     "tekken": 1330,
+     "gemma3": 1220
+    },
+    "dsl": {
+     "qwen3-reconstructed": 1055,
+     "o200k_base": 1082,
+     "cl100k_base": 1055,
+     "llama3": 1055,
+     "llama4": 1055,
+     "tekken": 1164,
+     "gemma3": 1079
+    },
+    "prime": {
+     "qwen3-reconstructed": 1037,
+     "o200k_base": 1038,
+     "cl100k_base": 1037,
+     "llama3": 1037,
+     "llama4": 1010,
+     "tekken": 1111,
+     "gemma3": 979
+    },
+    "m": {
+     "qwen3-reconstructed": 458,
+     "o200k_base": 458,
+     "cl100k_base": 458,
+     "llama3": 458,
+     "llama4": 458,
+     "tekken": 468,
+     "gemma3": 538
+    },
+    "english_concise": {
+     "qwen3-reconstructed": 291,
+     "o200k_base": 291,
+     "cl100k_base": 291,
+     "llama3": 291,
+     "llama4": 291,
+     "tekken": 299,
+     "gemma3": 290
+    },
+    "m_body": {
+     "qwen3-reconstructed": 378,
+     "o200k_base": 378,
+     "cl100k_base": 378,
+     "llama3": 378,
+     "llama4": 378,
+     "tekken": 388,
+     "gemma3": 438
+    },
+    "m_words": {
+     "qwen3-reconstructed": 455,
+     "o200k_base": 455,
+     "cl100k_base": 455,
+     "llama3": 455,
+     "llama4": 455,
+     "tekken": 475,
+     "gemma3": 459
+    },
+    "m_opt": {
+     "qwen3-reconstructed": 237,
+     "o200k_base": 237,
+     "cl100k_base": 237,
+     "llama3": 237,
+     "llama4": 237,
+     "tekken": 249,
+     "gemma3": 224
+    },
+    "json_array": {
+     "qwen3-reconstructed": 467,
+     "o200k_base": 473,
+     "cl100k_base": 467,
+     "llama3": 467,
+     "llama4": 459,
+     "tekken": 495,
+     "gemma3": 468
+    },
+    "json_short": {
+     "qwen3-reconstructed": 552,
+     "o200k_base": 558,
+     "cl100k_base": 552,
+     "llama3": 552,
+     "llama4": 533,
+     "tekken": 584,
+     "gemma3": 530
+    },
+    "cdsl": {
+     "qwen3-reconstructed": 231,
+     "o200k_base": 231,
+     "cl100k_base": 231,
+     "llama3": 231,
+     "llama4": 228,
+     "tekken": 247,
+     "gemma3": 233
+    },
+    "cdsl_full": {
+     "qwen3-reconstructed": 313,
+     "o200k_base": 313,
+     "cl100k_base": 313,
+     "llama3": 313,
+     "llama4": 310,
+     "tekken": 330,
+     "gemma3": 315
+    },
+    "r_tsv_p": {
+     "qwen3-reconstructed": 176,
+     "o200k_base": 189,
+     "cl100k_base": 176,
+     "llama3": 176,
+     "llama4": 189,
+     "tekken": 200,
+     "gemma3": 207
+    },
+    "c_tsv": {
+     "qwen3-reconstructed": 153,
+     "o200k_base": 155,
+     "cl100k_base": 153,
+     "llama3": 153,
+     "llama4": 156,
+     "tekken": 164,
+     "gemma3": 183
+    },
+    "english_natural": {
+     "qwen3-reconstructed": 188,
+     "o200k_base": 185,
+     "cl100k_base": 188,
+     "llama3": 188,
+     "llama4": 183,
+     "tekken": 191,
+     "gemma3": 183
+    },
+    "_utf8_bytes": {
+     "english": 1732,
+     "json": 4995,
+     "dsl": 3619,
+     "prime": 3439,
+     "m": 807,
+     "english_concise": 840,
+     "m_body": 707,
+     "m_words": 1343,
+     "m_opt": 487,
+     "json_array": 1803,
+     "json_short": 1640,
+     "cdsl": 773,
+     "cdsl_full": 1485,
+     "r_tsv_p": 631,
+     "c_tsv": 322,
+     "english_natural": 675
+    }
+   }
+  },
+  "qwen3_header_tokens_all33": {
+   "english": 297,
+   "m": 132
+  },
+  "example_pieces": {
+   "english": {
+    "qwen3-reconstructed": [
+     "S",
+     "yl",
+     "ang",
+     " core",
+     "-v",
+     "0",
+     ".",
+     "1",
+     ":",
+     " Without",
+     " specified",
+     " evidence",
+     ",",
+     " \"",
+     "Bo",
+     "\"",
+     " was",
+     " helping",
+     " \"",
+     "Cy",
+     "\"."
+    ],
+    "o200k_base": [
+     "Syl",
+     "ang",
+     " core",
+     "-v",
+     "0",
+     ".",
+     "1",
+     ":",
+     " Without",
+     " specified",
+     " evidence",
+     ",",
+     " \"",
+     "Bo",
+     "\"",
+     " was",
+     " helping",
+     " \"",
+     "Cy",
+     "\"."
+    ]
+   },
+   "m": {
+    "qwen3-reconstructed": [
+     "M",
+     "0",
+     ".",
+     "1",
+     ":p",
+     "(\"",
+     "Bo",
+     "\",",
+     "h",
+     ",\"",
+     "Cy",
+     "\",",
+     "+,",
+     "p",
+     ",g",
+     ",u",
+     ")"
+    ],
+    "o200k_base": [
+     "M",
+     "0",
+     ".",
+     "1",
+     ":p",
+     "(\"",
+     "Bo",
+     "\",",
+     "h",
+     ",\"",
+     "Cy",
+     "\",",
+     "+,",
+     "p",
+     ",g",
+     ",u",
+     ")"
+    ]
+   },
+   "m_words": {
+    "qwen3-reconstructed": [
+     "p",
+     "(\"",
+     "Bo",
+     "\",",
+     "help",
+     ",\"",
+     "Cy",
+     "\",",
+     "+,",
+     "past",
+     ",",
+     "progress",
+     "ive",
+     ",",
+     "un",
+     "specified",
+     ")"
+    ],
+    "o200k_base": [
+     "p",
+     "(\"",
+     "Bo",
+     "\",",
+     "help",
+     ",\"",
+     "Cy",
+     "\",",
+     "+,",
+     "past",
+     ",",
+     "progress",
+     "ive",
+     ",",
+     "uns",
+     "pecified",
+     ")"
+    ]
+   },
+   "m_opt": {
+    "qwen3-reconstructed": [
+     "h",
+     "(\"",
+     "Bo",
+     "\",\"",
+     "Cy",
+     "\")",
+     "/",
+     "pg"
+    ],
+    "o200k_base": [
+     "h",
+     "(\"",
+     "Bo",
+     "\",\"",
+     "Cy",
+     "\")",
+     "/",
+     "pg"
+    ]
+   },
+   "cdsl": {
+    "qwen3-reconstructed": [
+     "help",
+     "(\"",
+     "Bo",
+     "\",\"",
+     "Cy",
+     "\")",
+     " past",
+     " progressive"
+    ],
+    "o200k_base": [
+     "help",
+     "(\"",
+     "Bo",
+     "\",\"",
+     "Cy",
+     "\")",
+     " past",
+     " progressive"
+    ]
+   },
+   "english_concise": {
+    "qwen3-reconstructed": [
+     "\"",
+     "Bo",
+     "\"",
+     " was",
+     " helping",
+     " \"",
+     "Cy",
+     "\"."
+    ],
+    "o200k_base": [
+     "\"",
+     "Bo",
+     "\"",
+     " was",
+     " helping",
+     " \"",
+     "Cy",
+     "\"."
+    ]
+   },
+   "r_tsv_p": {
+    "qwen3-reconstructed": [
+     "Bo",
+     "\thelp",
+     " past",
+     " progressive",
+     "\tC",
+     "y"
+    ],
+    "o200k_base": [
+     "Bo",
+     "\t",
+     "help",
+     " past",
+     " progressive",
+     "\tC",
+     "y"
+    ]
+   },
+   "c_tsv": {
+    "qwen3-reconstructed": [
+     "Bo",
+     "\th",
+     "pg",
+     "\tC",
+     "y"
+    ],
+    "o200k_base": [
+     "Bo",
+     "\th",
+     "pg",
+     "\tC",
+     "y"
+    ]
+   }
+  }
+ },
+ "batch": {
+  "en_skewed": {
+   "records": {
+    "english_repo": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 339,
+       "overhead": 301,
+       "block": 38
+      },
+      "10": {
+       "full": 497,
+       "overhead": 301,
+       "block": 196
+      },
+      "100": {
+       "full": 2635,
+       "overhead": 301,
+       "block": 2334
+      },
+      "200": {
+       "full": 4560,
+       "overhead": 301,
+       "block": 4259
+      },
+      "per_record_N200": 21.295,
+      "prefix_tokens": 282
+     },
+     "o200k_base": {
+      "1": {
+       "full": 338,
+       "overhead": 300,
+       "block": 38
+      },
+      "10": {
+       "full": 493,
+       "overhead": 300,
+       "block": 193
+      },
+      "100": {
+       "full": 2612,
+       "overhead": 300,
+       "block": 2312
+      },
+      "200": {
+       "full": 4517,
+       "overhead": 300,
+       "block": 4217
+      },
+      "per_record_N200": 21.085,
+      "prefix_tokens": 283
+     },
+     "llama3": {
+      "1": {
+       "full": 341,
+       "overhead": 303,
+       "block": 38
+      },
+      "10": {
+       "full": 499,
+       "overhead": 303,
+       "block": 196
+      },
+      "100": {
+       "full": 2637,
+       "overhead": 303,
+       "block": 2334
+      },
+      "200": {
+       "full": 4562,
+       "overhead": 303,
+       "block": 4259
+      },
+      "per_record_N200": 21.295,
+      "prefix_tokens": 284
+     },
+     "llama4": {
+      "1": {
+       "full": 339,
+       "overhead": 301,
+       "block": 38
+      },
+      "10": {
+       "full": 492,
+       "overhead": 301,
+       "block": 191
+      },
+      "100": {
+       "full": 2593,
+       "overhead": 301,
+       "block": 2292
+      },
+      "200": {
+       "full": 4486,
+       "overhead": 301,
+       "block": 4185
+      },
+      "per_record_N200": 20.925,
+      "prefix_tokens": 282
+     },
+     "tekken": {
+      "1": {
+       "full": 338,
+       "overhead": 300,
+       "block": 39
+      },
+      "10": {
+       "full": 493,
+       "overhead": 300,
+       "block": 194
+      },
+      "100": {
+       "full": 2638,
+       "overhead": 300,
+       "block": 2339
+      },
+      "200": {
+       "full": 4564,
+       "overhead": 300,
+       "block": 4265
+      },
+      "per_record_N200": 21.325,
+      "prefix_tokens": 284
+     },
+     "gemma3": {
+      "1": {
+       "full": 336,
+       "overhead": 298,
+       "block": 37
+      },
+      "10": {
+       "full": 495,
+       "overhead": 298,
+       "block": 196
+      },
+      "100": {
+       "full": 2648,
+       "overhead": 298,
+       "block": 2349
+      },
+      "200": {
+       "full": 4610,
+       "overhead": 298,
+       "block": 4311
+      },
+      "per_record_N200": 21.555,
+      "prefix_tokens": 280
+     }
+    },
+    "json_repo": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 182,
+       "overhead": 89,
+       "block": 92
+      },
+      "10": {
+       "full": 595,
+       "overhead": 89,
+       "block": 506
+      },
+      "100": {
+       "full": 5973,
+       "overhead": 89,
+       "block": 5884
+      },
+      "200": {
+       "full": 10933,
+       "overhead": 89,
+       "block": 10844
+      },
+      "per_record_N200": 54.22,
+      "prefix_tokens": 70
+     },
+     "o200k_base": {
+      "1": {
+       "full": 182,
+       "overhead": 88,
+       "block": 93
+      },
+      "10": {
+       "full": 595,
+       "overhead": 88,
+       "block": 507
+      },
+      "100": {
+       "full": 5998,
+       "overhead": 88,
+       "block": 5910
+      },
+      "200": {
+       "full": 10964,
+       "overhead": 88,
+       "block": 10876
+      },
+      "per_record_N200": 54.38,
+      "prefix_tokens": 71
+     },
+     "llama3": {
+      "1": {
+       "full": 184,
+       "overhead": 91,
+       "block": 92
+      },
+      "10": {
+       "full": 597,
+       "overhead": 91,
+       "block": 506
+      },
+      "100": {
+       "full": 5975,
+       "overhead": 91,
+       "block": 5884
+      },
+      "200": {
+       "full": 10935,
+       "overhead": 91,
+       "block": 10844
+      },
+      "per_record_N200": 54.22,
+      "prefix_tokens": 72
+     },
+     "llama4": {
+      "1": {
+       "full": 179,
+       "overhead": 90,
+       "block": 88
+      },
+      "10": {
+       "full": 569,
+       "overhead": 90,
+       "block": 479
+      },
+      "100": {
+       "full": 5675,
+       "overhead": 90,
+       "block": 5585
+      },
+      "200": {
+       "full": 10378,
+       "overhead": 90,
+       "block": 10288
+      },
+      "per_record_N200": 51.44,
+      "prefix_tokens": 71
+     },
+     "tekken": {
+      "1": {
+       "full": 180,
+       "overhead": 83,
+       "block": 97
+      },
+      "10": {
+       "full": 611,
+       "overhead": 83,
+       "block": 528
+      },
+      "100": {
+       "full": 6229,
+       "overhead": 83,
+       "block": 6146
+      },
+      "200": {
+       "full": 11392,
+       "overhead": 83,
+       "block": 11309
+      },
+      "per_record_N200": 56.545,
+      "prefix_tokens": 67
+     },
+     "gemma3": {
+      "1": {
+       "full": 173,
+       "overhead": 86,
+       "block": 86
+      },
+      "10": {
+       "full": 558,
+       "overhead": 86,
+       "block": 471
+      },
+      "100": {
+       "full": 5598,
+       "overhead": 86,
+       "block": 5511
+      },
+      "200": {
+       "full": 10244,
+       "overhead": 86,
+       "block": 10157
+      },
+      "per_record_N200": 50.785,
+      "prefix_tokens": 68
+     }
+    },
+    "m_repo": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 220,
+       "overhead": 183,
+       "block": 37
+      },
+      "10": {
+       "full": 392,
+       "overhead": 183,
+       "block": 209
+      },
+      "100": {
+       "full": 2541,
+       "overhead": 183,
+       "block": 2358
+      },
+      "200": {
+       "full": 4563,
+       "overhead": 183,
+       "block": 4380
+      },
+      "per_record_N200": 21.9,
+      "prefix_tokens": 164
+     },
+     "o200k_base": {
+      "1": {
+       "full": 218,
+       "overhead": 181,
+       "block": 37
+      },
+      "10": {
+       "full": 387,
+       "overhead": 181,
+       "block": 206
+      },
+      "100": {
+       "full": 2517,
+       "overhead": 181,
+       "block": 2336
+      },
+      "200": {
+       "full": 4519,
+       "overhead": 181,
+       "block": 4338
+      },
+      "per_record_N200": 21.69,
+      "prefix_tokens": 164
+     },
+     "llama3": {
+      "1": {
+       "full": 222,
+       "overhead": 185,
+       "block": 37
+      },
+      "10": {
+       "full": 394,
+       "overhead": 185,
+       "block": 209
+      },
+      "100": {
+       "full": 2543,
+       "overhead": 185,
+       "block": 2358
+      },
+      "200": {
+       "full": 4565,
+       "overhead": 185,
+       "block": 4380
+      },
+      "per_record_N200": 21.9,
+      "prefix_tokens": 166
+     },
+     "llama4": {
+      "1": {
+       "full": 222,
+       "overhead": 185,
+       "block": 37
+      },
+      "10": {
+       "full": 389,
+       "overhead": 185,
+       "block": 204
+      },
+      "100": {
+       "full": 2501,
+       "overhead": 185,
+       "block": 2316
+      },
+      "200": {
+       "full": 4491,
+       "overhead": 185,
+       "block": 4306
+      },
+      "per_record_N200": 21.53,
+      "prefix_tokens": 166
+     },
+     "tekken": {
+      "1": {
+       "full": 222,
+       "overhead": 185,
+       "block": 38
+      },
+      "10": {
+       "full": 391,
+       "overhead": 185,
+       "block": 207
+      },
+      "100": {
+       "full": 2547,
+       "overhead": 185,
+       "block": 2363
+      },
+      "200": {
+       "full": 4570,
+       "overhead": 185,
+       "block": 4386
+      },
+      "per_record_N200": 21.93,
+      "prefix_tokens": 169
+     },
+     "gemma3": {
+      "1": {
+       "full": 230,
+       "overhead": 188,
+       "block": 41
+      },
+      "10": {
+       "full": 424,
+       "overhead": 188,
+       "block": 235
+      },
+      "100": {
+       "full": 2873,
+       "overhead": 188,
+       "block": 2684
+      },
+      "200": {
+       "full": 5186,
+       "overhead": 188,
+       "block": 4997
+      },
+      "per_record_N200": 24.985,
+      "prefix_tokens": 170
+     }
+    },
+    "english_natural*": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 85,
+       "overhead": 65,
+       "block": 20
+      },
+      "10": {
+       "full": 191,
+       "overhead": 65,
+       "block": 126
+      },
+      "100": {
+       "full": 1525,
+       "overhead": 65,
+       "block": 1460
+      },
+      "200": {
+       "full": 2748,
+       "overhead": 65,
+       "block": 2683
+      },
+      "per_record_N200": 13.415,
+      "prefix_tokens": 46
+     },
+     "o200k_base": {
+      "1": {
+       "full": 84,
+       "overhead": 64,
+       "block": 20
+      },
+      "10": {
+       "full": 187,
+       "overhead": 64,
+       "block": 123
+      },
+      "100": {
+       "full": 1495,
+       "overhead": 64,
+       "block": 1431
+      },
+      "200": {
+       "full": 2688,
+       "overhead": 64,
+       "block": 2624
+      },
+      "per_record_N200": 13.12,
+      "prefix_tokens": 47
+     },
+     "llama3": {
+      "1": {
+       "full": 87,
+       "overhead": 67,
+       "block": 20
+      },
+      "10": {
+       "full": 193,
+       "overhead": 67,
+       "block": 126
+      },
+      "100": {
+       "full": 1527,
+       "overhead": 67,
+       "block": 1460
+      },
+      "200": {
+       "full": 2750,
+       "overhead": 67,
+       "block": 2683
+      },
+      "per_record_N200": 13.415,
+      "prefix_tokens": 48
+     },
+     "llama4": {
+      "1": {
+       "full": 86,
+       "overhead": 66,
+       "block": 20
+      },
+      "10": {
+       "full": 185,
+       "overhead": 66,
+       "block": 119
+      },
+      "100": {
+       "full": 1443,
+       "overhead": 66,
+       "block": 1377
+      },
+      "200": {
+       "full": 2590,
+       "overhead": 66,
+       "block": 2524
+      },
+      "per_record_N200": 12.62,
+      "prefix_tokens": 47
+     },
+     "tekken": {
+      "1": {
+       "full": 79,
+       "overhead": 59,
+       "block": 21
+      },
+      "10": {
+       "full": 184,
+       "overhead": 59,
+       "block": 126
+      },
+      "100": {
+       "full": 1516,
+       "overhead": 59,
+       "block": 1458
+      },
+      "200": {
+       "full": 2731,
+       "overhead": 59,
+       "block": 2673
+      },
+      "per_record_N200": 13.365,
+      "prefix_tokens": 43
+     },
+     "gemma3": {
+      "1": {
+       "full": 82,
+       "overhead": 62,
+       "block": 19
+      },
+      "10": {
+       "full": 187,
+       "overhead": 62,
+       "block": 124
+      },
+      "100": {
+       "full": 1494,
+       "overhead": 62,
+       "block": 1431
+      },
+      "200": {
+       "full": 2707,
+       "overhead": 62,
+       "block": 2644
+      },
+      "per_record_N200": 13.22,
+      "prefix_tokens": 44
+     }
+    },
+    "english_concise": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 164,
+       "overhead": 136,
+       "block": 28
+      },
+      "10": {
+       "full": 304,
+       "overhead": 136,
+       "block": 168
+      },
+      "100": {
+       "full": 2152,
+       "overhead": 136,
+       "block": 2016
+      },
+      "200": {
+       "full": 3806,
+       "overhead": 136,
+       "block": 3670
+      },
+      "per_record_N200": 18.35,
+      "prefix_tokens": 117
+     },
+     "o200k_base": {
+      "1": {
+       "full": 163,
+       "overhead": 135,
+       "block": 28
+      },
+      "10": {
+       "full": 299,
+       "overhead": 135,
+       "block": 164
+      },
+      "100": {
+       "full": 2127,
+       "overhead": 135,
+       "block": 1992
+      },
+      "200": {
+       "full": 3761,
+       "overhead": 135,
+       "block": 3626
+      },
+      "per_record_N200": 18.13,
+      "prefix_tokens": 118
+     },
+     "llama3": {
+      "1": {
+       "full": 166,
+       "overhead": 138,
+       "block": 28
+      },
+      "10": {
+       "full": 306,
+       "overhead": 138,
+       "block": 168
+      },
+      "100": {
+       "full": 2154,
+       "overhead": 138,
+       "block": 2016
+      },
+      "200": {
+       "full": 3808,
+       "overhead": 138,
+       "block": 3670
+      },
+      "per_record_N200": 18.35,
+      "prefix_tokens": 119
+     },
+     "llama4": {
+      "1": {
+       "full": 164,
+       "overhead": 136,
+       "block": 28
+      },
+      "10": {
+       "full": 298,
+       "overhead": 136,
+       "block": 162
+      },
+      "100": {
+       "full": 2110,
+       "overhead": 136,
+       "block": 1974
+      },
+      "200": {
+       "full": 3734,
+       "overhead": 136,
+       "block": 3598
+      },
+      "per_record_N200": 17.99,
+      "prefix_tokens": 117
+     },
+     "tekken": {
+      "1": {
+       "full": 157,
+       "overhead": 129,
+       "block": 29
+      },
+      "10": {
+       "full": 294,
+       "overhead": 129,
+       "block": 166
+      },
+      "100": {
+       "full": 2155,
+       "overhead": 129,
+       "block": 2027
+      },
+      "200": {
+       "full": 3810,
+       "overhead": 129,
+       "block": 3682
+      },
+      "per_record_N200": 18.41,
+      "prefix_tokens": 113
+     },
+     "gemma3": {
+      "1": {
+       "full": 161,
+       "overhead": 133,
+       "block": 27
+      },
+      "10": {
+       "full": 302,
+       "overhead": 133,
+       "block": 168
+      },
+      "100": {
+       "full": 2173,
+       "overhead": 133,
+       "block": 2039
+      },
+      "200": {
+       "full": 3868,
+       "overhead": 133,
+       "block": 3734
+      },
+      "per_record_N200": 18.67,
+      "prefix_tokens": 115
+     }
+    },
+    "cdsl": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 146,
+       "overhead": 120,
+       "block": 26
+      },
+      "10": {
+       "full": 274,
+       "overhead": 120,
+       "block": 153
+      },
+      "100": {
+       "full": 1866,
+       "overhead": 120,
+       "block": 1745
+      },
+      "200": {
+       "full": 3317,
+       "overhead": 120,
+       "block": 3197
+      },
+      "per_record_N200": 15.985,
+      "prefix_tokens": 101
+     },
+     "o200k_base": {
+      "1": {
+       "full": 145,
+       "overhead": 119,
+       "block": 26
+      },
+      "10": {
+       "full": 270,
+       "overhead": 119,
+       "block": 150
+      },
+      "100": {
+       "full": 1843,
+       "overhead": 119,
+       "block": 1723
+      },
+      "200": {
+       "full": 3274,
+       "overhead": 119,
+       "block": 3155
+      },
+      "per_record_N200": 15.775,
+      "prefix_tokens": 102
+     },
+     "llama3": {
+      "1": {
+       "full": 148,
+       "overhead": 122,
+       "block": 26
+      },
+      "10": {
+       "full": 276,
+       "overhead": 122,
+       "block": 153
+      },
+      "100": {
+       "full": 1868,
+       "overhead": 122,
+       "block": 1745
+      },
+      "200": {
+       "full": 3319,
+       "overhead": 122,
+       "block": 3197
+      },
+      "per_record_N200": 15.985,
+      "prefix_tokens": 103
+     },
+     "llama4": {
+      "1": {
+       "full": 147,
+       "overhead": 121,
+       "block": 26
+      },
+      "10": {
+       "full": 269,
+       "overhead": 121,
+       "block": 147
+      },
+      "100": {
+       "full": 1829,
+       "overhead": 121,
+       "block": 1707
+      },
+      "200": {
+       "full": 3251,
+       "overhead": 121,
+       "block": 3130
+      },
+      "per_record_N200": 15.65,
+      "prefix_tokens": 102
+     },
+     "tekken": {
+      "1": {
+       "full": 141,
+       "overhead": 114,
+       "block": 28
+      },
+      "10": {
+       "full": 269,
+       "overhead": 114,
+       "block": 155
+      },
+      "100": {
+       "full": 1917,
+       "overhead": 114,
+       "block": 1803
+      },
+      "200": {
+       "full": 3413,
+       "overhead": 114,
+       "block": 3300
+      },
+      "per_record_N200": 16.5,
+      "prefix_tokens": 98
+     },
+     "gemma3": {
+      "1": {
+       "full": 145,
+       "overhead": 119,
+       "block": 25
+      },
+      "10": {
+       "full": 267,
+       "overhead": 119,
+       "block": 147
+      },
+      "100": {
+       "full": 1842,
+       "overhead": 119,
+       "block": 1722
+      },
+      "200": {
+       "full": 3276,
+       "overhead": 119,
+       "block": 3156
+      },
+      "per_record_N200": 15.78,
+      "prefix_tokens": 101
+     }
+    },
+    "m_opt": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 176,
+       "overhead": 151,
+       "block": 25
+      },
+      "10": {
+       "full": 306,
+       "overhead": 151,
+       "block": 154
+      },
+      "100": {
+       "full": 1921,
+       "overhead": 151,
+       "block": 1769
+      },
+      "200": {
+       "full": 3401,
+       "overhead": 151,
+       "block": 3250
+      },
+      "per_record_N200": 16.25,
+      "prefix_tokens": 132
+     },
+     "o200k_base": {
+      "1": {
+       "full": 175,
+       "overhead": 150,
+       "block": 25
+      },
+      "10": {
+       "full": 302,
+       "overhead": 150,
+       "block": 151
+      },
+      "100": {
+       "full": 1898,
+       "overhead": 150,
+       "block": 1747
+      },
+      "200": {
+       "full": 3358,
+       "overhead": 150,
+       "block": 3208
+      },
+      "per_record_N200": 16.04,
+      "prefix_tokens": 133
+     },
+     "llama3": {
+      "1": {
+       "full": 178,
+       "overhead": 153,
+       "block": 25
+      },
+      "10": {
+       "full": 308,
+       "overhead": 153,
+       "block": 154
+      },
+      "100": {
+       "full": 1923,
+       "overhead": 153,
+       "block": 1769
+      },
+      "200": {
+       "full": 3403,
+       "overhead": 153,
+       "block": 3250
+      },
+      "per_record_N200": 16.25,
+      "prefix_tokens": 134
+     },
+     "llama4": {
+      "1": {
+       "full": 177,
+       "overhead": 152,
+       "block": 25
+      },
+      "10": {
+       "full": 302,
+       "overhead": 152,
+       "block": 149
+      },
+      "100": {
+       "full": 1880,
+       "overhead": 152,
+       "block": 1727
+      },
+      "200": {
+       "full": 3328,
+       "overhead": 152,
+       "block": 3176
+      },
+      "per_record_N200": 15.88,
+      "prefix_tokens": 133
+     },
+     "tekken": {
+      "1": {
+       "full": 172,
+       "overhead": 147,
+       "block": 26
+      },
+      "10": {
+       "full": 300,
+       "overhead": 147,
+       "block": 153
+      },
+      "100": {
+       "full": 1928,
+       "overhead": 147,
+       "block": 1781
+      },
+      "200": {
+       "full": 3410,
+       "overhead": 147,
+       "block": 3264
+      },
+      "per_record_N200": 16.32,
+      "prefix_tokens": 131
+     },
+     "gemma3": {
+      "1": {
+       "full": 174,
+       "overhead": 148,
+       "block": 25
+      },
+      "10": {
+       "full": 290,
+       "overhead": 148,
+       "block": 141
+      },
+      "100": {
+       "full": 1801,
+       "overhead": 148,
+       "block": 1652
+      },
+      "200": {
+       "full": 3190,
+       "overhead": 148,
+       "block": 3041
+      },
+      "per_record_N200": 15.205,
+      "prefix_tokens": 130
+     }
+    },
+    "json_array": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 135,
+       "overhead": 90,
+       "block": 44
+      },
+      "10": {
+       "full": 332,
+       "overhead": 90,
+       "block": 242
+      },
+      "100": {
+       "full": 2881,
+       "overhead": 90,
+       "block": 2791
+      },
+      "200": {
+       "full": 5258,
+       "overhead": 90,
+       "block": 5168
+      },
+      "per_record_N200": 25.84,
+      "prefix_tokens": 71
+     },
+     "o200k_base": {
+      "1": {
+       "full": 134,
+       "overhead": 88,
+       "block": 45
+      },
+      "10": {
+       "full": 331,
+       "overhead": 88,
+       "block": 243
+      },
+      "100": {
+       "full": 2905,
+       "overhead": 88,
+       "block": 2817
+      },
+      "200": {
+       "full": 5288,
+       "overhead": 88,
+       "block": 5200
+      },
+      "per_record_N200": 26.0,
+      "prefix_tokens": 71
+     },
+     "llama3": {
+      "1": {
+       "full": 137,
+       "overhead": 92,
+       "block": 44
+      },
+      "10": {
+       "full": 334,
+       "overhead": 92,
+       "block": 242
+      },
+      "100": {
+       "full": 2883,
+       "overhead": 92,
+       "block": 2791
+      },
+      "200": {
+       "full": 5260,
+       "overhead": 92,
+       "block": 5168
+      },
+      "per_record_N200": 25.84,
+      "prefix_tokens": 73
+     },
+     "llama4": {
+      "1": {
+       "full": 135,
+       "overhead": 91,
+       "block": 43
+      },
+      "10": {
+       "full": 326,
+       "overhead": 91,
+       "block": 235
+      },
+      "100": {
+       "full": 2797,
+       "overhead": 91,
+       "block": 2706
+      },
+      "200": {
+       "full": 5121,
+       "overhead": 91,
+       "block": 5030
+      },
+      "per_record_N200": 25.15,
+      "prefix_tokens": 72
+     },
+     "tekken": {
+      "1": {
+       "full": 133,
+       "overhead": 86,
+       "block": 48
+      },
+      "10": {
+       "full": 337,
+       "overhead": 86,
+       "block": 252
+      },
+      "100": {
+       "full": 3001,
+       "overhead": 86,
+       "block": 2916
+      },
+      "200": {
+       "full": 5463,
+       "overhead": 86,
+       "block": 5378
+      },
+      "per_record_N200": 26.89,
+      "prefix_tokens": 70
+     },
+     "gemma3": {
+      "1": {
+       "full": 131,
+       "overhead": 86,
+       "block": 44
+      },
+      "10": {
+       "full": 330,
+       "overhead": 86,
+       "block": 243
+      },
+      "100": {
+       "full": 2910,
+       "overhead": 86,
+       "block": 2823
+      },
+      "200": {
+       "full": 5324,
+       "overhead": 86,
+       "block": 5237
+      },
+      "per_record_N200": 26.185,
+      "prefix_tokens": 68
+     }
+    },
+    "r_tsv_p": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 181,
+       "overhead": 159,
+       "block": 21
+      },
+      "10": {
+       "full": 289,
+       "overhead": 159,
+       "block": 129
+      },
+      "100": {
+       "full": 1617,
+       "overhead": 159,
+       "block": 1457
+      },
+      "200": {
+       "full": 2831,
+       "overhead": 159,
+       "block": 2671
+      },
+      "per_record_N200": 13.355,
+      "prefix_tokens": 140
+     },
+     "o200k_base": {
+      "1": {
+       "full": 180,
+       "overhead": 158,
+       "block": 21
+      },
+      "10": {
+       "full": 287,
+       "overhead": 158,
+       "block": 128
+      },
+      "100": {
+       "full": 1617,
+       "overhead": 158,
+       "block": 1458
+      },
+      "200": {
+       "full": 2838,
+       "overhead": 158,
+       "block": 2679
+      },
+      "per_record_N200": 13.395,
+      "prefix_tokens": 141
+     },
+     "llama3": {
+      "1": {
+       "full": 183,
+       "overhead": 161,
+       "block": 21
+      },
+      "10": {
+       "full": 291,
+       "overhead": 161,
+       "block": 129
+      },
+      "100": {
+       "full": 1619,
+       "overhead": 161,
+       "block": 1457
+      },
+      "200": {
+       "full": 2833,
+       "overhead": 161,
+       "block": 2671
+      },
+      "per_record_N200": 13.355,
+      "prefix_tokens": 142
+     },
+     "llama4": {
+      "1": {
+       "full": 182,
+       "overhead": 160,
+       "block": 21
+      },
+      "10": {
+       "full": 289,
+       "overhead": 160,
+       "block": 128
+      },
+      "100": {
+       "full": 1606,
+       "overhead": 160,
+       "block": 1445
+      },
+      "200": {
+       "full": 2819,
+       "overhead": 160,
+       "block": 2658
+      },
+      "per_record_N200": 13.29,
+      "prefix_tokens": 141
+     },
+     "tekken": {
+      "1": {
+       "full": 181,
+       "overhead": 156,
+       "block": 25
+      },
+      "10": {
+       "full": 297,
+       "overhead": 156,
+       "block": 141
+      },
+      "100": {
+       "full": 1805,
+       "overhead": 156,
+       "block": 1649
+      },
+      "200": {
+       "full": 3186,
+       "overhead": 156,
+       "block": 3030
+      },
+      "per_record_N200": 15.15,
+      "prefix_tokens": 140
+     },
+     "gemma3": {
+      "1": {
+       "full": 185,
+       "overhead": 161,
+       "block": 23
+      },
+      "10": {
+       "full": 296,
+       "overhead": 161,
+       "block": 134
+      },
+      "100": {
+       "full": 1731,
+       "overhead": 161,
+       "block": 1569
+      },
+      "200": {
+       "full": 3040,
+       "overhead": 161,
+       "block": 2878
+      },
+      "per_record_N200": 14.39,
+      "prefix_tokens": 143
+     }
+    },
+    "c_tsv": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 197,
+       "overhead": 178,
+       "block": 18
+      },
+      "10": {
+       "full": 288,
+       "overhead": 178,
+       "block": 109
+      },
+      "100": {
+       "full": 1446,
+       "overhead": 178,
+       "block": 1267
+      },
+      "200": {
+       "full": 2512,
+       "overhead": 178,
+       "block": 2333
+      },
+      "per_record_N200": 11.665,
+      "prefix_tokens": 159
+     },
+     "o200k_base": {
+      "1": {
+       "full": 196,
+       "overhead": 177,
+       "block": 18
+      },
+      "10": {
+       "full": 284,
+       "overhead": 177,
+       "block": 106
+      },
+      "100": {
+       "full": 1418,
+       "overhead": 177,
+       "block": 1240
+      },
+      "200": {
+       "full": 2464,
+       "overhead": 177,
+       "block": 2286
+      },
+      "per_record_N200": 11.43,
+      "prefix_tokens": 160
+     },
+     "llama3": {
+      "1": {
+       "full": 199,
+       "overhead": 180,
+       "block": 18
+      },
+      "10": {
+       "full": 290,
+       "overhead": 180,
+       "block": 109
+      },
+      "100": {
+       "full": 1448,
+       "overhead": 180,
+       "block": 1267
+      },
+      "200": {
+       "full": 2514,
+       "overhead": 180,
+       "block": 2333
+      },
+      "per_record_N200": 11.665,
+      "prefix_tokens": 161
+     },
+     "llama4": {
+      "1": {
+       "full": 198,
+       "overhead": 179,
+       "block": 18
+      },
+      "10": {
+       "full": 288,
+       "overhead": 179,
+       "block": 108
+      },
+      "100": {
+       "full": 1417,
+       "overhead": 179,
+       "block": 1237
+      },
+      "200": {
+       "full": 2460,
+       "overhead": 179,
+       "block": 2280
+      },
+      "per_record_N200": 11.4,
+      "prefix_tokens": 160
+     },
+     "tekken": {
+      "1": {
+       "full": 200,
+       "overhead": 178,
+       "block": 22
+      },
+      "10": {
+       "full": 300,
+       "overhead": 178,
+       "block": 122
+      },
+      "100": {
+       "full": 1600,
+       "overhead": 178,
+       "block": 1422
+      },
+      "200": {
+       "full": 2791,
+       "overhead": 178,
+       "block": 2613
+      },
+      "per_record_N200": 13.065,
+      "prefix_tokens": 162
+     },
+     "gemma3": {
+      "1": {
+       "full": 200,
+       "overhead": 177,
+       "block": 22
+      },
+      "10": {
+       "full": 298,
+       "overhead": 177,
+       "block": 120
+      },
+      "100": {
+       "full": 1584,
+       "overhead": 177,
+       "block": 1406
+      },
+      "200": {
+       "full": 2775,
+       "overhead": 177,
+       "block": 2597
+      },
+      "per_record_N200": 12.985,
+      "prefix_tokens": 159
+     }
+    }
+   },
+   "m_repo_break_even_N": {
+    "english_repo": {
+     "qwen3-reconstructed": -195.0413223140506,
+     "o200k_base": -196.69421487603293,
+     "llama3": -195.0413223140506,
+     "llama4": -191.7355371900825,
+     "tekken": -190.08264462809905,
+     "gemma3": -32.06997084548105
+    },
+    "json_repo": {
+     "qwen3-reconstructed": 2.9084158415841586,
+     "o200k_base": 2.844906699296421,
+     "llama3": 2.9084158415841586,
+     "llama4": 3.176195252423939,
+     "tekken": 2.9466994077711974,
+     "gemma3": 3.9534883720930236
+    },
+    "m_repo": {
+     "qwen3-reconstructed": null,
+     "o200k_base": null,
+     "llama3": null,
+     "llama4": null,
+     "tekken": null,
+     "gemma3": null
+    },
+    "english_natural*": {
+     "qwen3-reconstructed": null,
+     "o200k_base": null,
+     "llama3": null,
+     "llama4": null,
+     "tekken": null,
+     "gemma3": null
+    },
+    "english_concise": {
+     "qwen3-reconstructed": null,
+     "o200k_base": null,
+     "llama3": null,
+     "llama4": null,
+     "tekken": null,
+     "gemma3": null
+    },
+    "cdsl": {
+     "qwen3-reconstructed": null,
+     "o200k_base": null,
+     "llama3": null,
+     "llama4": null,
+     "tekken": null,
+     "gemma3": null
+    },
+    "m_opt": {
+     "qwen3-reconstructed": null,
+     "o200k_base": null,
+     "llama3": null,
+     "llama4": null,
+     "tekken": null,
+     "gemma3": null
+    },
+    "json_array": {
+     "qwen3-reconstructed": 23.604060913705577,
+     "o200k_base": 21.577726218097453,
+     "llama3": 23.604060913705577,
+     "llama4": 25.9668508287293,
+     "tekken": 19.959677419354836,
+     "gemma3": 85.00000000000006
+    },
+    "r_tsv_p": {
+     "qwen3-reconstructed": null,
+     "o200k_base": null,
+     "llama3": null,
+     "llama4": null,
+     "tekken": null,
+     "gemma3": null
+    },
+    "c_tsv": {
+     "qwen3-reconstructed": null,
+     "o200k_base": null,
+     "llama3": null,
+     "llama4": null,
+     "tekken": null,
+     "gemma3": null
+    }
+   },
+   "m_repo_beats_json_repo_first_N": {
+    "qwen3-reconstructed": 2,
+    "o200k_base": 2,
+    "llama3": 2,
+    "llama4": 2,
+    "tekken": 2,
+    "gemma3": 3
+   },
+   "layout_matched": {
+    "qwen3-reconstructed": {
+     "c_tsv_over_r_tsv_p_block_N200": 0.8734556345937851,
+     "c_tsv_over_r_tsv_p_full_N100": 0.8942486085343229,
+     "best_readable_full_N100": "r_tsv_p",
+     "c_tsv_over_best_readable_full_N100": 0.8942486085343229,
+     "m_opt_over_cdsl_full_N100": 1.0294748124330118,
+     "m_repo_over_best_readable_full_N100": 1.5714285714285714
+    },
+    "o200k_base": {
+     "c_tsv_over_r_tsv_p_block_N200": 0.8533034714445689,
+     "c_tsv_over_r_tsv_p_full_N100": 0.8769325912183055,
+     "best_readable_full_N100": "r_tsv_p",
+     "c_tsv_over_best_readable_full_N100": 0.8769325912183055,
+     "m_opt_over_cdsl_full_N100": 1.0298426478567553,
+     "m_repo_over_best_readable_full_N100": 1.556586270871985
+    },
+    "llama3": {
+     "c_tsv_over_r_tsv_p_block_N200": 0.8734556345937851,
+     "c_tsv_over_r_tsv_p_full_N100": 0.8943792464484249,
+     "best_readable_full_N100": "r_tsv_p",
+     "c_tsv_over_best_readable_full_N100": 0.8943792464484249,
+     "m_opt_over_cdsl_full_N100": 1.029443254817987,
+     "m_repo_over_best_readable_full_N100": 1.5707226683137738
+    },
+    "llama4": {
+     "c_tsv_over_r_tsv_p_block_N200": 0.8577878103837472,
+     "c_tsv_over_r_tsv_p_full_N100": 0.8823163138231631,
+     "best_readable_full_N100": "r_tsv_p",
+     "c_tsv_over_best_readable_full_N100": 0.8823163138231631,
+     "m_opt_over_cdsl_full_N100": 1.0278840896664845,
+     "m_repo_over_best_readable_full_N100": 1.5572851805728518
+    },
+    "tekken": {
+     "c_tsv_over_r_tsv_p_block_N200": 0.8623762376237624,
+     "c_tsv_over_r_tsv_p_full_N100": 0.8864265927977839,
+     "best_readable_full_N100": "r_tsv_p",
+     "c_tsv_over_best_readable_full_N100": 0.8864265927977839,
+     "m_opt_over_cdsl_full_N100": 1.0057381324986958,
+     "m_repo_over_best_readable_full_N100": 1.4110803324099723
+    },
+    "gemma3": {
+     "c_tsv_over_r_tsv_p_block_N200": 0.9023627519110493,
+     "c_tsv_over_r_tsv_p_full_N100": 0.9150779896013865,
+     "best_readable_full_N100": "r_tsv_p",
+     "c_tsv_over_best_readable_full_N100": 0.9150779896013865,
+     "m_opt_over_cdsl_full_N100": 0.9777415852334419,
+     "m_repo_over_best_readable_full_N100": 1.6597342576545349
+    }
+   }
+  },
+  "en_uniform": {
+   "records": {
+    "english_repo": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 341,
+       "overhead": 301,
+       "block": 40
+      },
+      "10": {
+       "full": 505,
+       "overhead": 301,
+       "block": 204
+      },
+      "100": {
+       "full": 2732,
+       "overhead": 301,
+       "block": 2431
+      },
+      "200": {
+       "full": 4729,
+       "overhead": 301,
+       "block": 4428
+      },
+      "per_record_N200": 22.14,
+      "prefix_tokens": 282
+     },
+     "o200k_base": {
+      "1": {
+       "full": 340,
+       "overhead": 300,
+       "block": 40
+      },
+      "10": {
+       "full": 501,
+       "overhead": 300,
+       "block": 201
+      },
+      "100": {
+       "full": 2709,
+       "overhead": 300,
+       "block": 2409
+      },
+      "200": {
+       "full": 4686,
+       "overhead": 300,
+       "block": 4386
+      },
+      "per_record_N200": 21.93,
+      "prefix_tokens": 283
+     },
+     "llama3": {
+      "1": {
+       "full": 343,
+       "overhead": 303,
+       "block": 40
+      },
+      "10": {
+       "full": 507,
+       "overhead": 303,
+       "block": 204
+      },
+      "100": {
+       "full": 2734,
+       "overhead": 303,
+       "block": 2431
+      },
+      "200": {
+       "full": 4731,
+       "overhead": 303,
+       "block": 4428
+      },
+      "per_record_N200": 22.14,
+      "prefix_tokens": 284
+     },
+     "llama4": {
+      "1": {
+       "full": 341,
+       "overhead": 301,
+       "block": 40
+      },
+      "10": {
+       "full": 500,
+       "overhead": 301,
+       "block": 199
+      },
+      "100": {
+       "full": 2690,
+       "overhead": 301,
+       "block": 2389
+      },
+      "200": {
+       "full": 4655,
+       "overhead": 301,
+       "block": 4354
+      },
+      "per_record_N200": 21.77,
+      "prefix_tokens": 282
+     },
+     "tekken": {
+      "1": {
+       "full": 340,
+       "overhead": 300,
+       "block": 41
+      },
+      "10": {
+       "full": 501,
+       "overhead": 300,
+       "block": 202
+      },
+      "100": {
+       "full": 2735,
+       "overhead": 300,
+       "block": 2436
+      },
+      "200": {
+       "full": 4733,
+       "overhead": 300,
+       "block": 4434
+      },
+      "per_record_N200": 22.17,
+      "prefix_tokens": 284
+     },
+     "gemma3": {
+      "1": {
+       "full": 338,
+       "overhead": 298,
+       "block": 39
+      },
+      "10": {
+       "full": 503,
+       "overhead": 298,
+       "block": 204
+      },
+      "100": {
+       "full": 2745,
+       "overhead": 298,
+       "block": 2446
+      },
+      "200": {
+       "full": 4779,
+       "overhead": 298,
+       "block": 4480
+      },
+      "per_record_N200": 22.4,
+      "prefix_tokens": 280
+     }
+    },
+    "json_repo": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 180,
+       "overhead": 89,
+       "block": 90
+      },
+      "10": {
+       "full": 596,
+       "overhead": 89,
+       "block": 507
+      },
+      "100": {
+       "full": 5993,
+       "overhead": 89,
+       "block": 5904
+      },
+      "200": {
+       "full": 10958,
+       "overhead": 89,
+       "block": 10869
+      },
+      "per_record_N200": 54.345,
+      "prefix_tokens": 70
+     },
+     "o200k_base": {
+      "1": {
+       "full": 180,
+       "overhead": 88,
+       "block": 91
+      },
+      "10": {
+       "full": 596,
+       "overhead": 88,
+       "block": 508
+      },
+      "100": {
+       "full": 6018,
+       "overhead": 88,
+       "block": 5930
+      },
+      "200": {
+       "full": 10989,
+       "overhead": 88,
+       "block": 10901
+      },
+      "per_record_N200": 54.505,
+      "prefix_tokens": 71
+     },
+     "llama3": {
+      "1": {
+       "full": 182,
+       "overhead": 91,
+       "block": 90
+      },
+      "10": {
+       "full": 598,
+       "overhead": 91,
+       "block": 507
+      },
+      "100": {
+       "full": 5995,
+       "overhead": 91,
+       "block": 5904
+      },
+      "200": {
+       "full": 10960,
+       "overhead": 91,
+       "block": 10869
+      },
+      "per_record_N200": 54.345,
+      "prefix_tokens": 72
+     },
+     "llama4": {
+      "1": {
+       "full": 177,
+       "overhead": 90,
+       "block": 86
+      },
+      "10": {
+       "full": 570,
+       "overhead": 90,
+       "block": 480
+      },
+      "100": {
+       "full": 5695,
+       "overhead": 90,
+       "block": 5605
+      },
+      "200": {
+       "full": 10403,
+       "overhead": 90,
+       "block": 10313
+      },
+      "per_record_N200": 51.565,
+      "prefix_tokens": 71
+     },
+     "tekken": {
+      "1": {
+       "full": 178,
+       "overhead": 83,
+       "block": 95
+      },
+      "10": {
+       "full": 610,
+       "overhead": 83,
+       "block": 527
+      },
+      "100": {
+       "full": 6254,
+       "overhead": 83,
+       "block": 6171
+      },
+      "200": {
+       "full": 11432,
+       "overhead": 83,
+       "block": 11349
+      },
+      "per_record_N200": 56.745,
+      "prefix_tokens": 67
+     },
+     "gemma3": {
+      "1": {
+       "full": 171,
+       "overhead": 86,
+       "block": 84
+      },
+      "10": {
+       "full": 557,
+       "overhead": 86,
+       "block": 470
+      },
+      "100": {
+       "full": 5578,
+       "overhead": 86,
+       "block": 5491
+      },
+      "200": {
+       "full": 10206,
+       "overhead": 86,
+       "block": 10119
+      },
+      "per_record_N200": 50.595,
+      "prefix_tokens": 68
+     }
+    },
+    "m_repo": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 220,
+       "overhead": 183,
+       "block": 37
+      },
+      "10": {
+       "full": 392,
+       "overhead": 183,
+       "block": 209
+      },
+      "100": {
+       "full": 2541,
+       "overhead": 183,
+       "block": 2358
+      },
+      "200": {
+       "full": 4563,
+       "overhead": 183,
+       "block": 4380
+      },
+      "per_record_N200": 21.9,
+      "prefix_tokens": 164
+     },
+     "o200k_base": {
+      "1": {
+       "full": 218,
+       "overhead": 181,
+       "block": 37
+      },
+      "10": {
+       "full": 387,
+       "overhead": 181,
+       "block": 206
+      },
+      "100": {
+       "full": 2517,
+       "overhead": 181,
+       "block": 2336
+      },
+      "200": {
+       "full": 4519,
+       "overhead": 181,
+       "block": 4338
+      },
+      "per_record_N200": 21.69,
+      "prefix_tokens": 164
+     },
+     "llama3": {
+      "1": {
+       "full": 222,
+       "overhead": 185,
+       "block": 37
+      },
+      "10": {
+       "full": 394,
+       "overhead": 185,
+       "block": 209
+      },
+      "100": {
+       "full": 2543,
+       "overhead": 185,
+       "block": 2358
+      },
+      "200": {
+       "full": 4565,
+       "overhead": 185,
+       "block": 4380
+      },
+      "per_record_N200": 21.9,
+      "prefix_tokens": 166
+     },
+     "llama4": {
+      "1": {
+       "full": 222,
+       "overhead": 185,
+       "block": 37
+      },
+      "10": {
+       "full": 389,
+       "overhead": 185,
+       "block": 204
+      },
+      "100": {
+       "full": 2501,
+       "overhead": 185,
+       "block": 2316
+      },
+      "200": {
+       "full": 4491,
+       "overhead": 185,
+       "block": 4306
+      },
+      "per_record_N200": 21.53,
+      "prefix_tokens": 166
+     },
+     "tekken": {
+      "1": {
+       "full": 222,
+       "overhead": 185,
+       "block": 38
+      },
+      "10": {
+       "full": 391,
+       "overhead": 185,
+       "block": 207
+      },
+      "100": {
+       "full": 2547,
+       "overhead": 185,
+       "block": 2363
+      },
+      "200": {
+       "full": 4570,
+       "overhead": 185,
+       "block": 4386
+      },
+      "per_record_N200": 21.93,
+      "prefix_tokens": 169
+     },
+     "gemma3": {
+      "1": {
+       "full": 230,
+       "overhead": 188,
+       "block": 41
+      },
+      "10": {
+       "full": 424,
+       "overhead": 188,
+       "block": 235
+      },
+      "100": {
+       "full": 2873,
+       "overhead": 188,
+       "block": 2684
+      },
+      "200": {
+       "full": 5186,
+       "overhead": 188,
+       "block": 4997
+      },
+      "per_record_N200": 24.985,
+      "prefix_tokens": 170
+     }
+    },
+    "english_natural*": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 93,
+       "overhead": 65,
+       "block": 28
+      },
+      "10": {
+       "full": 216,
+       "overhead": 65,
+       "block": 151
+      },
+      "100": {
+       "full": 1775,
+       "overhead": 65,
+       "block": 1710
+      },
+      "200": {
+       "full": 3190,
+       "overhead": 65,
+       "block": 3125
+      },
+      "per_record_N200": 15.625,
+      "prefix_tokens": 46
+     },
+     "o200k_base": {
+      "1": {
+       "full": 92,
+       "overhead": 64,
+       "block": 28
+      },
+      "10": {
+       "full": 212,
+       "overhead": 64,
+       "block": 148
+      },
+      "100": {
+       "full": 1745,
+       "overhead": 64,
+       "block": 1681
+      },
+      "200": {
+       "full": 3130,
+       "overhead": 64,
+       "block": 3066
+      },
+      "per_record_N200": 15.33,
+      "prefix_tokens": 47
+     },
+     "llama3": {
+      "1": {
+       "full": 95,
+       "overhead": 67,
+       "block": 28
+      },
+      "10": {
+       "full": 218,
+       "overhead": 67,
+       "block": 151
+      },
+      "100": {
+       "full": 1777,
+       "overhead": 67,
+       "block": 1710
+      },
+      "200": {
+       "full": 3192,
+       "overhead": 67,
+       "block": 3125
+      },
+      "per_record_N200": 15.625,
+      "prefix_tokens": 48
+     },
+     "llama4": {
+      "1": {
+       "full": 92,
+       "overhead": 66,
+       "block": 26
+      },
+      "10": {
+       "full": 207,
+       "overhead": 66,
+       "block": 141
+      },
+      "100": {
+       "full": 1678,
+       "overhead": 66,
+       "block": 1612
+      },
+      "200": {
+       "full": 3009,
+       "overhead": 66,
+       "block": 2943
+      },
+      "per_record_N200": 14.715,
+      "prefix_tokens": 47
+     },
+     "tekken": {
+      "1": {
+       "full": 87,
+       "overhead": 59,
+       "block": 29
+      },
+      "10": {
+       "full": 207,
+       "overhead": 59,
+       "block": 149
+      },
+      "100": {
+       "full": 1771,
+       "overhead": 59,
+       "block": 1713
+      },
+      "200": {
+       "full": 3188,
+       "overhead": 59,
+       "block": 3130
+      },
+      "per_record_N200": 15.65,
+      "prefix_tokens": 43
+     },
+     "gemma3": {
+      "1": {
+       "full": 88,
+       "overhead": 62,
+       "block": 25
+      },
+      "10": {
+       "full": 209,
+       "overhead": 62,
+       "block": 146
+      },
+      "100": {
+       "full": 1729,
+       "overhead": 62,
+       "block": 1666
+      },
+      "200": {
+       "full": 3126,
+       "overhead": 62,
+       "block": 3063
+      },
+      "per_record_N200": 15.315,
+      "prefix_tokens": 44
+     }
+    },
+    "english_concise": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 176,
+       "overhead": 136,
+       "block": 40
+      },
+      "10": {
+       "full": 335,
+       "overhead": 136,
+       "block": 199
+      },
+      "100": {
+       "full": 2442,
+       "overhead": 136,
+       "block": 2306
+      },
+      "200": {
+       "full": 4309,
+       "overhead": 136,
+       "block": 4173
+      },
+      "per_record_N200": 20.865,
+      "prefix_tokens": 117
+     },
+     "o200k_base": {
+      "1": {
+       "full": 175,
+       "overhead": 135,
+       "block": 40
+      },
+      "10": {
+       "full": 331,
+       "overhead": 135,
+       "block": 196
+      },
+      "100": {
+       "full": 2419,
+       "overhead": 135,
+       "block": 2284
+      },
+      "200": {
+       "full": 4266,
+       "overhead": 135,
+       "block": 4131
+      },
+      "per_record_N200": 20.655,
+      "prefix_tokens": 118
+     },
+     "llama3": {
+      "1": {
+       "full": 178,
+       "overhead": 138,
+       "block": 40
+      },
+      "10": {
+       "full": 337,
+       "overhead": 138,
+       "block": 199
+      },
+      "100": {
+       "full": 2444,
+       "overhead": 138,
+       "block": 2306
+      },
+      "200": {
+       "full": 4311,
+       "overhead": 138,
+       "block": 4173
+      },
+      "per_record_N200": 20.865,
+      "prefix_tokens": 119
+     },
+     "llama4": {
+      "1": {
+       "full": 176,
+       "overhead": 136,
+       "block": 40
+      },
+      "10": {
+       "full": 330,
+       "overhead": 136,
+       "block": 194
+      },
+      "100": {
+       "full": 2400,
+       "overhead": 136,
+       "block": 2264
+      },
+      "200": {
+       "full": 4236,
+       "overhead": 136,
+       "block": 4100
+      },
+      "per_record_N200": 20.5,
+      "prefix_tokens": 117
+     },
+     "tekken": {
+      "1": {
+       "full": 169,
+       "overhead": 129,
+       "block": 41
+      },
+      "10": {
+       "full": 325,
+       "overhead": 129,
+       "block": 197
+      },
+      "100": {
+       "full": 2441,
+       "overhead": 129,
+       "block": 2313
+      },
+      "200": {
+       "full": 4310,
+       "overhead": 129,
+       "block": 4182
+      },
+      "per_record_N200": 20.91,
+      "prefix_tokens": 113
+     },
+     "gemma3": {
+      "1": {
+       "full": 173,
+       "overhead": 133,
+       "block": 39
+      },
+      "10": {
+       "full": 333,
+       "overhead": 133,
+       "block": 199
+      },
+      "100": {
+       "full": 2457,
+       "overhead": 133,
+       "block": 2323
+      },
+      "200": {
+       "full": 4364,
+       "overhead": 133,
+       "block": 4230
+      },
+      "per_record_N200": 21.15,
+      "prefix_tokens": 115
+     }
+    },
+    "cdsl": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 150,
+       "overhead": 120,
+       "block": 30
+      },
+      "10": {
+       "full": 290,
+       "overhead": 120,
+       "block": 169
+      },
+      "100": {
+       "full": 2038,
+       "overhead": 120,
+       "block": 1917
+      },
+      "200": {
+       "full": 3641,
+       "overhead": 120,
+       "block": 3520
+      },
+      "per_record_N200": 17.6,
+      "prefix_tokens": 101
+     },
+     "o200k_base": {
+      "1": {
+       "full": 149,
+       "overhead": 119,
+       "block": 30
+      },
+      "10": {
+       "full": 286,
+       "overhead": 119,
+       "block": 166
+      },
+      "100": {
+       "full": 2015,
+       "overhead": 119,
+       "block": 1895
+      },
+      "200": {
+       "full": 3598,
+       "overhead": 119,
+       "block": 3478
+      },
+      "per_record_N200": 17.39,
+      "prefix_tokens": 102
+     },
+     "llama3": {
+      "1": {
+       "full": 152,
+       "overhead": 122,
+       "block": 30
+      },
+      "10": {
+       "full": 292,
+       "overhead": 122,
+       "block": 169
+      },
+      "100": {
+       "full": 2040,
+       "overhead": 122,
+       "block": 1917
+      },
+      "200": {
+       "full": 3643,
+       "overhead": 122,
+       "block": 3520
+      },
+      "per_record_N200": 17.6,
+      "prefix_tokens": 103
+     },
+     "llama4": {
+      "1": {
+       "full": 151,
+       "overhead": 121,
+       "block": 30
+      },
+      "10": {
+       "full": 285,
+       "overhead": 121,
+       "block": 163
+      },
+      "100": {
+       "full": 2000,
+       "overhead": 121,
+       "block": 1878
+      },
+      "200": {
+       "full": 3575,
+       "overhead": 121,
+       "block": 3453
+      },
+      "per_record_N200": 17.265,
+      "prefix_tokens": 102
+     },
+     "tekken": {
+      "1": {
+       "full": 145,
+       "overhead": 114,
+       "block": 32
+      },
+      "10": {
+       "full": 284,
+       "overhead": 114,
+       "block": 170
+      },
+      "100": {
+       "full": 2071,
+       "overhead": 114,
+       "block": 1957
+      },
+      "200": {
+       "full": 3704,
+       "overhead": 114,
+       "block": 3590
+      },
+      "per_record_N200": 17.95,
+      "prefix_tokens": 98
+     },
+     "gemma3": {
+      "1": {
+       "full": 149,
+       "overhead": 119,
+       "block": 29
+      },
+      "10": {
+       "full": 282,
+       "overhead": 119,
+       "block": 162
+      },
+      "100": {
+       "full": 2012,
+       "overhead": 119,
+       "block": 1892
+      },
+      "200": {
+       "full": 3585,
+       "overhead": 119,
+       "block": 3465
+      },
+      "per_record_N200": 17.325,
+      "prefix_tokens": 101
+     }
+    },
+    "m_opt": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 180,
+       "overhead": 151,
+       "block": 29
+      },
+      "10": {
+       "full": 319,
+       "overhead": 151,
+       "block": 167
+      },
+      "100": {
+       "full": 2046,
+       "overhead": 151,
+       "block": 1894
+      },
+      "200": {
+       "full": 3653,
+       "overhead": 151,
+       "block": 3501
+      },
+      "per_record_N200": 17.505,
+      "prefix_tokens": 132
+     },
+     "o200k_base": {
+      "1": {
+       "full": 179,
+       "overhead": 150,
+       "block": 29
+      },
+      "10": {
+       "full": 315,
+       "overhead": 150,
+       "block": 164
+      },
+      "100": {
+       "full": 2023,
+       "overhead": 150,
+       "block": 1872
+      },
+      "200": {
+       "full": 3610,
+       "overhead": 150,
+       "block": 3459
+      },
+      "per_record_N200": 17.295,
+      "prefix_tokens": 133
+     },
+     "llama3": {
+      "1": {
+       "full": 182,
+       "overhead": 153,
+       "block": 29
+      },
+      "10": {
+       "full": 321,
+       "overhead": 153,
+       "block": 167
+      },
+      "100": {
+       "full": 2048,
+       "overhead": 153,
+       "block": 1894
+      },
+      "200": {
+       "full": 3655,
+       "overhead": 153,
+       "block": 3501
+      },
+      "per_record_N200": 17.505,
+      "prefix_tokens": 134
+     },
+     "llama4": {
+      "1": {
+       "full": 181,
+       "overhead": 152,
+       "block": 29
+      },
+      "10": {
+       "full": 315,
+       "overhead": 152,
+       "block": 162
+      },
+      "100": {
+       "full": 2005,
+       "overhead": 152,
+       "block": 1852
+      },
+      "200": {
+       "full": 3580,
+       "overhead": 152,
+       "block": 3427
+      },
+      "per_record_N200": 17.135,
+      "prefix_tokens": 133
+     },
+     "tekken": {
+      "1": {
+       "full": 176,
+       "overhead": 147,
+       "block": 30
+      },
+      "10": {
+       "full": 314,
+       "overhead": 147,
+       "block": 167
+      },
+      "100": {
+       "full": 2068,
+       "overhead": 147,
+       "block": 1921
+      },
+      "200": {
+       "full": 3684,
+       "overhead": 147,
+       "block": 3537
+      },
+      "per_record_N200": 17.685,
+      "prefix_tokens": 131
+     },
+     "gemma3": {
+      "1": {
+       "full": 177,
+       "overhead": 148,
+       "block": 28
+      },
+      "10": {
+       "full": 301,
+       "overhead": 148,
+       "block": 152
+      },
+      "100": {
+       "full": 1888,
+       "overhead": 148,
+       "block": 1739
+      },
+      "200": {
+       "full": 3361,
+       "overhead": 148,
+       "block": 3212
+      },
+      "per_record_N200": 16.06,
+      "prefix_tokens": 130
+     }
+    },
+    "json_array": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 133,
+       "overhead": 90,
+       "block": 42
+      },
+      "10": {
+       "full": 333,
+       "overhead": 90,
+       "block": 243
+      },
+      "100": {
+       "full": 2901,
+       "overhead": 90,
+       "block": 2811
+      },
+      "200": {
+       "full": 5283,
+       "overhead": 90,
+       "block": 5193
+      },
+      "per_record_N200": 25.965,
+      "prefix_tokens": 71
+     },
+     "o200k_base": {
+      "1": {
+       "full": 132,
+       "overhead": 88,
+       "block": 43
+      },
+      "10": {
+       "full": 332,
+       "overhead": 88,
+       "block": 244
+      },
+      "100": {
+       "full": 2925,
+       "overhead": 88,
+       "block": 2837
+      },
+      "200": {
+       "full": 5313,
+       "overhead": 88,
+       "block": 5225
+      },
+      "per_record_N200": 26.125,
+      "prefix_tokens": 71
+     },
+     "llama3": {
+      "1": {
+       "full": 135,
+       "overhead": 92,
+       "block": 42
+      },
+      "10": {
+       "full": 335,
+       "overhead": 92,
+       "block": 243
+      },
+      "100": {
+       "full": 2903,
+       "overhead": 92,
+       "block": 2811
+      },
+      "200": {
+       "full": 5285,
+       "overhead": 92,
+       "block": 5193
+      },
+      "per_record_N200": 25.965,
+      "prefix_tokens": 73
+     },
+     "llama4": {
+      "1": {
+       "full": 133,
+       "overhead": 91,
+       "block": 41
+      },
+      "10": {
+       "full": 327,
+       "overhead": 91,
+       "block": 236
+      },
+      "100": {
+       "full": 2817,
+       "overhead": 91,
+       "block": 2726
+      },
+      "200": {
+       "full": 5146,
+       "overhead": 91,
+       "block": 5055
+      },
+      "per_record_N200": 25.275,
+      "prefix_tokens": 72
+     },
+     "tekken": {
+      "1": {
+       "full": 131,
+       "overhead": 86,
+       "block": 46
+      },
+      "10": {
+       "full": 336,
+       "overhead": 86,
+       "block": 251
+      },
+      "100": {
+       "full": 3026,
+       "overhead": 86,
+       "block": 2941
+      },
+      "200": {
+       "full": 5503,
+       "overhead": 86,
+       "block": 5418
+      },
+      "per_record_N200": 27.09,
+      "prefix_tokens": 70
+     },
+     "gemma3": {
+      "1": {
+       "full": 129,
+       "overhead": 86,
+       "block": 42
+      },
+      "10": {
+       "full": 329,
+       "overhead": 86,
+       "block": 242
+      },
+      "100": {
+       "full": 2890,
+       "overhead": 86,
+       "block": 2803
+      },
+      "200": {
+       "full": 5286,
+       "overhead": 86,
+       "block": 5199
+      },
+      "per_record_N200": 25.995,
+      "prefix_tokens": 68
+     }
+    },
+    "r_tsv_p": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 184,
+       "overhead": 159,
+       "block": 24
+      },
+      "10": {
+       "full": 301,
+       "overhead": 159,
+       "block": 141
+      },
+      "100": {
+       "full": 1749,
+       "overhead": 159,
+       "block": 1589
+      },
+      "200": {
+       "full": 3073,
+       "overhead": 159,
+       "block": 2913
+      },
+      "per_record_N200": 14.565,
+      "prefix_tokens": 140
+     },
+     "o200k_base": {
+      "1": {
+       "full": 183,
+       "overhead": 158,
+       "block": 24
+      },
+      "10": {
+       "full": 298,
+       "overhead": 158,
+       "block": 139
+      },
+      "100": {
+       "full": 1737,
+       "overhead": 158,
+       "block": 1578
+      },
+      "200": {
+       "full": 3057,
+       "overhead": 158,
+       "block": 2898
+      },
+      "per_record_N200": 14.49,
+      "prefix_tokens": 141
+     },
+     "llama3": {
+      "1": {
+       "full": 186,
+       "overhead": 161,
+       "block": 24
+      },
+      "10": {
+       "full": 303,
+       "overhead": 161,
+       "block": 141
+      },
+      "100": {
+       "full": 1751,
+       "overhead": 161,
+       "block": 1589
+      },
+      "200": {
+       "full": 3075,
+       "overhead": 161,
+       "block": 2913
+      },
+      "per_record_N200": 14.565,
+      "prefix_tokens": 142
+     },
+     "llama4": {
+      "1": {
+       "full": 185,
+       "overhead": 160,
+       "block": 24
+      },
+      "10": {
+       "full": 300,
+       "overhead": 160,
+       "block": 139
+      },
+      "100": {
+       "full": 1726,
+       "overhead": 160,
+       "block": 1565
+      },
+      "200": {
+       "full": 3038,
+       "overhead": 160,
+       "block": 2877
+      },
+      "per_record_N200": 14.385,
+      "prefix_tokens": 141
+     },
+     "tekken": {
+      "1": {
+       "full": 184,
+       "overhead": 156,
+       "block": 28
+      },
+      "10": {
+       "full": 310,
+       "overhead": 156,
+       "block": 154
+      },
+      "100": {
+       "full": 1952,
+       "overhead": 156,
+       "block": 1796
+      },
+      "200": {
+       "full": 3452,
+       "overhead": 156,
+       "block": 3296
+      },
+      "per_record_N200": 16.48,
+      "prefix_tokens": 140
+     },
+     "gemma3": {
+      "1": {
+       "full": 188,
+       "overhead": 161,
+       "block": 26
+      },
+      "10": {
+       "full": 310,
+       "overhead": 161,
+       "block": 148
+      },
+      "100": {
+       "full": 1893,
+       "overhead": 161,
+       "block": 1731
+      },
+      "200": {
+       "full": 3336,
+       "overhead": 161,
+       "block": 3174
+      },
+      "per_record_N200": 15.87,
+      "prefix_tokens": 143
+     }
+    },
+    "c_tsv": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 198,
+       "overhead": 178,
+       "block": 19
+      },
+      "10": {
+       "full": 295,
+       "overhead": 178,
+       "block": 116
+      },
+      "100": {
+       "full": 1532,
+       "overhead": 178,
+       "block": 1353
+      },
+      "200": {
+       "full": 2659,
+       "overhead": 178,
+       "block": 2480
+      },
+      "per_record_N200": 12.4,
+      "prefix_tokens": 159
+     },
+     "o200k_base": {
+      "1": {
+       "full": 199,
+       "overhead": 177,
+       "block": 21
+      },
+      "10": {
+       "full": 293,
+       "overhead": 177,
+       "block": 115
+      },
+      "100": {
+       "full": 1504,
+       "overhead": 177,
+       "block": 1326
+      },
+      "200": {
+       "full": 2608,
+       "overhead": 177,
+       "block": 2430
+      },
+      "per_record_N200": 12.15,
+      "prefix_tokens": 160
+     },
+     "llama3": {
+      "1": {
+       "full": 200,
+       "overhead": 180,
+       "block": 19
+      },
+      "10": {
+       "full": 297,
+       "overhead": 180,
+       "block": 116
+      },
+      "100": {
+       "full": 1534,
+       "overhead": 180,
+       "block": 1353
+      },
+      "200": {
+       "full": 2661,
+       "overhead": 180,
+       "block": 2480
+      },
+      "per_record_N200": 12.4,
+      "prefix_tokens": 161
+     },
+     "llama4": {
+      "1": {
+       "full": 201,
+       "overhead": 179,
+       "block": 21
+      },
+      "10": {
+       "full": 295,
+       "overhead": 179,
+       "block": 115
+      },
+      "100": {
+       "full": 1495,
+       "overhead": 179,
+       "block": 1315
+      },
+      "200": {
+       "full": 2599,
+       "overhead": 179,
+       "block": 2419
+      },
+      "per_record_N200": 12.095,
+      "prefix_tokens": 160
+     },
+     "tekken": {
+      "1": {
+       "full": 202,
+       "overhead": 178,
+       "block": 24
+      },
+      "10": {
+       "full": 306,
+       "overhead": 178,
+       "block": 128
+      },
+      "100": {
+       "full": 1679,
+       "overhead": 178,
+       "block": 1501
+      },
+      "200": {
+       "full": 2940,
+       "overhead": 178,
+       "block": 2762
+      },
+      "per_record_N200": 13.81,
+      "prefix_tokens": 162
+     },
+     "gemma3": {
+      "1": {
+       "full": 201,
+       "overhead": 177,
+       "block": 23
+      },
+      "10": {
+       "full": 303,
+       "overhead": 177,
+       "block": 125
+      },
+      "100": {
+       "full": 1658,
+       "overhead": 177,
+       "block": 1480
+      },
+      "200": {
+       "full": 2899,
+       "overhead": 177,
+       "block": 2721
+      },
+      "per_record_N200": 13.605,
+      "prefix_tokens": 159
+     }
+    }
+   },
+   "m_repo_break_even_N": {
+    "english_repo": {
+     "qwen3-reconstructed": 0.0,
+     "o200k_base": 0.0,
+     "llama3": 0.0,
+     "llama4": 0.0,
+     "tekken": 0.0,
+     "gemma3": -42.55319148936169
+    },
+    "json_repo": {
+     "qwen3-reconstructed": 2.8972106642009554,
+     "o200k_base": 2.834069785159226,
+     "llama3": 2.8972106642009554,
+     "llama4": 3.162976527384718,
+     "tekken": 2.9297716501507973,
+     "gemma3": 3.9828192112456073
+    },
+    "m_repo": {
+     "qwen3-reconstructed": null,
+     "o200k_base": null,
+     "llama3": null,
+     "llama4": null,
+     "tekken": null,
+     "gemma3": null
+    },
+    "english_natural*": {
+     "qwen3-reconstructed": null,
+     "o200k_base": null,
+     "llama3": null,
+     "llama4": null,
+     "tekken": null,
+     "gemma3": null
+    },
+    "english_concise": {
+     "qwen3-reconstructed": null,
+     "o200k_base": null,
+     "llama3": null,
+     "llama4": null,
+     "tekken": null,
+     "gemma3": null
+    },
+    "cdsl": {
+     "qwen3-reconstructed": null,
+     "o200k_base": null,
+     "llama3": null,
+     "llama4": null,
+     "tekken": null,
+     "gemma3": null
+    },
+    "m_opt": {
+     "qwen3-reconstructed": null,
+     "o200k_base": null,
+     "llama3": null,
+     "llama4": null,
+     "tekken": null,
+     "gemma3": null
+    },
+    "json_array": {
+     "qwen3-reconstructed": 22.878228782287817,
+     "o200k_base": 20.969560315670808,
+     "llama3": 22.878228782287817,
+     "llama4": 25.10013351134848,
+     "tekken": 19.186046511627907,
+     "gemma3": 100.99009900990083
+    },
+    "r_tsv_p": {
+     "qwen3-reconstructed": null,
+     "o200k_base": null,
+     "llama3": null,
+     "llama4": null,
+     "tekken": null,
+     "gemma3": null
+    },
+    "c_tsv": {
+     "qwen3-reconstructed": null,
+     "o200k_base": null,
+     "llama3": null,
+     "llama4": null,
+     "tekken": null,
+     "gemma3": null
+    }
+   },
+   "m_repo_beats_json_repo_first_N": {
+    "qwen3-reconstructed": 2,
+    "o200k_base": 2,
+    "llama3": 2,
+    "llama4": 2,
+    "tekken": 2,
+    "gemma3": 3
+   },
+   "layout_matched": {
+    "qwen3-reconstructed": {
+     "c_tsv_over_r_tsv_p_block_N200": 0.8513559903879162,
+     "c_tsv_over_r_tsv_p_full_N100": 0.8759291023441966,
+     "best_readable_full_N100": "r_tsv_p",
+     "c_tsv_over_best_readable_full_N100": 0.8759291023441966,
+     "m_opt_over_cdsl_full_N100": 1.0039254170755643,
+     "m_repo_over_best_readable_full_N100": 1.4528301886792452
+    },
+    "o200k_base": {
+     "c_tsv_over_r_tsv_p_block_N200": 0.8385093167701864,
+     "c_tsv_over_r_tsv_p_full_N100": 0.8658606793321819,
+     "best_readable_full_N100": "r_tsv_p",
+     "c_tsv_over_best_readable_full_N100": 0.8658606793321819,
+     "m_opt_over_cdsl_full_N100": 1.003970223325062,
+     "m_repo_over_best_readable_full_N100": 1.4490500863557858
+    },
+    "llama3": {
+     "c_tsv_over_r_tsv_p_block_N200": 0.8513559903879162,
+     "c_tsv_over_r_tsv_p_full_N100": 0.876070816676185,
+     "best_readable_full_N100": "r_tsv_p",
+     "c_tsv_over_best_readable_full_N100": 0.876070816676185,
+     "m_opt_over_cdsl_full_N100": 1.003921568627451,
+     "m_repo_over_best_readable_full_N100": 1.4523129640205596
+    },
+    "llama4": {
+     "c_tsv_over_r_tsv_p_block_N200": 0.8408063955509211,
+     "c_tsv_over_r_tsv_p_full_N100": 0.8661645422943222,
+     "best_readable_full_N100": "r_tsv_p",
+     "c_tsv_over_best_readable_full_N100": 0.8661645422943222,
+     "m_opt_over_cdsl_full_N100": 1.0025,
+     "m_repo_over_best_readable_full_N100": 1.4490150637311703
+    },
+    "tekken": {
+     "c_tsv_over_r_tsv_p_block_N200": 0.8379854368932039,
+     "c_tsv_over_r_tsv_p_full_N100": 0.8601434426229508,
+     "best_readable_full_N100": "r_tsv_p",
+     "c_tsv_over_best_readable_full_N100": 0.8601434426229508,
+     "m_opt_over_cdsl_full_N100": 0.9985514244326412,
+     "m_repo_over_best_readable_full_N100": 1.3048155737704918
+    },
+    "gemma3": {
+     "c_tsv_over_r_tsv_p_block_N200": 0.8572778827977315,
+     "c_tsv_over_r_tsv_p_full_N100": 0.8758584257791865,
+     "best_readable_full_N100": "r_tsv_p",
+     "c_tsv_over_best_readable_full_N100": 0.8758584257791865,
+     "m_opt_over_cdsl_full_N100": 0.9383697813121272,
+     "m_repo_over_best_readable_full_N100": 1.5176967776016905
+    }
+   }
+  },
+  "multilingual_skewed": {
+   "records": {
+    "english_repo": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 343,
+       "overhead": 301,
+       "block": 42
+      },
+      "10": {
+       "full": 537,
+       "overhead": 301,
+       "block": 236
+      },
+      "100": {
+       "full": 2830,
+       "overhead": 301,
+       "block": 2529
+      },
+      "200": {
+       "full": 5544,
+       "overhead": 301,
+       "block": 5243
+      },
+      "per_record_N200": 26.215,
+      "prefix_tokens": 282
+     },
+     "o200k_base": {
+      "1": {
+       "full": 336,
+       "overhead": 300,
+       "block": 36
+      },
+      "10": {
+       "full": 495,
+       "overhead": 300,
+       "block": 195
+      },
+      "100": {
+       "full": 2421,
+       "overhead": 300,
+       "block": 2121
+      },
+      "200": {
+       "full": 4600,
+       "overhead": 300,
+       "block": 4300
+      },
+      "per_record_N200": 21.5,
+      "prefix_tokens": 283
+     },
+     "llama3": {
+      "1": {
+       "full": 344,
+       "overhead": 303,
+       "block": 41
+      },
+      "10": {
+       "full": 520,
+       "overhead": 303,
+       "block": 217
+      },
+      "100": {
+       "full": 2667,
+       "overhead": 303,
+       "block": 2364
+      },
+      "200": {
+       "full": 5132,
+       "overhead": 303,
+       "block": 4829
+      },
+      "per_record_N200": 24.145,
+      "prefix_tokens": 284
+     },
+     "llama4": {
+      "1": {
+       "full": 339,
+       "overhead": 301,
+       "block": 38
+      },
+      "10": {
+       "full": 499,
+       "overhead": 301,
+       "block": 198
+      },
+      "100": {
+       "full": 2446,
+       "overhead": 301,
+       "block": 2145
+      },
+      "200": {
+       "full": 4652,
+       "overhead": 301,
+       "block": 4351
+      },
+      "per_record_N200": 21.755,
+      "prefix_tokens": 282
+     },
+     "tekken": {
+      "1": {
+       "full": 336,
+       "overhead": 300,
+       "block": 37
+      },
+      "10": {
+       "full": 508,
+       "overhead": 300,
+       "block": 209
+      },
+      "100": {
+       "full": 2580,
+       "overhead": 300,
+       "block": 2281
+      },
+      "200": {
+       "full": 4929,
+       "overhead": 300,
+       "block": 4630
+      },
+      "per_record_N200": 23.15,
+      "prefix_tokens": 284
+     },
+     "gemma3": {
+      "1": {
+       "full": 336,
+       "overhead": 298,
+       "block": 37
+      },
+      "10": {
+       "full": 505,
+       "overhead": 298,
+       "block": 206
+      },
+      "100": {
+       "full": 2518,
+       "overhead": 298,
+       "block": 2219
+      },
+      "200": {
+       "full": 4794,
+       "overhead": 298,
+       "block": 4495
+      },
+      "per_record_N200": 22.475,
+      "prefix_tokens": 280
+     }
+    },
+    "json_repo": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 185,
+       "overhead": 89,
+       "block": 95
+      },
+      "10": {
+       "full": 631,
+       "overhead": 89,
+       "block": 542
+      },
+      "100": {
+       "full": 5817,
+       "overhead": 89,
+       "block": 5728
+      },
+      "200": {
+       "full": 11741,
+       "overhead": 89,
+       "block": 11652
+      },
+      "per_record_N200": 58.26,
+      "prefix_tokens": 70
+     },
+     "o200k_base": {
+      "1": {
+       "full": 179,
+       "overhead": 88,
+       "block": 90
+      },
+      "10": {
+       "full": 593,
+       "overhead": 88,
+       "block": 505
+      },
+      "100": {
+       "full": 5446,
+       "overhead": 88,
+       "block": 5358
+      },
+      "200": {
+       "full": 10871,
+       "overhead": 88,
+       "block": 10783
+      },
+      "per_record_N200": 53.915,
+      "prefix_tokens": 71
+     },
+     "llama3": {
+      "1": {
+       "full": 186,
+       "overhead": 91,
+       "block": 94
+      },
+      "10": {
+       "full": 614,
+       "overhead": 91,
+       "block": 523
+      },
+      "100": {
+       "full": 5654,
+       "overhead": 91,
+       "block": 5563
+      },
+      "200": {
+       "full": 11329,
+       "overhead": 91,
+       "block": 11238
+      },
+      "per_record_N200": 56.19,
+      "prefix_tokens": 72
+     },
+     "llama4": {
+      "1": {
+       "full": 178,
+       "overhead": 90,
+       "block": 87
+      },
+      "10": {
+       "full": 572,
+       "overhead": 90,
+       "block": 482
+      },
+      "100": {
+       "full": 5202,
+       "overhead": 90,
+       "block": 5112
+      },
+      "200": {
+       "full": 10385,
+       "overhead": 90,
+       "block": 10295
+      },
+      "per_record_N200": 51.475,
+      "prefix_tokens": 71
+     },
+     "tekken": {
+      "1": {
+       "full": 177,
+       "overhead": 83,
+       "block": 94
+      },
+      "10": {
+       "full": 621,
+       "overhead": 83,
+       "block": 538
+      },
+      "100": {
+       "full": 5797,
+       "overhead": 83,
+       "block": 5714
+      },
+      "200": {
+       "full": 11575,
+       "overhead": 83,
+       "block": 11492
+      },
+      "per_record_N200": 57.46,
+      "prefix_tokens": 67
+     },
+     "gemma3": {
+      "1": {
+       "full": 172,
+       "overhead": 86,
+       "block": 85
+      },
+      "10": {
+       "full": 564,
+       "overhead": 86,
+       "block": 477
+      },
+      "100": {
+       "full": 5135,
+       "overhead": 86,
+       "block": 5048
+      },
+      "200": {
+       "full": 10257,
+       "overhead": 86,
+       "block": 10170
+      },
+      "per_record_N200": 50.85,
+      "prefix_tokens": 68
+     }
+    },
+    "m_repo": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 223,
+       "overhead": 183,
+       "block": 40
+      },
+      "10": {
+       "full": 430,
+       "overhead": 183,
+       "block": 247
+      },
+      "100": {
+       "full": 2784,
+       "overhead": 183,
+       "block": 2601
+      },
+      "200": {
+       "full": 5553,
+       "overhead": 183,
+       "block": 5370
+      },
+      "per_record_N200": 26.85,
+      "prefix_tokens": 164
+     },
+     "o200k_base": {
+      "1": {
+       "full": 215,
+       "overhead": 181,
+       "block": 34
+      },
+      "10": {
+       "full": 387,
+       "overhead": 181,
+       "block": 206
+      },
+      "100": {
+       "full": 2374,
+       "overhead": 181,
+       "block": 2193
+      },
+      "200": {
+       "full": 4608,
+       "overhead": 181,
+       "block": 4427
+      },
+      "per_record_N200": 22.135,
+      "prefix_tokens": 164
+     },
+     "llama3": {
+      "1": {
+       "full": 224,
+       "overhead": 185,
+       "block": 39
+      },
+      "10": {
+       "full": 413,
+       "overhead": 185,
+       "block": 228
+      },
+      "100": {
+       "full": 2621,
+       "overhead": 185,
+       "block": 2436
+      },
+      "200": {
+       "full": 5141,
+       "overhead": 185,
+       "block": 4956
+      },
+      "per_record_N200": 24.78,
+      "prefix_tokens": 166
+     },
+     "llama4": {
+      "1": {
+       "full": 221,
+       "overhead": 185,
+       "block": 36
+      },
+      "10": {
+       "full": 394,
+       "overhead": 185,
+       "block": 209
+      },
+      "100": {
+       "full": 2402,
+       "overhead": 185,
+       "block": 2217
+      },
+      "200": {
+       "full": 4663,
+       "overhead": 185,
+       "block": 4478
+      },
+      "per_record_N200": 22.39,
+      "prefix_tokens": 166
+     },
+     "tekken": {
+      "1": {
+       "full": 219,
+       "overhead": 185,
+       "block": 35
+      },
+      "10": {
+       "full": 404,
+       "overhead": 185,
+       "block": 220
+      },
+      "100": {
+       "full": 2537,
+       "overhead": 185,
+       "block": 2353
+      },
+      "200": {
+       "full": 4941,
+       "overhead": 185,
+       "block": 4757
+      },
+      "per_record_N200": 23.785,
+      "prefix_tokens": 169
+     },
+     "gemma3": {
+      "1": {
+       "full": 229,
+       "overhead": 188,
+       "block": 40
+      },
+      "10": {
+       "full": 432,
+       "overhead": 188,
+       "block": 243
+      },
+      "100": {
+       "full": 2752,
+       "overhead": 188,
+       "block": 2563
+      },
+      "200": {
+       "full": 5358,
+       "overhead": 188,
+       "block": 5169
+      },
+      "per_record_N200": 25.845,
+      "prefix_tokens": 170
+     }
+    },
+    "english_natural*": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 88,
+       "overhead": 65,
+       "block": 23
+      },
+      "10": {
+       "full": 241,
+       "overhead": 65,
+       "block": 176
+      },
+      "100": {
+       "full": 1863,
+       "overhead": 65,
+       "block": 1798
+      },
+      "200": {
+       "full": 3784,
+       "overhead": 65,
+       "block": 3719
+      },
+      "per_record_N200": 18.595,
+      "prefix_tokens": 46
+     },
+     "o200k_base": {
+      "1": {
+       "full": 81,
+       "overhead": 64,
+       "block": 17
+      },
+      "10": {
+       "full": 194,
+       "overhead": 64,
+       "block": 130
+      },
+      "100": {
+       "full": 1404,
+       "overhead": 64,
+       "block": 1340
+      },
+      "200": {
+       "full": 2755,
+       "overhead": 64,
+       "block": 2691
+      },
+      "per_record_N200": 13.455,
+      "prefix_tokens": 47
+     },
+     "llama3": {
+      "1": {
+       "full": 88,
+       "overhead": 67,
+       "block": 21
+      },
+      "10": {
+       "full": 217,
+       "overhead": 67,
+       "block": 150
+      },
+      "100": {
+       "full": 1626,
+       "overhead": 67,
+       "block": 1559
+      },
+      "200": {
+       "full": 3242,
+       "overhead": 67,
+       "block": 3175
+      },
+      "per_record_N200": 15.875,
+      "prefix_tokens": 48
+     },
+     "llama4": {
+      "1": {
+       "full": 84,
+       "overhead": 66,
+       "block": 18
+      },
+      "10": {
+       "full": 193,
+       "overhead": 66,
+       "block": 127
+      },
+      "100": {
+       "full": 1377,
+       "overhead": 66,
+       "block": 1311
+      },
+      "200": {
+       "full": 2687,
+       "overhead": 66,
+       "block": 2621
+      },
+      "per_record_N200": 13.105,
+      "prefix_tokens": 47
+     },
+     "tekken": {
+      "1": {
+       "full": 74,
+       "overhead": 59,
+       "block": 16
+      },
+      "10": {
+       "full": 208,
+       "overhead": 59,
+       "block": 150
+      },
+      "100": {
+       "full": 1578,
+       "overhead": 59,
+       "block": 1520
+      },
+      "200": {
+       "full": 3109,
+       "overhead": 59,
+       "block": 3051
+      },
+      "per_record_N200": 15.255,
+      "prefix_tokens": 43
+     },
+     "gemma3": {
+      "1": {
+       "full": 79,
+       "overhead": 62,
+       "block": 16
+      },
+      "10": {
+       "full": 198,
+       "overhead": 62,
+       "block": 135
+      },
+      "100": {
+       "full": 1454,
+       "overhead": 62,
+       "block": 1391
+      },
+      "200": {
+       "full": 2838,
+       "overhead": 62,
+       "block": 2775
+      },
+      "per_record_N200": 13.875,
+      "prefix_tokens": 44
+     }
+    },
+    "english_concise": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 168,
+       "overhead": 136,
+       "block": 32
+      },
+      "10": {
+       "full": 353,
+       "overhead": 136,
+       "block": 217
+      },
+      "100": {
+       "full": 2351,
+       "overhead": 136,
+       "block": 2215
+      },
+      "200": {
+       "full": 4728,
+       "overhead": 136,
+       "block": 4592
+      },
+      "per_record_N200": 22.96,
+      "prefix_tokens": 117
+     },
+     "o200k_base": {
+      "1": {
+       "full": 161,
+       "overhead": 135,
+       "block": 26
+      },
+      "10": {
+       "full": 311,
+       "overhead": 135,
+       "block": 176
+      },
+      "100": {
+       "full": 1946,
+       "overhead": 135,
+       "block": 1811
+      },
+      "200": {
+       "full": 3794,
+       "overhead": 135,
+       "block": 3659
+      },
+      "per_record_N200": 18.295,
+      "prefix_tokens": 118
+     },
+     "llama3": {
+      "1": {
+       "full": 169,
+       "overhead": 138,
+       "block": 31
+      },
+      "10": {
+       "full": 336,
+       "overhead": 138,
+       "block": 198
+      },
+      "100": {
+       "full": 2188,
+       "overhead": 138,
+       "block": 2050
+      },
+      "200": {
+       "full": 4316,
+       "overhead": 138,
+       "block": 4178
+      },
+      "per_record_N200": 20.89,
+      "prefix_tokens": 119
+     },
+     "llama4": {
+      "1": {
+       "full": 164,
+       "overhead": 136,
+       "block": 28
+      },
+      "10": {
+       "full": 315,
+       "overhead": 136,
+       "block": 179
+      },
+      "100": {
+       "full": 1967,
+       "overhead": 136,
+       "block": 1831
+      },
+      "200": {
+       "full": 3836,
+       "overhead": 136,
+       "block": 3700
+      },
+      "per_record_N200": 18.5,
+      "prefix_tokens": 117
+     },
+     "tekken": {
+      "1": {
+       "full": 155,
+       "overhead": 129,
+       "block": 27
+      },
+      "10": {
+       "full": 318,
+       "overhead": 129,
+       "block": 190
+      },
+      "100": {
+       "full": 2099,
+       "overhead": 129,
+       "block": 1971
+      },
+      "200": {
+       "full": 4117,
+       "overhead": 129,
+       "block": 3989
+      },
+      "per_record_N200": 19.945,
+      "prefix_tokens": 113
+     },
+     "gemma3": {
+      "1": {
+       "full": 161,
+       "overhead": 133,
+       "block": 27
+      },
+      "10": {
+       "full": 321,
+       "overhead": 133,
+       "block": 187
+      },
+      "100": {
+       "full": 2043,
+       "overhead": 133,
+       "block": 1909
+      },
+      "200": {
+       "full": 3988,
+       "overhead": 133,
+       "block": 3854
+      },
+      "per_record_N200": 19.27,
+      "prefix_tokens": 115
+     }
+    },
+    "cdsl": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 151,
+       "overhead": 120,
+       "block": 31
+      },
+      "10": {
+       "full": 315,
+       "overhead": 120,
+       "block": 194
+      },
+      "100": {
+       "full": 2147,
+       "overhead": 120,
+       "block": 2026
+      },
+      "200": {
+       "full": 4314,
+       "overhead": 120,
+       "block": 4193
+      },
+      "per_record_N200": 20.965,
+      "prefix_tokens": 101
+     },
+     "o200k_base": {
+      "1": {
+       "full": 144,
+       "overhead": 119,
+       "block": 25
+      },
+      "10": {
+       "full": 273,
+       "overhead": 119,
+       "block": 153
+      },
+      "100": {
+       "full": 1738,
+       "overhead": 119,
+       "block": 1618
+      },
+      "200": {
+       "full": 3370,
+       "overhead": 119,
+       "block": 3250
+      },
+      "per_record_N200": 16.25,
+      "prefix_tokens": 102
+     },
+     "llama3": {
+      "1": {
+       "full": 152,
+       "overhead": 122,
+       "block": 30
+      },
+      "10": {
+       "full": 298,
+       "overhead": 122,
+       "block": 175
+      },
+      "100": {
+       "full": 1984,
+       "overhead": 122,
+       "block": 1861
+      },
+      "200": {
+       "full": 3902,
+       "overhead": 122,
+       "block": 3779
+      },
+      "per_record_N200": 18.895,
+      "prefix_tokens": 103
+     },
+     "llama4": {
+      "1": {
+       "full": 148,
+       "overhead": 121,
+       "block": 27
+      },
+      "10": {
+       "full": 279,
+       "overhead": 121,
+       "block": 157
+      },
+      "100": {
+       "full": 1771,
+       "overhead": 121,
+       "block": 1649
+      },
+      "200": {
+       "full": 3426,
+       "overhead": 121,
+       "block": 3304
+      },
+      "per_record_N200": 16.52,
+      "prefix_tokens": 102
+     },
+     "tekken": {
+      "1": {
+       "full": 140,
+       "overhead": 114,
+       "block": 27
+      },
+      "10": {
+       "full": 284,
+       "overhead": 114,
+       "block": 170
+      },
+      "100": {
+       "full": 1935,
+       "overhead": 114,
+       "block": 1821
+      },
+      "200": {
+       "full": 3777,
+       "overhead": 114,
+       "block": 3663
+      },
+      "per_record_N200": 18.315,
+      "prefix_tokens": 98
+     },
+     "gemma3": {
+      "1": {
+       "full": 146,
+       "overhead": 119,
+       "block": 26
+      },
+      "10": {
+       "full": 278,
+       "overhead": 119,
+       "block": 158
+      },
+      "100": {
+       "full": 1786,
+       "overhead": 119,
+       "block": 1666
+      },
+      "200": {
+       "full": 3467,
+       "overhead": 119,
+       "block": 3347
+      },
+      "per_record_N200": 16.735,
+      "prefix_tokens": 101
+     }
+    },
+    "m_opt": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 182,
+       "overhead": 151,
+       "block": 31
+      },
+      "10": {
+       "full": 350,
+       "overhead": 151,
+       "block": 198
+      },
+      "100": {
+       "full": 2206,
+       "overhead": 151,
+       "block": 2054
+      },
+      "200": {
+       "full": 4407,
+       "overhead": 151,
+       "block": 4255
+      },
+      "per_record_N200": 21.275,
+      "prefix_tokens": 132
+     },
+     "o200k_base": {
+      "1": {
+       "full": 175,
+       "overhead": 150,
+       "block": 25
+      },
+      "10": {
+       "full": 308,
+       "overhead": 150,
+       "block": 157
+      },
+      "100": {
+       "full": 1797,
+       "overhead": 150,
+       "block": 1646
+      },
+      "200": {
+       "full": 3463,
+       "overhead": 150,
+       "block": 3312
+      },
+      "per_record_N200": 16.56,
+      "prefix_tokens": 133
+     },
+     "llama3": {
+      "1": {
+       "full": 183,
+       "overhead": 153,
+       "block": 30
+      },
+      "10": {
+       "full": 333,
+       "overhead": 153,
+       "block": 179
+      },
+      "100": {
+       "full": 2043,
+       "overhead": 153,
+       "block": 1889
+      },
+      "200": {
+       "full": 3995,
+       "overhead": 153,
+       "block": 3841
+      },
+      "per_record_N200": 19.205,
+      "prefix_tokens": 134
+     },
+     "llama4": {
+      "1": {
+       "full": 179,
+       "overhead": 152,
+       "block": 27
+      },
+      "10": {
+       "full": 313,
+       "overhead": 152,
+       "block": 160
+      },
+      "100": {
+       "full": 1823,
+       "overhead": 152,
+       "block": 1670
+      },
+      "200": {
+       "full": 3516,
+       "overhead": 152,
+       "block": 3363
+      },
+      "per_record_N200": 16.815,
+      "prefix_tokens": 133
+     },
+     "tekken": {
+      "1": {
+       "full": 172,
+       "overhead": 147,
+       "block": 26
+      },
+      "10": {
+       "full": 318,
+       "overhead": 147,
+       "block": 171
+      },
+      "100": {
+       "full": 1956,
+       "overhead": 147,
+       "block": 1809
+      },
+      "200": {
+       "full": 3796,
+       "overhead": 147,
+       "block": 3649
+      },
+      "per_record_N200": 18.245,
+      "prefix_tokens": 131
+     },
+     "gemma3": {
+      "1": {
+       "full": 175,
+       "overhead": 148,
+       "block": 26
+      },
+      "10": {
+       "full": 302,
+       "overhead": 148,
+       "block": 153
+      },
+      "100": {
+       "full": 1762,
+       "overhead": 148,
+       "block": 1613
+      },
+      "200": {
+       "full": 3400,
+       "overhead": 148,
+       "block": 3251
+      },
+      "per_record_N200": 16.255,
+      "prefix_tokens": 130
+     }
+    },
+    "json_array": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 138,
+       "overhead": 90,
+       "block": 47
+      },
+      "10": {
+       "full": 368,
+       "overhead": 90,
+       "block": 278
+      },
+      "100": {
+       "full": 3072,
+       "overhead": 90,
+       "block": 2982
+      },
+      "200": {
+       "full": 6227,
+       "overhead": 90,
+       "block": 6137
+      },
+      "per_record_N200": 30.685,
+      "prefix_tokens": 71
+     },
+     "o200k_base": {
+      "1": {
+       "full": 131,
+       "overhead": 88,
+       "block": 42
+      },
+      "10": {
+       "full": 329,
+       "overhead": 88,
+       "block": 241
+      },
+      "100": {
+       "full": 2700,
+       "overhead": 88,
+       "block": 2612
+      },
+      "200": {
+       "full": 5356,
+       "overhead": 88,
+       "block": 5268
+      },
+      "per_record_N200": 26.34,
+      "prefix_tokens": 71
+     },
+     "llama3": {
+      "1": {
+       "full": 139,
+       "overhead": 92,
+       "block": 46
+      },
+      "10": {
+       "full": 351,
+       "overhead": 92,
+       "block": 259
+      },
+      "100": {
+       "full": 2909,
+       "overhead": 92,
+       "block": 2817
+      },
+      "200": {
+       "full": 5815,
+       "overhead": 92,
+       "block": 5723
+      },
+      "per_record_N200": 28.615,
+      "prefix_tokens": 73
+     },
+     "llama4": {
+      "1": {
+       "full": 134,
+       "overhead": 91,
+       "block": 42
+      },
+      "10": {
+       "full": 329,
+       "overhead": 91,
+       "block": 238
+      },
+      "100": {
+       "full": 2663,
+       "overhead": 91,
+       "block": 2572
+      },
+      "200": {
+       "full": 5279,
+       "overhead": 91,
+       "block": 5188
+      },
+      "per_record_N200": 25.94,
+      "prefix_tokens": 72
+     },
+     "tekken": {
+      "1": {
+       "full": 130,
+       "overhead": 86,
+       "block": 45
+      },
+      "10": {
+       "full": 347,
+       "overhead": 86,
+       "block": 262
+      },
+      "100": {
+       "full": 2929,
+       "overhead": 86,
+       "block": 2844
+      },
+      "200": {
+       "full": 5813,
+       "overhead": 86,
+       "block": 5728
+      },
+      "per_record_N200": 28.64,
+      "prefix_tokens": 70
+     },
+     "gemma3": {
+      "1": {
+       "full": 130,
+       "overhead": 86,
+       "block": 43
+      },
+      "10": {
+       "full": 336,
+       "overhead": 86,
+       "block": 249
+      },
+      "100": {
+       "full": 2759,
+       "overhead": 86,
+       "block": 2672
+      },
+      "200": {
+       "full": 5481,
+       "overhead": 86,
+       "block": 5394
+      },
+      "per_record_N200": 26.97,
+      "prefix_tokens": 68
+     }
+    },
+    "r_tsv_p": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 187,
+       "overhead": 159,
+       "block": 27
+      },
+      "10": {
+       "full": 335,
+       "overhead": 159,
+       "block": 175
+      },
+      "100": {
+       "full": 2017,
+       "overhead": 159,
+       "block": 1857
+      },
+      "200": {
+       "full": 4027,
+       "overhead": 159,
+       "block": 3867
+      },
+      "per_record_N200": 19.335,
+      "prefix_tokens": 140
+     },
+     "o200k_base": {
+      "1": {
+       "full": 181,
+       "overhead": 158,
+       "block": 22
+      },
+      "10": {
+       "full": 301,
+       "overhead": 158,
+       "block": 142
+      },
+      "100": {
+       "full": 1673,
+       "overhead": 158,
+       "block": 1514
+      },
+      "200": {
+       "full": 3194,
+       "overhead": 158,
+       "block": 3035
+      },
+      "per_record_N200": 15.175,
+      "prefix_tokens": 141
+     },
+     "llama3": {
+      "1": {
+       "full": 188,
+       "overhead": 161,
+       "block": 26
+      },
+      "10": {
+       "full": 318,
+       "overhead": 161,
+       "block": 156
+      },
+      "100": {
+       "full": 1847,
+       "overhead": 161,
+       "block": 1685
+      },
+      "200": {
+       "full": 3604,
+       "overhead": 161,
+       "block": 3442
+      },
+      "per_record_N200": 17.21,
+      "prefix_tokens": 142
+     },
+     "llama4": {
+      "1": {
+       "full": 184,
+       "overhead": 160,
+       "block": 23
+      },
+      "10": {
+       "full": 305,
+       "overhead": 160,
+       "block": 144
+      },
+      "100": {
+       "full": 1682,
+       "overhead": 160,
+       "block": 1521
+      },
+      "200": {
+       "full": 3221,
+       "overhead": 160,
+       "block": 3060
+      },
+      "per_record_N200": 15.3,
+      "prefix_tokens": 141
+     },
+     "tekken": {
+      "1": {
+       "full": 180,
+       "overhead": 156,
+       "block": 24
+      },
+      "10": {
+       "full": 315,
+       "overhead": 156,
+       "block": 159
+      },
+      "100": {
+       "full": 1873,
+       "overhead": 156,
+       "block": 1717
+      },
+      "200": {
+       "full": 3616,
+       "overhead": 156,
+       "block": 3460
+      },
+      "per_record_N200": 17.3,
+      "prefix_tokens": 140
+     },
+     "gemma3": {
+      "1": {
+       "full": 185,
+       "overhead": 161,
+       "block": 23
+      },
+      "10": {
+       "full": 307,
+       "overhead": 161,
+       "block": 145
+      },
+      "100": {
+       "full": 1691,
+       "overhead": 161,
+       "block": 1529
+      },
+      "200": {
+       "full": 3238,
+       "overhead": 161,
+       "block": 3076
+      },
+      "per_record_N200": 15.38,
+      "prefix_tokens": 143
+     }
+    },
+    "c_tsv": {
+     "qwen3-reconstructed": {
+      "1": {
+       "full": 202,
+       "overhead": 178,
+       "block": 23
+      },
+      "10": {
+       "full": 340,
+       "overhead": 178,
+       "block": 161
+      },
+      "100": {
+       "full": 1879,
+       "overhead": 178,
+       "block": 1700
+      },
+      "200": {
+       "full": 3736,
+       "overhead": 178,
+       "block": 3557
+      },
+      "per_record_N200": 17.785,
+      "prefix_tokens": 159
+     },
+     "o200k_base": {
+      "1": {
+       "full": 196,
+       "overhead": 177,
+       "block": 18
+      },
+      "10": {
+       "full": 300,
+       "overhead": 177,
+       "block": 122
+      },
+      "100": {
+       "full": 1505,
+       "overhead": 177,
+       "block": 1327
+      },
+      "200": {
+       "full": 2847,
+       "overhead": 177,
+       "block": 2669
+      },
+      "per_record_N200": 13.345,
+      "prefix_tokens": 160
+     },
+     "llama3": {
+      "1": {
+       "full": 203,
+       "overhead": 180,
+       "block": 22
+      },
+      "10": {
+       "full": 323,
+       "overhead": 180,
+       "block": 142
+      },
+      "100": {
+       "full": 1709,
+       "overhead": 180,
+       "block": 1528
+      },
+      "200": {
+       "full": 3313,
+       "overhead": 180,
+       "block": 3132
+      },
+      "per_record_N200": 15.66,
+      "prefix_tokens": 161
+     },
+     "llama4": {
+      "1": {
+       "full": 200,
+       "overhead": 179,
+       "block": 20
+      },
+      "10": {
+       "full": 305,
+       "overhead": 179,
+       "block": 125
+      },
+      "100": {
+       "full": 1520,
+       "overhead": 179,
+       "block": 1340
+      },
+      "200": {
+       "full": 2883,
+       "overhead": 179,
+       "block": 2703
+      },
+      "per_record_N200": 13.515,
+      "prefix_tokens": 160
+     },
+     "tekken": {
+      "1": {
+       "full": 199,
+       "overhead": 178,
+       "block": 21
+      },
+      "10": {
+       "full": 318,
+       "overhead": 178,
+       "block": 140
+      },
+      "100": {
+       "full": 1691,
+       "overhead": 178,
+       "block": 1513
+      },
+      "200": {
+       "full": 3241,
+       "overhead": 178,
+       "block": 3063
+      },
+      "per_record_N200": 15.315,
+      "prefix_tokens": 162
+     },
+     "gemma3": {
+      "1": {
+       "full": 199,
+       "overhead": 177,
+       "block": 21
+      },
+      "10": {
+       "full": 307,
+       "overhead": 177,
+       "block": 129
+      },
+      "100": {
+       "full": 1564,
+       "overhead": 177,
+       "block": 1386
+      },
+      "200": {
+       "full": 2979,
+       "overhead": 177,
+       "block": 2801
+      },
+      "per_record_N200": 14.005,
+      "prefix_tokens": 159
+     }
+    }
+   },
+   "m_repo_break_even_N": {
+    "english_repo": {
+     "qwen3-reconstructed": -185.82677165354286,
+     "o200k_base": -187.40157480314915,
+     "llama3": -185.82677165354286,
+     "llama4": -182.67716535433027,
+     "tekken": -181.10236220472396,
+     "gemma3": -32.64094955489617
+    },
+    "json_repo": {
+     "qwen3-reconstructed": 2.9926774912448266,
+     "o200k_base": 2.9263687853996228,
+     "llama3": 2.9926774912448266,
+     "llama4": 3.2662884648444215,
+     "tekken": 3.028953229398664,
+     "gemma3": 4.079184163167366
+    },
+    "m_repo": {
+     "qwen3-reconstructed": null,
+     "o200k_base": null,
+     "llama3": null,
+     "llama4": null,
+     "tekken": null,
+     "gemma3": null
+    },
+    "english_natural*": {
+     "qwen3-reconstructed": null,
+     "o200k_base": null,
+     "llama3": null,
+     "llama4": null,
+     "tekken": null,
+     "gemma3": null
+    },
+    "english_concise": {
+     "qwen3-reconstructed": null,
+     "o200k_base": null,
+     "llama3": null,
+     "llama4": null,
+     "tekken": null,
+     "gemma3": null
+    },
+    "cdsl": {
+     "qwen3-reconstructed": null,
+     "o200k_base": null,
+     "llama3": null,
+     "llama4": null,
+     "tekken": null,
+     "gemma3": null
+    },
+    "m_opt": {
+     "qwen3-reconstructed": null,
+     "o200k_base": null,
+     "llama3": null,
+     "llama4": null,
+     "tekken": null,
+     "gemma3": null
+    },
+    "json_array": {
+     "qwen3-reconstructed": 24.250325945241215,
+     "o200k_base": 22.1165279429251,
+     "llama3": 24.250325945241215,
+     "llama4": 26.478873239436613,
+     "tekken": 20.3913491246138,
+     "gemma3": 90.66666666666667
+    },
+    "r_tsv_p": {
+     "qwen3-reconstructed": null,
+     "o200k_base": null,
+     "llama3": null,
+     "llama4": null,
+     "tekken": null,
+     "gemma3": null
+    },
+    "c_tsv": {
+     "qwen3-reconstructed": null,
+     "o200k_base": null,
+     "llama3": null,
+     "llama4": null,
+     "tekken": null,
+     "gemma3": null
+    }
+   },
+   "m_repo_beats_json_repo_first_N": {
+    "qwen3-reconstructed": 2,
+    "o200k_base": 2,
+    "llama3": 2,
+    "llama4": 2,
+    "tekken": 2,
+    "gemma3": 3
+   },
+   "layout_matched": {
+    "qwen3-reconstructed": {
+     "c_tsv_over_r_tsv_p_block_N200": 0.9198344970261184,
+     "c_tsv_over_r_tsv_p_full_N100": 0.9315815567674764,
+     "best_readable_full_N100": "r_tsv_p",
+     "c_tsv_over_best_readable_full_N100": 0.9315815567674764,
+     "m_opt_over_cdsl_full_N100": 1.0274802049371217,
+     "m_repo_over_best_readable_full_N100": 1.3802677243430839
+    },
+    "o200k_base": {
+     "c_tsv_over_r_tsv_p_block_N200": 0.8794069192751236,
+     "c_tsv_over_r_tsv_p_full_N100": 0.899581589958159,
+     "best_readable_full_N100": "r_tsv_p",
+     "c_tsv_over_best_readable_full_N100": 0.899581589958159,
+     "m_opt_over_cdsl_full_N100": 1.0339470655926353,
+     "m_repo_over_best_readable_full_N100": 1.4190077704722057
+    },
+    "llama3": {
+     "c_tsv_over_r_tsv_p_block_N200": 0.9099360836722835,
+     "c_tsv_over_r_tsv_p_full_N100": 0.9252842447211694,
+     "best_readable_full_N100": "r_tsv_p",
+     "c_tsv_over_best_readable_full_N100": 0.9252842447211694,
+     "m_opt_over_cdsl_full_N100": 1.0297379032258065,
+     "m_repo_over_best_readable_full_N100": 1.4190579317812668
+    },
+    "llama4": {
+     "c_tsv_over_r_tsv_p_block_N200": 0.8833333333333333,
+     "c_tsv_over_r_tsv_p_full_N100": 0.9036860879904876,
+     "best_readable_full_N100": "r_tsv_p",
+     "c_tsv_over_best_readable_full_N100": 0.9036860879904876,
+     "m_opt_over_cdsl_full_N100": 1.0293619424054206,
+     "m_repo_over_best_readable_full_N100": 1.4280618311533888
+    },
+    "tekken": {
+     "c_tsv_over_r_tsv_p_block_N200": 0.8852601156069364,
+     "c_tsv_over_r_tsv_p_full_N100": 0.9028296849973305,
+     "best_readable_full_N100": "r_tsv_p",
+     "c_tsv_over_best_readable_full_N100": 0.9028296849973305,
+     "m_opt_over_cdsl_full_N100": 1.0108527131782945,
+     "m_repo_over_best_readable_full_N100": 1.3545114789108381
+    },
+    "gemma3": {
+     "c_tsv_over_r_tsv_p_block_N200": 0.9105981794538361,
+     "c_tsv_over_r_tsv_p_full_N100": 0.924896510940272,
+     "best_readable_full_N100": "r_tsv_p",
+     "c_tsv_over_best_readable_full_N100": 0.924896510940272,
+     "m_opt_over_cdsl_full_N100": 0.986562150055991,
+     "m_repo_over_best_readable_full_N100": 1.6274393849793023
+    }
+   }
+  },
+  "flat_predicates_N200_block_tokens": {
+   "csv_full": {
+    "qwen3-reconstructed": 3858,
+    "o200k_base": 3830,
+    "llama3": 3858,
+    "llama4": 3816,
+    "tekken": 4024,
+    "gemma3": 3801
+   },
+   "csv_defaults": {
+    "qwen3-reconstructed": 2974,
+    "o200k_base": 2946,
+    "llama3": 2974,
+    "llama4": 2933,
+    "tekken": 3157,
+    "gemma3": 2927
+   },
+   "cdsl": {
+    "qwen3-reconstructed": 2379,
+    "o200k_base": 2357,
+    "llama3": 2379,
+    "llama4": 2331,
+    "tekken": 2446,
+    "gemma3": 2332
+   },
+   "english_concise": {
+    "qwen3-reconstructed": 2577,
+    "o200k_base": 2551,
+    "llama3": 2577,
+    "llama4": 2533,
+    "tekken": 2600,
+    "gemma3": 2704
+   },
+   "m_repo": {
+    "qwen3-reconstructed": 3346,
+    "o200k_base": 3324,
+    "llama3": 3346,
+    "llama4": 3298,
+    "tekken": 3361,
+    "gemma3": 3851
+   },
+   "m_opt": {
+    "qwen3-reconstructed": 2465,
+    "o200k_base": 2443,
+    "llama3": 2465,
+    "llama4": 2417,
+    "tekken": 2480,
+    "gemma3": 2265
+   },
+   "json_array": {
+    "qwen3-reconstructed": 3907,
+    "o200k_base": 3885,
+    "llama3": 3907,
+    "llama4": 3859,
+    "tekken": 4028,
+    "gemma3": 3987
+   },
+   "json_repo": {
+    "qwen3-reconstructed": 8107,
+    "o200k_base": 8085,
+    "llama3": 8107,
+    "llama4": 7659,
+    "tekken": 8428,
+    "gemma3": 7587
+   },
+   "english_natural*": {
+    "qwen3-reconstructed": 1963,
+    "o200k_base": 1927,
+    "llama3": 1963,
+    "llama4": 1865,
+    "tekken": 1983,
+    "gemma3": 2010
+   }
+  }
+ },
+ "probes": {
+  "glyph_extra_tokens_per_occurrence": {
+   "ascii s": {
+    "qwen3-reconstructed": 0.0,
+    "o200k_base": 0.0,
+    "cl100k_base": 0.0,
+    "llama3": 0.0,
+    "llama4": 0.0,
+    "tekken": 0.0,
+    "gemma3": 0.0
+   },
+   "ascii word see": {
+    "qwen3-reconstructed": 0.0,
+    "o200k_base": 0.0,
+    "cl100k_base": 0.0,
+    "llama3": 0.0,
+    "llama4": 0.0,
+    "tekken": 0.0,
+    "gemma3": 0.0
+   },
+   "greek σ": {
+    "qwen3-reconstructed": 0.0,
+    "o200k_base": 0.0,
+    "cl100k_base": 0.0,
+    "llama3": 0.0,
+    "llama4": 0.0,
+    "tekken": 0.0,
+    "gemma3": 0.0
+   },
+   "math ⊕": {
+    "qwen3-reconstructed": 0.0,
+    "o200k_base": 1.0,
+    "cl100k_base": 2.0,
+    "llama3": 1.0,
+    "llama4": 1.0,
+    "tekken": 2.0,
+    "gemma3": 0.0
+   },
+   "arrow →": {
+    "qwen3-reconstructed": 0.0,
+    "o200k_base": 0.0,
+    "cl100k_base": 0.0,
+    "llama3": 0.0,
+    "llama4": 0.0,
+    "tekken": 0.0,
+    "gemma3": 0.0
+   },
+   "logic ∴": {
+    "qwen3-reconstructed": 0.0,
+    "o200k_base": 1.0,
+    "cl100k_base": 1.0,
+    "llama3": 1.0,
+    "llama4": 0.0,
+    "tekken": 1.0,
+    "gemma3": 0.0
+   },
+   "bracket ⟦": {
+    "qwen3-reconstructed": 0.0,
+    "o200k_base": 2.0,
+    "cl100k_base": 1.0,
+    "llama3": 1.0,
+    "llama4": 1.0,
+    "tekken": 2.0,
+    "gemma3": 0.0
+   },
+   "cjk 见": {
+    "qwen3-reconstructed": 0.0,
+    "o200k_base": 0.0,
+    "cl100k_base": 0.0,
+    "llama3": 0.0,
+    "llama4": 0.0,
+    "tekken": 0.0,
+    "gemma3": 0.0
+   },
+   "emoji 👁": {
+    "qwen3-reconstructed": 0.0,
+    "o200k_base": 1.0,
+    "cl100k_base": 2.0,
+    "llama3": 2.0,
+    "llama4": 1.0,
+    "tekken": 3.0,
+    "gemma3": 0.0
+   },
+   "PUA U+E000": {
+    "qwen3-reconstructed": 2.0,
+    "o200k_base": 1.0,
+    "cl100k_base": 2.0,
+    "llama3": 2.0,
+    "llama4": 1.0,
+    "tekken": 2.0,
+    "gemma3": 0.0
+   }
+  },
+  "unicode": {
+   "decomposed e+U+0301": {
+    "qwen3-reconstructed": {
+     "exact": false,
+     "tokens": 4
+    },
+    "o200k_base": {
+     "exact": true,
+     "tokens": 5
+    },
+    "cl100k_base": {
+     "exact": true,
+     "tokens": 5
+    },
+    "llama3": {
+     "exact": true,
+     "tokens": 5
+    },
+    "llama4": {
+     "exact": true,
+     "tokens": 4
+    },
+    "tekken": {
+     "exact": true,
+     "tokens": 6
+    },
+    "gemma3": {
+     "exact": true,
+     "tokens": 4
+    }
+   },
+   "Angstrom sign U+212B": {
+    "qwen3-reconstructed": {
+     "exact": false,
+     "tokens": 3
+    },
+    "o200k_base": {
+     "exact": true,
+     "tokens": 4
+    },
+    "cl100k_base": {
+     "exact": true,
+     "tokens": 4
+    },
+    "llama3": {
+     "exact": true,
+     "tokens": 4
+    },
+    "llama4": {
+     "exact": true,
+     "tokens": 4
+    },
+    "tekken": {
+     "exact": true,
+     "tokens": 4
+    },
+    "gemma3": {
+     "exact": true,
+     "tokens": 5
+    }
+   },
+   "Ohm sign U+2126": {
+    "qwen3-reconstructed": {
+     "exact": false,
+     "tokens": 3
+    },
+    "o200k_base": {
+     "exact": true,
+     "tokens": 3
+    },
+    "cl100k_base": {
+     "exact": true,
+     "tokens": 4
+    },
+    "llama3": {
+     "exact": true,
+     "tokens": 4
+    },
+    "llama4": {
+     "exact": true,
+     "tokens": 3
+    },
+    "tekken": {
+     "exact": true,
+     "tokens": 4
+    },
+    "gemma3": {
+     "exact": true,
+     "tokens": 3
+    }
+   },
+   "Kelvin sign U+212A": {
+    "qwen3-reconstructed": {
+     "exact": false,
+     "tokens": 3
+    },
+    "o200k_base": {
+     "exact": true,
+     "tokens": 4
+    },
+    "cl100k_base": {
+     "exact": true,
+     "tokens": 4
+    },
+    "llama3": {
+     "exact": true,
+     "tokens": 4
+    },
+    "llama4": {
+     "exact": true,
+     "tokens": 4
+    },
+    "tekken": {
+     "exact": true,
+     "tokens": 4
+    },
+    "gemma3": {
+     "exact": true,
+     "tokens": 5
+    }
+   },
+   "CJK compatibility U+F900": {
+    "qwen3-reconstructed": {
+     "exact": false,
+     "tokens": 4
+    },
+    "o200k_base": {
+     "exact": true,
+     "tokens": 5
+    },
+    "cl100k_base": {
+     "exact": true,
+     "tokens": 5
+    },
+    "llama3": {
+     "exact": true,
+     "tokens": 5
+    },
+    "llama4": {
+     "exact": true,
+     "tokens": 4
+    },
+    "tekken": {
+     "exact": true,
+     "tokens": 5
+    },
+    "gemma3": {
+     "exact": true,
+     "tokens": 5
+    }
+   },
+   "ligature U+FB01": {
+    "qwen3-reconstructed": {
+     "exact": true,
+     "tokens": 3
+    },
+    "o200k_base": {
+     "exact": true,
+     "tokens": 3
+    },
+    "cl100k_base": {
+     "exact": true,
+     "tokens": 4
+    },
+    "llama3": {
+     "exact": true,
+     "tokens": 4
+    },
+    "llama4": {
+     "exact": true,
+     "tokens": 3
+    },
+    "tekken": {
+     "exact": true,
+     "tokens": 5
+    },
+    "gemma3": {
+     "exact": true,
+     "tokens": 3
+    }
+   },
+   "fullwidth A U+FF21": {
+    "qwen3-reconstructed": {
+     "exact": true,
+     "tokens": 3
+    },
+    "o200k_base": {
+     "exact": true,
+     "tokens": 3
+    },
+    "cl100k_base": {
+     "exact": true,
+     "tokens": 4
+    },
+    "llama3": {
+     "exact": true,
+     "tokens": 3
+    },
+    "llama4": {
+     "exact": true,
+     "tokens": 3
+    },
+    "tekken": {
+     "exact": true,
+     "tokens": 3
+    },
+    "gemma3": {
+     "exact": true,
+     "tokens": 3
+    }
+   },
+   "Hangul jamo sequence": {
+    "qwen3-reconstructed": {
+     "exact": false,
+     "tokens": 3
+    },
+    "o200k_base": {
+     "exact": true,
+     "tokens": 8
+    },
+    "cl100k_base": {
+     "exact": true,
+     "tokens": 8
+    },
+    "llama3": {
+     "exact": true,
+     "tokens": 8
+    },
+    "llama4": {
+     "exact": true,
+     "tokens": 6
+    },
+    "tekken": {
+     "exact": true,
+     "tokens": 8
+    },
+    "gemma3": {
+     "exact": true,
+     "tokens": 4
+    }
+   },
+   "BOM U+FEFF": {
+    "qwen3-reconstructed": {
+     "exact": true,
+     "tokens": 4
+    },
+    "o200k_base": {
+     "exact": true,
+     "tokens": 4
+    },
+    "cl100k_base": {
+     "exact": true,
+     "tokens": 4
+    },
+    "llama3": {
+     "exact": true,
+     "tokens": 4
+    },
+    "llama4": {
+     "exact": true,
+     "tokens": 5
+    },
+    "tekken": {
+     "exact": true,
+     "tokens": 7
+    },
+    "gemma3": {
+     "exact": true,
+     "tokens": 5
+    }
+   },
+   "ZWJ emoji": {
+    "qwen3-reconstructed": {
+     "exact": true,
+     "tokens": 6
+    },
+    "o200k_base": {
+     "exact": true,
+     "tokens": 7
+    },
+    "cl100k_base": {
+     "exact": true,
+     "tokens": 10
+    },
+    "llama3": {
+     "exact": true,
+     "tokens": 9
+    },
+    "llama4": {
+     "exact": true,
+     "tokens": 7
+    },
+    "tekken": {
+     "exact": true,
+     "tokens": 11
+    },
+    "gemma3": {
+     "exact": true,
+     "tokens": 5
+    }
+   },
+   "escaped \\u0301": {
+    "qwen3-reconstructed": {
+     "exact": true,
+     "tokens": 9
+    },
+    "o200k_base": {
+     "exact": true,
+     "tokens": 7
+    },
+    "cl100k_base": {
+     "exact": true,
+     "tokens": 7
+    },
+    "llama3": {
+     "exact": true,
+     "tokens": 7
+    },
+    "llama4": {
+     "exact": true,
+     "tokens": 6
+    },
+    "tekken": {
+     "exact": true,
+     "tokens": 9
+    },
+    "gemma3": {
+     "exact": true,
+     "tokens": 9
+    }
+   }
+  },
+  "reserved_strings": {
+   "<|im_start|>": {
+    "qwen3-reconstructed": {
+     "control": true,
+     "tokens": 1
+    },
+    "o200k_base": {
+     "control": false,
+     "tokens": 6
+    },
+    "cl100k_base": {
+     "control": false,
+     "tokens": 6
+    },
+    "llama3": {
+     "control": false,
+     "tokens": 6
+    },
+    "llama4": {
+     "control": false,
+     "tokens": 5
+    },
+    "tekken": {
+     "control": false,
+     "tokens": 6
+    },
+    "gemma3": {
+     "control": false,
+     "tokens": 6
+    }
+   },
+   "<|endoftext|>": {
+    "qwen3-reconstructed": {
+     "control": true,
+     "tokens": 1
+    },
+    "o200k_base": {
+     "control": true,
+     "tokens": 1
+    },
+    "cl100k_base": {
+     "control": true,
+     "tokens": 1
+    },
+    "llama3": {
+     "control": false,
+     "tokens": 7
+    },
+    "llama4": {
+     "control": false,
+     "tokens": 6
+    },
+    "tekken": {
+     "control": false,
+     "tokens": 7
+    },
+    "gemma3": {
+     "control": false,
+     "tokens": 6
+    }
+   },
+   "<|eot_id|>": {
+    "qwen3-reconstructed": {
+     "control": false,
+     "tokens": 7
+    },
+    "o200k_base": {
+     "control": false,
+     "tokens": 7
+    },
+    "cl100k_base": {
+     "control": false,
+     "tokens": 7
+    },
+    "llama3": {
+     "control": true,
+     "tokens": 1
+    },
+    "llama4": {
+     "control": false,
+     "tokens": 6
+    },
+    "tekken": {
+     "control": false,
+     "tokens": 7
+    },
+    "gemma3": {
+     "control": false,
+     "tokens": 7
+    }
+   },
+   "<start_of_turn>": {
+    "qwen3-reconstructed": {
+     "control": false,
+     "tokens": 5
+    },
+    "o200k_base": {
+     "control": false,
+     "tokens": 5
+    },
+    "cl100k_base": {
+     "control": false,
+     "tokens": 5
+    },
+    "llama3": {
+     "control": false,
+     "tokens": 5
+    },
+    "llama4": {
+     "control": false,
+     "tokens": 5
+    },
+    "tekken": {
+     "control": false,
+     "tokens": 6
+    },
+    "gemma3": {
+     "control": true,
+     "tokens": 1
+    }
+   },
+   "[INST]": {
+    "qwen3-reconstructed": {
+     "control": false,
+     "tokens": 3
+    },
+    "o200k_base": {
+     "control": false,
+     "tokens": 3
+    },
+    "cl100k_base": {
+     "control": false,
+     "tokens": 3
+    },
+    "llama3": {
+     "control": false,
+     "tokens": 3
+    },
+    "llama4": {
+     "control": false,
+     "tokens": 3
+    },
+    "tekken": {
+     "control": true,
+     "tokens": 1
+    },
+    "gemma3": {
+     "control": false,
+     "tokens": 3
+    }
+   },
+   "<|start|>": {
+    "qwen3-reconstructed": {
+     "control": false,
+     "tokens": 5
+    },
+    "o200k_base": {
+     "control": true,
+     "tokens": 1
+    },
+    "cl100k_base": {
+     "control": false,
+     "tokens": 5
+    },
+    "llama3": {
+     "control": false,
+     "tokens": 5
+    },
+    "llama4": {
+     "control": false,
+     "tokens": 4
+    },
+    "tekken": {
+     "control": false,
+     "tokens": 5
+    },
+    "gemma3": {
+     "control": false,
+     "tokens": 4
+    }
+   }
+  },
+  "numbers": {
+   "7": {
+    "qwen3-reconstructed": 1,
+    "o200k_base": 1,
+    "cl100k_base": 1,
+    "llama3": 1,
+    "llama4": 1,
+    "tekken": 1,
+    "gemma3": 1
+   },
+   "42": {
+    "qwen3-reconstructed": 2,
+    "o200k_base": 1,
+    "cl100k_base": 1,
+    "llama3": 1,
+    "llama4": 1,
+    "tekken": 2,
+    "gemma3": 2
+   },
+   "2026": {
+    "qwen3-reconstructed": 4,
+    "o200k_base": 2,
+    "cl100k_base": 2,
+    "llama3": 2,
+    "llama4": 2,
+    "tekken": 4,
+    "gemma3": 4
+   },
+   "3.14159": {
+    "qwen3-reconstructed": 7,
+    "o200k_base": 4,
+    "cl100k_base": 4,
+    "llama3": 4,
+    "llama4": 4,
+    "tekken": 7,
+    "gemma3": 7
+   },
+   "1,250,000": {
+    "qwen3-reconstructed": 9,
+    "o200k_base": 5,
+    "cl100k_base": 5,
+    "llama3": 5,
+    "llama4": 5,
+    "tekken": 9,
+    "gemma3": 9
+   },
+   "12345678901234567890": {
+    "qwen3-reconstructed": 20,
+    "o200k_base": 7,
+    "cl100k_base": 7,
+    "llama3": 7,
+    "llama4": 7,
+    "tekken": 20,
+    "gemma3": 20
+   },
+   "2026-10-04": {
+    "qwen3-reconstructed": 10,
+    "o200k_base": 6,
+    "cl100k_base": 6,
+    "llama3": 6,
+    "llama4": 6,
+    "tekken": 10,
+    "gemma3": 10
+   },
+   "€19.99": {
+    "qwen3-reconstructed": 6,
+    "o200k_base": 4,
+    "cl100k_base": 4,
+    "llama3": 4,
+    "llama4": 4,
+    "tekken": 6,
+    "gemma3": 6
+   }
+  },
+  "readme_showcase": {
+   "english": {
+    "qwen3-reconstructed": 15,
+    "o200k_base": 15,
+    "cl100k_base": 15,
+    "llama3": 15,
+    "llama4": 15,
+    "tekken": 15,
+    "gemma3": 15
+   },
+   "sylang_readme_claim_5_to_7_tokens": {
+    "qwen3-reconstructed": 14,
+    "o200k_base": 12,
+    "cl100k_base": 14,
+    "llama3": 14,
+    "llama4": 14,
+    "tekken": 14,
+    "gemma3": 12
+   }
+  },
+  "nfc_escape_fusion_after_qwen_nfc": {
+   "raw_literal_is_nfc": true,
+   "english": "ParseError",
+   "json": "ParseError",
+   "dsl": "ParseError",
+   "prime": "ParseError",
+   "m": "ParseError"
+  },
+  "gemma_raw_sentencepiece_matches_start_of_turn": {
+   "ids": [
+    14210,
+    236743,
+    105,
+    2364
+   ]
+  }
+ },
+ "defects": {
+  "D3_json_tasks_payload_equals_answer": "33/33",
+  "D4_duplicate_key_in_one_answer": "whole run aborted: EvaluationError: Duplicate JSON key: version",
+  "D4_nan_in_one_answer": "whole run aborted: EvaluationError: Non-finite JSON number: NaN",
+  "D5_deeply_nested_answer": "uncaught RecursionError (CLI prints a traceback)",
+  "D9_cli_utf8_bom": "exit 2: sylang: unexpected character at 0"
+ },
+ "cost_model": {
+  "assumptions": "output=5x input, cache read=0.1x input (Anthropic standard multipliers, verified 2026-10-04); read answer=3 output tokens; generate = model emits all 100 records; only the prefix before the records is cacheable; read_prefix_cached is counterfactual where prefix_cacheable is false; cache writes (1.25x) ignored; tokens from the named open tokenizer, NOT Claude's (not public)",
+  "min_cacheable_tokens": 512,
+  "per_format": {
+   "qwen3-reconstructed": {
+    "english_repo": {
+     "read_uncached": 2650,
+     "read_prefix_cached": 2396.2,
+     "prefix_tokens": 282,
+     "prefix_cacheable": false,
+     "generate": 11971
+    },
+    "json_repo": {
+     "read_uncached": 5988,
+     "read_prefix_cached": 5925.0,
+     "prefix_tokens": 70,
+     "prefix_cacheable": false,
+     "generate": 29509
+    },
+    "m_repo": {
+     "read_uncached": 2556,
+     "read_prefix_cached": 2408.4,
+     "prefix_tokens": 164,
+     "prefix_cacheable": false,
+     "generate": 11973
+    },
+    "english_natural*": {
+     "read_uncached": 1540,
+     "read_prefix_cached": 1498.6,
+     "prefix_tokens": 46,
+     "prefix_cacheable": false,
+     "generate": 7365
+    },
+    "english_concise": {
+     "read_uncached": 2167,
+     "read_prefix_cached": 2061.7,
+     "prefix_tokens": 117,
+     "prefix_cacheable": false,
+     "generate": 10216
+    },
+    "cdsl": {
+     "read_uncached": 1881,
+     "read_prefix_cached": 1790.1,
+     "prefix_tokens": 101,
+     "prefix_cacheable": false,
+     "generate": 8845
+    },
+    "m_opt": {
+     "read_uncached": 1936,
+     "read_prefix_cached": 1817.2,
+     "prefix_tokens": 132,
+     "prefix_cacheable": false,
+     "generate": 8996
+    },
+    "json_array": {
+     "read_uncached": 2896,
+     "read_prefix_cached": 2832.1,
+     "prefix_tokens": 71,
+     "prefix_cacheable": false,
+     "generate": 14045
+    },
+    "r_tsv_p": {
+     "read_uncached": 1632,
+     "read_prefix_cached": 1506.0,
+     "prefix_tokens": 140,
+     "prefix_cacheable": false,
+     "generate": 7444
+    },
+    "c_tsv": {
+     "read_uncached": 1461,
+     "read_prefix_cached": 1317.9,
+     "prefix_tokens": 159,
+     "prefix_cacheable": false,
+     "generate": 6513
+    }
+   },
+   "o200k_base": {
+    "english_repo": {
+     "read_uncached": 2627,
+     "read_prefix_cached": 2372.3,
+     "prefix_tokens": 283,
+     "prefix_cacheable": false,
+     "generate": 11860
+    },
+    "json_repo": {
+     "read_uncached": 6013,
+     "read_prefix_cached": 5949.1,
+     "prefix_tokens": 71,
+     "prefix_cacheable": false,
+     "generate": 29638
+    },
+    "m_repo": {
+     "read_uncached": 2532,
+     "read_prefix_cached": 2384.4,
+     "prefix_tokens": 164,
+     "prefix_cacheable": false,
+     "generate": 11861
+    },
+    "english_natural*": {
+     "read_uncached": 1510,
+     "read_prefix_cached": 1467.7,
+     "prefix_tokens": 47,
+     "prefix_cacheable": false,
+     "generate": 7219
+    },
+    "english_concise": {
+     "read_uncached": 2142,
+     "read_prefix_cached": 2035.8,
+     "prefix_tokens": 118,
+     "prefix_cacheable": false,
+     "generate": 10095
+    },
+    "cdsl": {
+     "read_uncached": 1858,
+     "read_prefix_cached": 1766.2,
+     "prefix_tokens": 102,
+     "prefix_cacheable": false,
+     "generate": 8734
+    },
+    "m_opt": {
+     "read_uncached": 1913,
+     "read_prefix_cached": 1793.3,
+     "prefix_tokens": 133,
+     "prefix_cacheable": false,
+     "generate": 8885
+    },
+    "json_array": {
+     "read_uncached": 2920,
+     "read_prefix_cached": 2856.1,
+     "prefix_tokens": 71,
+     "prefix_cacheable": false,
+     "generate": 14173
+    },
+    "r_tsv_p": {
+     "read_uncached": 1632,
+     "read_prefix_cached": 1505.1,
+     "prefix_tokens": 141,
+     "prefix_cacheable": false,
+     "generate": 7448
+    },
+    "c_tsv": {
+     "read_uncached": 1433,
+     "read_prefix_cached": 1289.0,
+     "prefix_tokens": 160,
+     "prefix_cacheable": false,
+     "generate": 6377
+    }
+   },
+   "gemma3": {
+    "english_repo": {
+     "read_uncached": 2663,
+     "read_prefix_cached": 2411.0,
+     "prefix_tokens": 280,
+     "prefix_cacheable": false,
+     "generate": 12043
+    },
+    "json_repo": {
+     "read_uncached": 5613,
+     "read_prefix_cached": 5551.8,
+     "prefix_tokens": 68,
+     "prefix_cacheable": false,
+     "generate": 27641
+    },
+    "m_repo": {
+     "read_uncached": 2888,
+     "read_prefix_cached": 2735.0,
+     "prefix_tokens": 170,
+     "prefix_cacheable": false,
+     "generate": 13608
+    },
+    "english_natural*": {
+     "read_uncached": 1509,
+     "read_prefix_cached": 1469.4,
+     "prefix_tokens": 44,
+     "prefix_cacheable": false,
+     "generate": 7217
+    },
+    "english_concise": {
+     "read_uncached": 2188,
+     "read_prefix_cached": 2084.5,
+     "prefix_tokens": 115,
+     "prefix_cacheable": false,
+     "generate": 10328
+    },
+    "cdsl": {
+     "read_uncached": 1857,
+     "read_prefix_cached": 1766.1,
+     "prefix_tokens": 101,
+     "prefix_cacheable": false,
+     "generate": 8729
+    },
+    "m_opt": {
+     "read_uncached": 1816,
+     "read_prefix_cached": 1699.0,
+     "prefix_tokens": 130,
+     "prefix_cacheable": false,
+     "generate": 8408
+    },
+    "json_array": {
+     "read_uncached": 2925,
+     "read_prefix_cached": 2863.8,
+     "prefix_tokens": 68,
+     "prefix_cacheable": false,
+     "generate": 14201
+    },
+    "r_tsv_p": {
+     "read_uncached": 1746,
+     "read_prefix_cached": 1617.3,
+     "prefix_tokens": 143,
+     "prefix_cacheable": false,
+     "generate": 8006
+    },
+    "c_tsv": {
+     "read_uncached": 1599,
+     "read_prefix_cached": 1455.9,
+     "prefix_tokens": 159,
+     "prefix_cacheable": false,
+     "generate": 7207
+    }
+   }
+  }
+ },
+ "notes": "cl100k_base is measured for payloads and probes only; it is excluded from chat-templated batches."
+}
