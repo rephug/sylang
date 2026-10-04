@@ -34,7 +34,7 @@ No model inference, training, fine-tuning, serving job or paid API call was made
 - a custom tokenizer or new vocabulary tokens
 - fine-tuning a model to learn the notation
 
-**Conditional go** for a bounded falsification-and-salvage track. It costs about 1–3 weeks of engineering and at most a few hundred dollars of approved inference.
+**Conditional go** for a bounded falsification-and-salvage track. It costs about 2–3.5 weeks of engineering (plan Phases 0–2) and at most a few hundred dollars of approved inference.
 
 **The one question left open** is whether an *optimized* Sylang-style code can keep accuracy while saving about 10% of tokens. That code is a fused code per fact in a tab-separated layout, `c_tsv`. It is compared against the same layout written in words, `r_tsv_p`. Offline it is knife-edge; only a comprehension test can settle it.
 
@@ -51,7 +51,7 @@ Why:
      - payload: 9.8–16.2% cheaper on the English-label corpora, 8–12% on multilingual labels
      - complete prompts at N=100: 8.5–12.3% cheaper on default-skewed English labels (≥10% on 5/6 tokenizers), 12.4–14.0% with uniform features, but only 6.8–10.0% with multilingual labels
    - Even so, the codes are not atomic tokens: `hpgd` becomes `\th · pg · d`. M's own codes fuse with punctuation (`:p`, `,g`, `+,`), and the legend teaches different tokens than the payload uses **[V]**.
-3. **[M] Complete chat prompts and generation.** At N=100, the repository's M costs **31–66% more** than the best readable reversible format on six chat-templated tokenizers. That best format is the tab-separated word layout `r_tsv_p` in every case.
+3. **[M] Complete chat prompts and generation.** At N=100, the repository's M costs **30–66% more** than the best readable reversible format on six chat-templated tokenizers across the three corpora (41–66% on the default-skewed English corpus). That best format is the tab-separated word layout `r_tsv_p` in every case.
    - **Generation** (Qwen3 tokens, output priced 5× input): emitting 100 facts costs 11,973 input-token equivalents in M, against 7,444 for the readable tab layout and 8,845 for the compact DSL.
    - **Against verbose JSON:** M first beats it at N = 2 records per prompt (N = 3 on Gemma 3), so "JSON wins the complete prompt" is an N = 1 artifact. Any compact format beats verbose JSON there.
    - **Offline cost gate [V]:** to tie the compact DSL on cost per correct answer, M would need 1.31–1.56× its accuracy. The retry cap does not change this. This kills the repository's M offline, without any paid test.
@@ -60,7 +60,7 @@ Why:
    - New tokens carry no meaning until trained, and training breaks compatibility with hosted APIs.
    - Hosted tokenizers change underneath you: Anthropic states that Claude 4.7 and later produce about 30% more tokens for the same text.
    - Making M's codes atomic vocabulary entries would make M *longer* (+17% idealized) **[V]**. The structure floor is the same for every quote-delimited format.
-5. **[R] What works:** the reversible codec. It is a well-tested serializer for a tiny closed schema, and the evaluation scaffold is carefully built. Both are reusable; neither shows that a new language is needed. §13 lists 60 verified improvements to them and to this review's own method.
+5. **[R] What works:** the reversible codec. It is a well-tested serializer for a tiny closed schema, and the evaluation scaffold is carefully built. Both are reusable; neither shows that a new language is needed. §13 lists the verified improvements to them and to this review's own method: 60 surviving findings, merged into 49 items.
 
 Details, caveats and what would change this verdict are in §11. The improvements are in §13.
 
@@ -148,7 +148,7 @@ Severity: **H** invalidates a reported conclusion; **M** biases or breaks an eva
 |---|---|---|---|---|
 | D1 | **H** | **Weak English baseline inflates M's saving.** Every English record repeats `Sylang core-v0.1:` and spells the default evidence as "Without specified evidence,". | **[M]** The header is 297 of 1,166 Qwen3 English tokens (25.5%); M's header is 132 of 1,030 (12.8%). Concise English with neither is 730 tokens; M is 1,030, and header-free M is 898. | Compare against concise English, a compact word DSL and minified/positional JSON (§6.1). Carry version and defaults once per batch, not per record. |
 | D2 | **H** | **The complete-prompt comparison uses one record per prompt.** That maximizes legend overhead and makes "JSON wins" an artifact of N=1. | **[M]** On real complete prompts, M is already cheaper than the repository JSON at N = 2 on five chat-templated tokenizers and N = 3 on Gemma 3. A linear overhead + per-record model gives break-even N ≈ 2.8–4.1 (§6.2). | Report cost curves against N, plus cached/uncached legend accounting. |
-| D3 | **M** | **The comprehension task is biased toward JSON.** Every task asks for the JSON tree, so the JSON task is a pure copy, and the shared prompt already teaches the JSON output schema to all formats. | **[M]** 33 of 33 JSON payloads equal the expected answer exactly. The shared prompt is 918 characters before the legend. The English legend is 1,063 characters; JSON's is 120. | Separate reading (answer questions in natural language, or extract fields) from generation (emit format X). Never use the input format as the output format in reading tasks. |
+| D3 | **M** | **The comprehension task is biased toward JSON.** Every task asks for the JSON tree, so the JSON task is a pure copy, and the shared prompt already teaches the JSON output schema to all formats. | **[M]** 33 of 33 JSON payloads equal the expected answer exactly (`results.json` → `defects`). **[A]** The shared prompt text, excluding legend and payload, is 918 characters for M, about 780 of them before the legend. The English legend is 1,063 characters; JSON's is 120. | Separate reading (answer questions in natural language, or extract fields) from generation (emit format X). Never use the input format as the output format in reading tasks. |
 | D4 | **M** | **One malformed model answer aborts scoring of the whole file.** `read_json` raises on any duplicate key or NaN *inside* an `answer`. | **[M]** A file with one good answer and one answer containing a duplicated `version` key exits with `Duplicate JSON key: version`. A `NaN` answer behaves the same. | Parse the envelope strictly, but score a malformed `answer` as schema-invalid for that task only, recording the raw text. |
 | D5 | **M** | **A deeply nested answer crashes the scorer with a traceback.** The `RecursionError` from `json.loads` is not caught. | **[M]** A 100,000-deep array answer makes `score-comprehension` exit with status 1 and a traceback. | Catch `RecursionError` and bound the answer length before parsing. |
 | D6 | **M** | **M opcodes are overloaded by position.** `s` means see and simple; `c` means contain and completed; `p` means predicate and past; `i` means if and inferred. | **[R]** Codec tables. The parser handles this correctly; models may not. | If M survives, use field-unique codes, or words. |
@@ -181,7 +181,10 @@ The defects are in the evaluation design and the claims, not in serialization.
 
 ### 5.2 What the tokens look like **[M]**
 
-The same fact (`Bo` was helping `Cy`, unspecified evidence), counted with Qwen3. o200k_base gives the same pieces except for the controlled-English row, where it merges `Syl` (20 tokens).
+The same fact (`Bo` was helping `Cy`, unspecified evidence), counted with Qwen3 (`results.json` → `payload.example_pieces`). o200k_base differs in three rows:
+- controlled English: it merges `Syl`, giving 20 tokens
+- M with full words: it splits `uns·pecified`, still 17 tokens
+- tab word layout: it does not fuse the TAB with `help`, giving 7 tokens
 
 | Rendering | Tokens | Pieces |
 |---|---:|---|
@@ -328,11 +331,11 @@ Complete prompt tokens at N=100, default-skewed English corpus (tokens per recor
 |---|---:|---:|---:|---:|---:|---:|
 | Natural English* | 1,525 (13.4) | 1,495 (13.1) | 1,527 (13.4) | 1,443 (12.6) | 1,516 (13.4) | 1,494 (13.2) |
 | **Compact word DSL** | **1,866 (16.0)** | 1,843 (15.8) | 1,868 (16.0) | 1,829 (15.7) | 1,917 (16.5) | 1,842 (15.8) |
-| Optimized M | 1,921 (16.2) | 1,898 (16.0) | 1,923 (16.2) | 1,880 (15.9) | 1,928 (16.3) | 1,801 (15.2) |
+| Optimized M | 1,921 (16.25) | 1,898 (16.0) | 1,923 (16.25) | 1,880 (15.9) | 1,928 (16.3) | 1,801 (15.2) |
 | Concise English | 2,152 (18.4) | 2,127 (18.1) | 2,154 (18.4) | 2,110 (18.0) | 2,155 (18.4) | 2,173 (18.7) |
 | **M (repo legend)** | **2,541 (21.9)** | 2,517 (21.7) | 2,543 (21.9) | 2,501 (21.5) | 2,547 (21.9) | 2,873 (25.0) |
 | Controlled English (repo legend) | 2,635 (21.3) | 2,612 (21.1) | 2,637 (21.3) | 2,593 (20.9) | 2,638 (21.3) | 2,648 (21.6) |
-| Positional JSON array | 2,881 (25.8) | 2,905 (26.0) | 2,883 (25.8) | 2,797 (25.1) | 3,001 (26.9) | 2,910 (26.2) |
+| Positional JSON array | 2,881 (25.8) | 2,905 (26.0) | 2,883 (25.8) | 2,797 (25.15) | 3,001 (26.9) | 2,910 (26.2) |
 | JSON (repo legend) | 5,973 (54.2) | 5,998 (54.4) | 5,975 (54.2) | 5,675 (51.4) | 6,229 (56.5) | 5,598 (50.8) |
 | **Tab layout, words** (`r_tsv_p`) | **1,617 (13.4)** | 1,617 (13.4) | 1,619 (13.4) | 1,606 (13.3) | 1,805 (15.2) | 1,731 (14.4) |
 | **Tab layout, fused code** (`c_tsv`) | **1,446 (11.7)** | 1,418 (11.4) | 1,448 (11.7) | 1,417 (11.4) | 1,600 (13.1) | 1,584 (13.0) |
@@ -342,11 +345,11 @@ Complete prompt tokens at N=100, default-skewed English corpus (tokens per recor
 | Against | M is cheaper when |
 |---|---|
 | Repository JSON | From N = 2 on real complete prompts (N = 3 on Gemma 3). The linear model gives N > 2.8–4.1. |
-| Positional JSON array | N > 19–27 (Gemma 3: N > 85–101) |
+| Positional JSON array | N > 19–26 (Gemma 3: N > 85–101) |
 | Repository controlled English | Skewed corpus: N < ~190 (Gemma 3: N < ~32); M's legend is shorter, but it costs more per record. Uniform corpus: always (Gemma 3: N < ~43) |
 | Concise English, compact DSL, optimized M, both tab layouts | Never |
 
-The uniform-feature and multilingual corpora give the same ordering. In the multilingual corpus, script and tokenizer dominate absolute cost. Qwen3 spends 1.08× (repository JSON) to 1.38× (natural English) as many tokens per record as o200k on the same content; most formats fall in 1.17–1.33×. cl100k is measured for payloads and probes only, not in these chat-templated batches.
+The uniform-feature and multilingual corpora give the same ordering. In the multilingual corpus, script and tokenizer dominate absolute cost. Qwen3 spends 1.08× (repository JSON) to 1.38× (natural English) as many tokens per record as o200k on the same content; 7 of the 10 formats fall in 1.21–1.33×. cl100k is measured for payloads and probes only, not in these chat-templated batches.
 
 **Layout-matched codes vs words (added in the update).** The tab-separated word layout `r_tsv_p` is the cheapest readable reversible format on every tokenizer and corpus. The fused code `c_tsv` in the same layout is cheaper still. Ratio of `c_tsv` to `r_tsv_p` at N=100 (complete prompt):
 
@@ -369,12 +372,12 @@ The flat predicate-only batch (200 records, no conditionals) gives the same pict
 **Verified pricing structure** (Anthropic, read 2026-10-04) **[L-d]**:
 - Output costs 5× input on every listed model.
 - Cache reads cost 0.1× input (0.05× on Opus 5.5, 0.025× on Fable 5.1). 5-minute cache writes cost 1.25× input.
-- The minimum cacheable prefix is 512–4,096 tokens depending on the model ([prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)).
+- The minimum cacheable prefix is 512–4,096 tokens depending on the model ([prompt caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)). Every prefix measured here (46–282 tokens) is below even the smallest (512).
 - OpenAI and Google pricing was confirmed only through search indexes **[L-i]**. It shows similar output/input ratios (about 5–8×) and similar cached-read discounts.
 
 Cost per call at N=100 in *input-token equivalents*, using Qwen3 token counts and these multipliers. This is an illustration, not a bill: Claude's own tokenizer differs.
 
-The "prefix cached" column caches only the true prefix (template + task + legend, before the records), which is 46–282 tokens here. Every such prefix is **below the 512-token minimum** of current Anthropic models, so the column is **counterfactual** unless the prefix is bundled into a larger stable one. Cache writes (1.25×) are ignored.
+The "prefix cached" column caches only the true prefix (template + task + legend, before the records), which is 46–282 tokens here. Every such prefix is **below the smallest minimum cacheable length (512)**, so the column is **counterfactual** unless the prefix is bundled into a larger stable one. Cache writes (1.25×) are ignored.
 
 | Format | Read, uncached | Read, prefix cached (counterfactual) | Generate 100 records |
 |---|---:|---:|---:|
@@ -393,16 +396,19 @@ Consequences:
 1. **Output is where tokens cost money and time.** Prefill is parallel; decoding is sequential (Splitwise, ISCA 2024; DistServe, OSDI 2024 **[L-i]**). vLLM's own documentation says prefix caching "only reduces the time of processing the queries (the prefilling phase)" **[L-i via repository docs]**. Here M's generation cost is 1.35× the compact DSL's, 1.61× the tab word layout's and 1.84× the fused code's, for the same 100 facts.
 2. **Caching the legend does not rescue M.**
    - M's cacheable prefix (164 Qwen3 tokens) is below every Anthropic minimum cacheable length. It is only cached when bundled into a larger stable prefix.
-   - Even with free legends, M is more expensive per record than five reversible alternatives.
+   - Even with free legends, M is more expensive per record than six reversible alternatives, including the repository's own controlled English (five on the uniform corpus).
    - With a cacheable prefix reused over Q questions, input-side format savings keep only about 21.5% of their uncached value at Q = 10 **[V]**.
    - Near the minimum-length threshold, caching policy rather than format can decide which format is cheaper **[V]**.
 3. **Retries, validation and accuracy.**
    - **Closed form [V].** With parse-failure probability f, accuracy a given a parse, and costs C_s (success) and C_f (failure), cost per correct answer = (C_s + C_f·f/(1 − f))/a. This is **independent of the retry cap**; the cap changes only coverage. Codec validation costs microseconds.
    - **M must be more accurate to break even.** M-repo needs at least 1.31–1.56× the compact DSL's accuracy to tie (generation, N = 100, output 4–8× input). That is impossible once the DSL's accuracy exceeds about 0.64–0.76. This is an offline kill condition for M-repo.
-   - **The fused code needs near-parity accuracy.** For `c_tsv` against `r_tsv_p` (cost ratio about 0.86–0.93), tying needs an accuracy ratio ≥ the cost ratio. Passing a 10% cost-per-correct gate needs about 0.95–1.0, i.e. essentially parity.
+   - **The fused code needs at least parity accuracy in most settings.** The required accuracy ratio to pass a 10% cost-per-correct gate is (cost ratio)/0.90; tying needs only an accuracy ratio ≥ the cost ratio.
+     - Generation, English labels (cost ratio 0.855–0.900): about 0.95–1.0, i.e. essentially parity.
+     - Multilingual reading (cost ratio up to 0.93): ≥ 1.03, so the code would have to be *more* accurate than words.
 4. **The NL → tree step is unaccounted for.** **[A]** Real inputs are prose. Some model must produce the tree, and that is a generation task priced at output rates. Savings from a compact notation exist only where structured facts already exist. There the question reduces to "which serialization should the model read or write", a well-studied engineering choice.
 5. **Latency was not measured.** **[A]** For a fixed model without constrained decoding, decode latency scales roughly linearly with sampled output tokens. Input differences of a few hundred tokens change time-to-first-token by milliseconds to tens of milliseconds on modern GPUs; that is an order-of-magnitude estimate, not a measurement.
-   - **Grammar fast-forward changes the ranking [V].** Engines that fast-forward forced bytes do not sample keys and punctuation. JSON then needs only 0.99–1.23× M's sampled steps while billing 2.54–3.03× its output tokens.
+   - **Grammar fast-forward changes the ranking [V].** Engines that fast-forward forced bytes do not sample keys and punctuation. Full canonical JSON documents then need only 0.99–1.23× header-free M's sampled steps while billing 2.54–3.03× its output tokens.
+     - For statement-only JSON records (the batch rendering in §6.2), the billed ratio is 2.05–2.60 (`results.json`, N=100).
    - So billing and self-hosted latency rank formats differently. No speed claim is justified without a serving experiment (plan Phase 3).
 
 ---
@@ -502,7 +508,7 @@ The full protocol, with phases, budgets and gates, is in the [plan](../plans/cla
   - The same instruction skeleton and the same number of worked examples per format.
   - Legend length either matched or varied deliberately as a factor.
   - The same decoding parameters, `max_tokens` and retry policy.
-  - The strongest compact baselines are included (minified JSON, positional JSON, compact word DSL, concise English, natural English).
+  - The strongest compact baselines are included: the tab word layout `r_tsv_p` (the layout-matched control), minified JSON and concise English, with natural English for reading. Positional JSON and the compact DSL stay as offline token baselines.
 - **Separate reading from generation.**
   - *Reading:* format X → answer in a format-neutral way (short natural-language answer or field extraction).
   - *Generation:* natural language or JSON → format X, validated by the strict codec.
@@ -524,7 +530,7 @@ The full protocol, with phases, budgets and gates, is in the [plan](../plans/cla
 
 | Track | Verdict | Basis |
 |---|---|---|
-| Sylang as a token-saving language as designed (repository M/Prime notation as the product) | **No-go** | **[M]** M costs 31–66% more than the best readable reversible format in complete prompts at N=100 on 6/6 chat-templated tokenizers, and 1.35–1.84× in generation. **[V]** Offline cost-per-correct algebra requires 1.31–1.56× the readable format's accuracy to tie. |
+| Sylang as a token-saving language as designed (repository M/Prime notation as the product) | **No-go** | **[M]** M costs 30–66% more than the best readable reversible format in complete prompts at N=100 on 6/6 chat-templated tokenizers. In generation it costs 1.43–1.70× the best readable format (Qwen3: 1.61×; 1.35× the compact DSL; 1.84× the fused code). **[V]** Offline cost-per-correct algebra requires 1.31–1.56× the readable format's accuracy to tie. |
 | Optimized Sylang-style fused code (`c_tsv`) | **Undetermined; tested in the conditional-go study** | **[M]** 8.5–14.0% cheaper than the same layout in words on English-label corpora (≥10% on 5/6 or 6/6 tokenizers), 6.8–10.0% on multilingual labels. It needs near-parity accuracy to pass. Comprehension is unmeasured, and the codes are not atomic tokens. |
 | Custom tokenizer, new tokens, vocabulary adaptation | **No-go** | **[M]/[L]/[V]** Glyphs give no gain; new tokens are meaningless until trained; incompatible with hosted APIs and caches; tokenizers drift. Atomic codes make M longer, and the structure floor is format-independent. |
 | Fine-tuning to teach M | **No-go** | **[A]** The format is more expensive before training; any fine-tune could target a cheaper readable format instead. |
@@ -539,7 +545,7 @@ The full protocol, with phases, budgets and gates, is in the [plan](../plans/cla
 2. **E2 — Reading accuracy [P].** The same facts in `c_tsv` vs `r_tsv_p` (the decisive matched pair), plus minified JSON and concise English as references. The repository's M is dropped: it is already killed offline.
    - Format-neutral, answer-balanced questions about polarity, scope, tense/aspect and evidence.
    - Two or more model families, a small and a large tier, with a pooled estimand.
-   - *Pass for the code* only if it is non-inferior to `r_tsv_p` (one pre-registered margin, Tango test, call-clustered variance) *and* cheaper per correct answer. The statistics are corrected in plan §5 and review §13.3.10–13.3.13.
+   - *Pass for the code* only if it is non-inferior to `r_tsv_p` (one pre-registered margin, Tango test, call-clustered variance) *and* at least 10% cheaper per correct answer (cost-per-correct ratio ≤ 0.90). The statistics are corrected in plan §5 and review §13.3.10–13.3.13.
 3. **E3 — Generation accuracy [P].** Natural language → format, codec-validated under one constraint policy for every arm: parse-failure rate, semantic accuracy, output tokens, retries.
    - *Pass for the code* only if cost per correct record is ≥10% below `r_tsv_p`.
 4. **E4 — Serving latency [P, only if E2 and E3 pass].** A local open model on vLLM: time to first token, decode time, cold/warm caches, p95. Report fast-forward on and off.
@@ -554,7 +560,7 @@ The full protocol, with phases, budgets and gates, is in the [plan](../plans/cla
 
 - **Accuracy.** A pre-registered, independently held-out study showing that a Sylang-style code is *both* non-inferior in accuracy *and* at least 10% cheaper per correct result than the same layout in words, on two or more current model families. "Cheaper" means billed tokens including legend, retries and output. Token counts alone already favour the fused code slightly at matched layout (§6.2), so accuracy is now the deciding evidence.
 - **Scale.** A realistic workload where structure (not literals) dominates, for example very wide records with dozens of closed-enum fields, and where fused codes keep accuracy.
-  - The headroom ceiling (§13.3.1) bounds the possible gain at about 12–17% on the English corpora here and 7–13% on multilingual ones.
+  - The headroom ceiling (§13.3.1) bounds the possible gain at about 12–17% on the default-skewed English corpus, 19–23% with uniform features, and 7–13% on multilingual labels.
 - **Deployment.** Evidence that the production target is an open model the project will fine-tune anyway, *and* that teaching the code yields higher accuracy than teaching a readable compact format at equal training cost.
 - **Tokenizer.** Superseded in part by the verification pass: at a fixed layout, word-based fields *are* more expensive than fused codes on 7/7 tokenizers. What remains open is whether that survives comprehension.
 
@@ -599,7 +605,7 @@ python benchmarks/claude-review-2026-10-04/run.py --output benchmarks/claude-rev
 
 ## 13. Technical, architectural and mathematical improvements
 
-This section adds 60 findings from a second verification pass. For each finding, two verifiers worked independently: one reproduced the numbers empirically, the other checked the logic and value. Where they corrected the original finding, the corrected figure is used. Findings rejected in verification are left out.
+This section adds the findings from a second verification pass: 60 survived, merged into 49 numbered items. For each finding, two verifiers worked independently: one reproduced the numbers empirically, the other checked the logic and value. Where they corrected the original finding, the corrected figure is used. Findings rejected in verification are left out.
 
 **How to read each item**
 - **Evidence label.** **[V]** measured during verification (tokenizers, tests, simulation) by the two verifiers; scripts not committed. **[V; M run.py]** additionally reproduced by this review's package (`results.json`). **[A]** analytical or reasoned. **[P]** proposed and not yet run.
@@ -614,7 +620,7 @@ The verification scripts live in the review session's scratch space and are not 
 |---|---|
 | M as designed (M-repo) | **Unchanged.** It loses to readable compact baselines at every label length tested (1–16 words) and on 7/7 tokenizers (§13.3.4). |
 | "Optimized codes only tie words" (§1, §6.1, §11.1) | **Overstated.** The tie is an artifact of m_opt's layout. At a matched layout, letter codes save 8–16% of payload, so G1 for Sylang-style variants is **undetermined** and sits near the 10% threshold (§13.3.2). |
-| Phase 2 statistics (plan §5.2, G2) | **Cannot support the gates as written.** The non-inferiority margin is mismatched, G2 is conjunctive, within-call clustering is ignored, and answer priors are skewed (§13.3.10–13.3.14). |
+| Phase 2 statistics (first-draft plan §5.2, G2; now corrected) | **Could not support the gates as first written.** The non-inferiority margin is mismatched, G2 is conjunctive, within-call clustering is ignored, and answer priors are skewed (§13.3.10–13.3.14). |
 | Harness integrity | Task IDs are not bound to prompt content, and none of 20 targeted integrity mutants is caught by the test suite (§13.1.12, §13.2.1). |
 | Unicode policy (§5.4) | The proposed rule leaves 98 unparseable cases. The fix is to check NFC-invariance on the *encoded* text (§13.1.1–13.1.2). |
 
@@ -663,7 +669,7 @@ The verification scripts live in the review session's scratch space and are not 
 #### 13.1.4 Reserved strings: the serving-layer fix is incomplete — P1, S, [V; M run.py]
 - **Gemma 3 through raw SentencePiece.** `<start_of_turn>` (105) and `<end_of_turn>` (106) are USER_DEFINED pieces, not CONTROL. The model has 6,410 USER_DEFINED pieces; CONTROL is only pad/eos/bos. `sp.encode('note <start_of_turn>user') = [14210, 236743, 105, 2364]`, and there is no switch to prevent it.
   - §5.5's "disable special-token parsing" therefore does not hold on this path.
-  - Plan 0.5's acceptance test ("zero control IDs") is unachievable here. It is also vacuous if "control" means `is_control()`, which returns False for 105/106.
+  - The first-draft plan 0.5 acceptance test ("zero control IDs", now corrected to reserved-string matches) was unachievable here. It is also vacuous if "control" means `is_control()`, which returns False for 105/106.
 - **HF tokenizers.** `encode_special_tokens=True` does not split added tokens flagged `special=False`. Whether Qwen3 flags `<think>` and similar tokens that way is unverified offline.
 - **Defence in depth.** Inside literals, write `<` and `[` as `<` and `[`.
   - Every reserved string in the measured inventories begins with `<` or `[`.
@@ -802,7 +808,7 @@ The verification scripts live in the review session's scratch space and are not 
   - The `break_even()` docstring does not explain the negative-value convention stored in results.json.
 
 #### 13.1.17 Asset licence and provenance metadata — P2, S, [V]
-- **Coverage.** Licence fields exist for 2 of the 9 tokenizer assets (the two Qwen entries, Apache-2.0). The 7 review assets have SHA pins but no licence fields, contrary to plan risk control (plan:258).
+- **Coverage.** Licence fields exist for 2 of the 9 tokenizer assets (the two Qwen entries, Apache-2.0). The 7 review assets have SHA pins but no licence fields, contrary to the plan's risk control (plan §10, licence row).
 - **Llama.** The llama-models 0.3.0 wheel ships llama3 and llama4 `tokenizer.model`. Its only licence file is a 78-byte URL, and its README says to "read and accept the license".
 - **Unhashed install.** The tokenizers install is not hash-checked.
   - Windows wheel: c9ea31ed…91f05c48.
@@ -882,8 +888,8 @@ The verification scripts live in the review session's scratch space and are not 
 - **Role.** Defence in depth; the primary fix remains the safe tokenization path.
 
 #### 13.2.7 Symmetric constraint policy for G1/G2 — P1, S, [V]+[A]
-- **What is already right.** The plan already runs JSON with provider structured outputs as a separate condition (plan:113).
-- **The asymmetry.** Only JSON gets a constrained condition, and the salvage rule (plan:161) falls back to constrained JSON against unconstrained compact formats.
+- **What is already right.** The first-draft plan ran JSON with provider structured outputs as a separate condition (plan §5.1).
+- **The asymmetry.** Only JSON gets a constrained condition, and the first-draft salvage rule (plan G2) fell back to constrained JSON against unconstrained compact formats. Both are corrected in plan §5.1 and G2.
 - **Engine cost is negligible.**
   - Compile plus first mask: 1.6–6.1 ms (median 2.0).
   - Per-step mask: 43–65 µs mean, p99 143–209 µs, on 100k–262k vocabularies.
@@ -1105,8 +1111,8 @@ The verification scripts live in the review session's scratch space and are not 
 
   The windows vanish under a pad-to-minlen policy and never occur at Q = 1. So near the threshold, caching policy decides cost, not format.
 - **Smaller corrections.**
-  - The §6.3 "legend cached" column also caches the 19-token question/assistant suffix (M: 2,391 → 2,408, under 1%).
-  - Current Anthropic models have a 512-token minimum (per the bundled claude-api reference read during verification).
+  - The first-draft §6.3 "legend cached" column also cached the 19-token question/assistant suffix (M: 2,391). The corrected prefix-only column gives 2,408, under 1% different.
+  - The minimum cacheable length is 512–4,096 tokens depending on the model (512 on the newest Anthropic models), per the official prompt-caching page.
 
 #### 13.3.9 Billed tokens vs forward steps under grammar fast-forward — P1, S, [V]
 Engines that fast-forward forced bytes do not sample keys and punctuation. Measured on en_skewed, 7 tokenizers:
@@ -1125,7 +1131,7 @@ Engines that fast-forward forced bytes do not sample keys and punctuation. Measu
 - **Unmeasured.** The mapping from steps to latency [A].
 
 #### 13.3.10 Phase 2 non-inferiority sizing: margin mismatch — P0, S, [V]
-- **Formula.** n = (z_{0.95} + z_{0.90})²·ψ/δ². The plan's 950 pairs is correct for δ = 3 points. G2 and review §11.2 E2 use δ = 2.
+- **Formula.** n = (z_{0.95} + z_{0.90})²·ψ/δ². The first-draft plan's 950 pairs is correct for δ = 3 points, but its G2 and review E2 used δ = 2. The plan now uses one margin (§5.2).
 
 | Assumption (ψ = discordance) | δ = 3 pt | δ = 2 pt |
 |---|---|---|
@@ -1230,7 +1236,7 @@ These matter for R1 inferential keys and for prose→tree generation. They do no
   - Author G1 prose only as "If A, then B".
 - **Evidence inside `if`.** 3/5 gold conditionals carry non-unspecified evidence inside a branch, and its local vs projective reading is unstated.
   - State a local-scope rule and reconcile it with any not-at-issue treatment of evidence.
-  - Wrapper nodes (json +10 to +13, M +2, English +6 tokens) would be notation expansion; keep them off the critical path (plan:79).
+  - Wrapper nodes (json +10 to +13, M +2, English +6 tokens) would be notation expansion; keep them off the critical path (plan §4, label-length strata).
 
 ---
 
@@ -1245,14 +1251,14 @@ All corrections below have been applied in place in §§1–12 of this document;
 | §11.4 "Tokenizer" | "None of the seven measured behaves this way" | At a fixed layout, word-based fields cost more than codes on 7/7 tokenizers (c_tsv vs r_tsv_p payload 9.8–14.7%, en_skewed). | 13.3.2 |
 | §4.5 D2; §6.2 table | Break-even vs repo JSON "N ≈ 2.8–4.0" | Linear model: 2.83–4.08 (Gemma 3 multilingual 4.08). Actual complete prompts cross at N=2 on 5 tokenizers and N=3 on Gemma 3, so M overtakes earlier than stated. | errata [V] |
 | §5.2 | "o200k_base is identical here" | o200k gives 20 tokens, the others 21. | errata [V] |
-| §6.2 line 311 | Qwen3 "about 20–30% more per record than o200k" | 1.08 (json_repo) to 1.38 (natural); 5 of 8 formats fall in 1.17–1.29. | errata [V] |
+| §6.2 (multilingual paragraph) | Qwen3 "about 20–30% more per record than o200k" | 1.08 (json_repo) to 1.38 (natural); 7 of 10 formats fall in 1.21–1.33. | errata [V]; results.json |
 | §11.2 E1 | "plus cl100k" | Unmeasured for complete prompts: run.py:208 excludes cl100k from batch_tables. | errata [V] |
-| §6.3 "Read, legend cached" | Cached-legend figures | Counterfactual: all overheads (65–301 tokens) are below the minimum cacheable length. The column also caches the 19-token suffix. | 13.3.8 |
+| §6.3 "Read, legend cached" | Cached-legend figures | Counterfactual: all prefixes are below the minimum cacheable length, and the first draft also cached the 19-token suffix. Replaced by a prefix-only, flagged column. | 13.3.8; run.py |
 | §6.3 item 5 | Decode latency roughly linear in output tokens | Holds for billing. Under grammar fast-forward, JSON needs 0.99–1.23× m_body's steps while billing 2.54–3.03× the tokens. | 13.3.9 |
 | §6.3 item 3 | "Would need a higher success rate" | Exact condition: a_M(1−f_M)/(a_X(1−f_X)) ≥ C_M/C_X. M-repo needs ≥ 1.31–1.56× cdsl's accuracy to tie, independent of the retry cap. | 13.3.7 |
 | §5.4 | Escape where NFC(s) ≠ s | Leaves 98 unparseable control+mark cases (all 5 formats). Verify NFC-invariance on the encoded text. | 13.1.1 |
 | §5.5 | Disabling special-token parsing fixes reserved strings | Not on Gemma 3 via raw SentencePiece (USER_DEFINED 105/106), nor for HF added tokens flagged special=False. | 13.1.4 |
 | §6.1 | Payload ratios | Correct as single-document totals. Not per-record batch costs: standalone ratios are biased by about 3 points (terminator law). | 13.3.5 |
-| §3 line 69 | "Each has a strict decoder" | Fail-closed on structure, not canonical-only. Only m_opt is whitespace-strict. | 13.1.16 |
-| §12 ledger | Showcase, D3–D5, D9 marked [V] | Not produced by run.py or stored in results.json. Add probes or relabel. | 13.1.16 |
-| §1 / §6.2 | Qwen3 reconstruction "validated 330/330" | Validated on counts only. Count equality is a weak equivalence certificate; converted cl100k matches 330/330 counts but 320/330 IDs. Re-certify on IDs over a stress corpus. | 13.2.3 |
+| §2 (alternative representations) | "Each has a strict decoder" | Fail-closed on structure, not canonical-only. Only m_opt is whitespace-strict. | 13.1.16 |
+| §12 ledger | Showcase, D3–D5, D9 marked [M] without a producing script | Now produced by run.py (`results.json` → `probes.readme_showcase`, `defects`); label kept as [M]. | 13.1.16 |
+| §2 (Qwen3 rebuild) | Qwen3 reconstruction "validated 330/330" | Validated on counts only. Count equality is a weak equivalence certificate; converted cl100k matches 330/330 counts but 320/330 IDs. Re-certify on IDs over a stress corpus. | 13.2.3 |

@@ -625,6 +625,41 @@
      "Cy",
      "\"."
     ]
+   },
+   "r_tsv_p": {
+    "qwen3-reconstructed": [
+     "Bo",
+     "\thelp",
+     " past",
+     " progressive",
+     "\tC",
+     "y"
+    ],
+    "o200k_base": [
+     "Bo",
+     "\t",
+     "help",
+     " past",
+     " progressive",
+     "\tC",
+     "y"
+    ]
+   },
+   "c_tsv": {
+    "qwen3-reconstructed": [
+     "Bo",
+     "\th",
+     "pg",
+     "\tC",
+     "y"
+    ],
+    "o200k_base": [
+     "Bo",
+     "\th",
+     "pg",
+     "\tC",
+     "y"
+    ]
    }
   }
  },

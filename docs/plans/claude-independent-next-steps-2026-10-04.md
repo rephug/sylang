@@ -13,7 +13,10 @@ Every experiment below is **proposed and not yet run**, unless it says "done in 
 ## 1. Principles
 
 1. **Falsify before building.** Run the cheapest experiment that could kill the premise first. The review's offline measurements already do most of this for the token-efficiency premise.
-2. **Compare against the strongest simple baseline**, not the weakest. Every arm must beat minified or positional JSON, a compact word DSL, concise English and (for reading) natural English, on the same tokenizer and the same facts.
+2. **Compare against the strongest simple baseline**, not the weakest. On the same tokenizer and the same facts, every arm must beat:
+   - the best readable format, at minimum the tab word layout `r_tsv_p`, at a matched layout
+   - minified or positional JSON, a compact word DSL and concise English (offline)
+   - natural English, for reading
 3. **Count everything:**
    - complete chat templates
    - legends and worked examples
@@ -53,7 +56,7 @@ Phases 3–4 are listed so that the stopping rules are explicit, not because the
 | 0.3 | **Strong baselines as first-class formats:** concise controlled English, compact word DSL (defaults omitted), positional JSON array, minified JSON with short keys, and CSV for flat batches. Each has a strict parser. Port from `benchmarks/claude-review-2026-10-04/variants.py`. | Property tests: ≥2,000 seeded random trees plus all 216 enum combinations decode back exactly for every format. Canonical re-encoding is stable. |
 | 0.4 | **Batch- and template-aware accounting:** cost curves for N ∈ {1, 5, 10, 25, 100, 200} records per prompt. Each family's published chat template rendered in one encode. Legend counted separately as cacheable/uncacheable against the provider's minimum cacheable length. | Unit test: the template-wrapped count equals one encode of the full string. Break-even N reported for every pair of formats. |
 | 0.5 | **Safe serving-path measurement** (D11): count tokens with special-token parsing disabled for content, alongside the current diagnostic path. | Zero reserved-string *matches* in content on the safe path: by token ID for tiktoken and Hugging Face tokenizers, and by piece string for SentencePiece. On Gemma 3 through raw SentencePiece, `<start_of_turn>`/`<end_of_turn>` are USER_DEFINED pieces that cannot be disabled, so this needs the literal guard (escape `<` and `[` inside literals; review §13.1.4). |
-| 0.6 | **Unicode policy prototype:** a model-facing escaper that emits `\uXXXX` where `NFC(s) ≠ s` and for format/control characters, behind a flag. The semantic layer stays code-point exact. | Property test on the *encoded* text: NFC(T) == T and decode(T) == tree in all five formats, including C0-control + combining-mark cases (e.g. `x` + LF + U+0303), under the Hugging Face Rust NFC and Python's. MAX_TEXT_BYTES raised to ≥ 2^19 so a maximal escaped tree still encodes. Token overhead is reported per fixture. |
+| 0.6 | **Unicode policy prototype:** a model-facing escaper: the greedy NFC-safe escaper, or a whole-literal `ensure_ascii` rule triggered when the *encoded* literal is not NFC-invariant, plus format/control-character escaping, behind a flag and judged on the encoded text T (the naive "escape where NFC(s) ≠ s" rule is insufficient; review §13.1.1). The semantic layer stays code-point exact. | Property test on the *encoded* text: NFC(T) == T and decode(T) == tree in all five formats, including C0-control + combining-mark cases (e.g. `x` + LF + U+0303), under the Hugging Face Rust NFC and Python's. MAX_TEXT_BYTES raised to ≥ 2^19 so a maximal escaped tree still encodes. Token overhead is reported per fixture. |
 | 0.7 | **Realistic corpora:** a seeded generator with realistic, multilingual and long labels; a skewed and a uniform feature distribution; conditional depth up to 4. Separate dev / holdout split. | Manifest with SHA-256 per split. The holdout hash is published, but its content is kept outside the repository until Phase 2 runs. |
 | 0.8 | **Correct the baseline-results narrative (owner decision):** add a note that the 11.6% figure is against a verbose controlled English, and link the review. | Owner approval. No silent edits to historical documents. |
 
@@ -68,7 +71,7 @@ Phases 3–4 are listed so that the stopping rules are explicit, not because the
 | ID | Deliverable | Acceptance test |
 |---|---|---|
 | 1.1 | **Billing-tokenizer coverage:** the review's seven (Qwen3, o200k, cl100k, Llama 3, Llama 4, Tekken, Gemma 3), plus Qwen3.5 and DeepSeek-V3.x (via the existing pinned Hugging Face fetcher once reachable), plus Claude via `count_tokens` for a current-tokenizer model and a pre-4.7 model. | Every asset is pinned by SHA-256 or by API model ID and date. Qwen3 count equivalence with the committed results is retained as a regression test (330/330). |
-| 1.2 | **Complete-prompt and generation token tables** per format, per tokenizer and per corpus, at N ∈ {1, 10, 100}. Includes legend, worked examples (0, 2, 5 shots), template and output. | Generated by one command and committed as JSON with a methodology block. |
+| 1.2 | **Complete-prompt and generation token tables** per format, per tokenizer and per corpus, at N ∈ {1, 10, 100}. Includes legend, worked examples (0, 3 and 5 shots; 0 and 3 match Phase 2), template and output. | Generated by one command and committed as JSON with a methodology block. |
 | 1.3 | **Cached/uncached cost curves** in input-token equivalents, using the verified Anthropic multipliers (output 5×, cache read 0.1×, 5-minute cache write 1.25×) and, as a sensitivity range, output/input ratios of 4–8×. | The table states the exact multipliers and the date they were read. No dollar figures without a price source. |
 
 ### Gate G1: the token gate
@@ -77,15 +80,15 @@ Phases 3–4 are listed so that the stopping rules are explicit, not because the
 - Code and words must differ only in the relation/feature field.
 - The comparison must use a pre-registered readable set searched as hard as the code candidates, with matched legend budgets.
 - Report it per label-length stratum and state which stratum is the target workload.
-- **Threshold consistency:** if a 2-point accuracy loss is tolerated at a baseline accuracy of about 0.9, the token threshold consistent with G2 is about 12%, not 10% (review §13.3.7).
+- **Threshold consistency:** the token saving consistent with G2's 10% cost-per-correct gate, when an accuracy loss of δ is tolerated at baseline accuracy a_X, is s_min = 1 − 0.9·(1 − δ/a_X). At a_X ≈ 0.9 that is about 13% for δ = 3 points (the recommended margin) and 12% for δ = 2, not 10% (review §13.3.7).
 
-**Status at review time (7 tokenizers, reproduced by `run.py`):**
-- **Failed** for the repository's M: 31–66% *more* complete-prompt tokens than the best readable reversible format at N=100.
+**Status at review time (6 chat-templated tokenizers; cl100k not batch-tested; reproduced by `run.py`):**
+- **Failed** for the repository's M: 30–66% *more* complete-prompt tokens than the best readable reversible format at N=100 (41–66% on the default-skewed English corpus).
 - **Failed** for optimized M: it only ties the compact DSL (−6% to +3%).
 - **Undetermined and knife-edge** for the fused code `c_tsv` against the tab word layout `r_tsv_p`:
   - English labels, default-skewed: 8.5–12.3% cheaper (passes on 5/6)
   - uniform features: 12.4–14.0% (6/6)
-  - multilingual labels: 6.8–10.0% (fails)
+  - multilingual labels: 6.8–10.0% (≥10% on only 1/6 tokenizers, so it fails the majority rule)
 - Phase 1 confirms these on Claude, Qwen3.5 and DeepSeek.
 
 **Outcomes:**
@@ -140,26 +143,26 @@ Phases 3–4 are listed so that the stopping rules are explicit, not because the
 - Passing the cost-per-correct gate already needs near-parity accuracy for `c_tsv` (review §6.3), so the cost endpoint is the binding test.
 - δ = 2 needs 2,141 pairs at a discordance of ψ = 0.10 before clustering; 1,000 pairs give only 64% power.
 
-**Pairs required** (ψ = 0.10, 90% power, one-sided α = 0.05, true difference 0), scaled by the design effect DE = 1 + (m − 1)·ICC for m = 5 questions per call:
+**Pairs required** (ψ = 0.10, 90% power, one-sided α = 0.05, true difference 0; n = (z₀.₉₅ + z₀.₉₀)²·ψ·DE/δ², rounded up), scaled by the design effect DE = 1 + (m − 1)·ICC for m = 5 questions per call:
 
 | ICC | DE | δ = 3 pt | δ = 2 pt |
 |---|---|---|---|
 | 0 | 1.0 | 952 | 2,141 |
-| 0.05 | 1.2 | 1,142 | 2,569 |
-| 0.10 | 1.4 | 1,333 | 2,997 |
-| 0.20 | 1.8 | 1,714 | 3,854 |
-| 0.30 | 2.2 | 2,094 | 4,710 |
+| 0.05 | 1.2 | 1,142 | 2,570 |
+| 0.10 | 1.4 | 1,333 | 2,998 |
+| 0.20 | 1.8 | 1,713 | 3,854 |
+| 0.30 | 2.2 | 2,094 | 4,711 |
 
 **Design rules:**
-- **Pooled primary estimand.** One estimand across model cells, clustered by prompt content. Requiring non-inferiority in every family × tier cell would pass an exactly equivalent format only 2–17% of the time at these n (review §13.3.11).
+- **Pooled primary estimand.** One estimand across model cells, clustered by prompt content. Requiring non-inferiority in every family × tier cell at n = 1,000 per cell would pass an exactly equivalent format only 2–17% of the time at δ = 2 and 34–69% at δ = 3 (review §13.3.11).
 - **Consistency** is a family-level rule: each family's point estimate > −δ.
 - **Blinded internal pilot.** After 300 holdout pairs, re-estimate ψ and the ICC without arm labels and recompute n (cap 300–4,000). The rule is pre-registered; simulated type I is 0.050–0.053 and power 0.88–0.89.
-- **Generation.** Run at N = 1 record per call (no clustering): 630 records per arm give a ±2-point Wilson interval at a ~5% failure rate. At 20 records per call, use 630·(1 + 19·ICC) records.
+- **Generation.** Run at N = 1 record per call (no clustering): 630 records per arm *per model cell* give a ±2-point Wilson interval at a ~5% failure rate. At 20 records per call, use 630·(1 + 19·ICC) records.
 
 **Analysis:**
 - **Tango's score test** for paired non-inferiority. McNemar tests equality, not a non-inferiority null.
 - **Call-level cluster-robust variance** (t with K − 1 df) or a call-resampling bootstrap; additionally cluster by pair if minimal pairs are used.
-- **Intersection-union test** against each readable comparator at full α, with no Holm. Use a fixed sequence: reading NI → reading cost per correct → generation NI → generation cost per correct. Holm only for secondary rankings.
+- **Intersection-union test** over the endpoints against the primary comparator `r_tsv_p` at full α, with no Holm. Use a fixed sequence: reading NI → reading cost per correct → generation NI → generation cost per correct. The other readable arms serve the salvage comparison and secondary rankings, with Holm.
 - **Answer balance.** In every stratum, each closed-vocabulary answer appears equally often. Skewed answer priors can reverse the verdict (review §13.3.13).
   - State the margin on the reading-rate scale as well.
   - Weight the primary estimand by workload over *slots only*, never over answer or feature values.
@@ -196,8 +199,8 @@ Powering every model cell separately at δ = 2 would need about 3,400–4,000 pa
 - reading accuracy is **non-inferior** to `r_tsv_p` at the pre-registered margin, **and**
 - billed cost per correct answer is **≥10% lower**, for reading and generation separately (in the fixed sequence of §5.2).
 
-**Salvage outcome (independent of the code).** Recommend the best readable compact format over minified JSON only if it is non-inferior in accuracy **and** at least 20% cheaper per correct answer. Otherwise recommend JSON with provider structured outputs.
-- Compare like with like on constraint: never constrained JSON against unconstrained compact formats.
+**Salvage outcome (independent of the code).** Recommend the best readable compact format over minified JSON only if it is non-inferior in accuracy **and** at least 20% cheaper per correct answer. Otherwise recommend minified JSON, with provider structured outputs as a deployment option that this study does not test.
+- Compare like with like on constraint: never constrained JSON against unconstrained compact formats. Constrained conditions are tested only with every arm constrained on one self-hosted engine.
 
 **Fail:** go to Phase S and publish the results, including the negative ones.
 
@@ -230,10 +233,10 @@ End-to-end quality-adjusted cost or latency is **≥10% better** than the best r
 
 **Effort:** 2–3 weeks. **Cost:** about $100–500 GPU, plus curation.
 
-**Dependencies:** G3 pass; a residual accuracy gap that prompting (examples, legends, constrained decoding) cannot close; **APPROVAL** for training.
+**Dependencies:** G3 pass, which can only come from the fused code `c_tsv`, since the repository's M is killed offline; a residual accuracy gap that prompting (examples, legends, constrained decoding) cannot close; **APPROVAL** for training.
 
 **Deliverables:**
-- **Paired LoRA runs on an unchanged tokenizer.** Teach M versus teach the best readable format, with the same data volume, compute and evaluation. Data comes from validated tree/rendering pairs plus independently authored prose.
+- **Paired LoRA runs on an unchanged tokenizer.** Teach the surviving Sylang-style code (`c_tsv`) versus teach the best readable format (`r_tsv_p`), with the same data volume, compute and evaluation. Data comes from validated tree/rendering pairs plus independently authored prose.
 - **Leakage controls:** the holdout is never used for training; contamination is checked by n-gram and hash.
 
 **Out of scope even here, unless a separate review approves it:**
@@ -245,7 +248,7 @@ The review found no tokenizer-level mechanism that would favour them, and they b
 
 ### Gate G4
 
-The trained M arm beats the *trained* readable arm by at least 10% in quality-adjusted cost. Beating the untrained baseline is not enough. Otherwise go to Phase S.
+The trained code arm beats the *trained* readable arm by at least 10% in quality-adjusted cost. Beating the untrained baseline is not enough. Otherwise go to Phase S.
 
 ---
 
@@ -320,7 +323,7 @@ Details are in review §9.3.
 
 **Owner decision (no cost):** read review §1, §6.2 and §13.3.2.
 - Decide whether the offline evidence closes the track for the repository's M; the review recommends yes.
-- Decide whether the knife-edge fused-code result (`c_tsv`, about 9–14% on English-label corpora, but under 10% multilingual) is worth one accuracy study.
+- Decide whether the knife-edge fused-code result is worth one accuracy study. `c_tsv` is about 8.5–14% cheaper on English-label corpora, but 6.8–10.0% on multilingual labels (≥10% on only 1/6 tokenizers).
 
 **Engineering:** start Phase 0, about 3–5 days with no approvals needed:
 - **0.1** scorer robustness and the answer envelope
@@ -388,10 +391,10 @@ These amend §§3–8. Where §§4–5 were already corrected in place, this sec
 | ICC | DE | δ = 3 pt | δ = 2 pt |
 |---|---|---|---|
 | 0 | 1.0 | 952 | 2,141 |
-| 0.05 | 1.2 | 1,142 | 2,569 |
-| 0.10 | 1.4 | 1,333 | 2,997 |
-| 0.20 | 1.8 | 1,714 | 3,854 |
-| 0.30 | 2.2 | 2,094 | 4,710 |
+| 0.05 | 1.2 | 1,142 | 2,570 |
+| 0.10 | 1.4 | 1,333 | 2,998 |
+| 0.20 | 1.8 | 1,713 | 3,854 |
+| 0.30 | 2.2 | 2,094 | 4,711 |
 
   These n assume a true difference of 0. If M is 1 point worse, δ = 2 needs 8,555 pairs before clustering.
 - **Primary test.**

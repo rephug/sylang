@@ -94,7 +94,7 @@ def payload_tables(T, fixtures):
         m=sum(q.count(encode(f["ast"], "m")) - q.count(encode(f["ast"], "m")[len("M0.1:"):]) for f in fixtures))
     example = "time-past-progressive"
     out["example_pieces"] = {k: {t.name: t.pieces(rend[example][k]) for t in T if t.name in ("qwen3-reconstructed", "o200k_base")}
-                             for k in ("english", "m", "m_words", "m_opt", "cdsl", "english_concise")}
+                             for k in ("english", "m", "m_words", "m_opt", "cdsl", "english_concise", "r_tsv_p", "c_tsv")}
     return out
 
 
