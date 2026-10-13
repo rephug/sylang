@@ -208,10 +208,11 @@ def language(results: list[dict]) -> str:
     groups: dict[tuple, list[dict]] = defaultdict(list)
     for r in results:
         o = r["overrides"]
-        groups[(o["arm"], o["init"], "".join(map(str, o["k"])), o["batch"], o["lr"], o["updates"])].append(r)
+        arm = o["arm"] + (f' ({o["position"]})' if "position" in o else "")
+        groups[(arm, o["init"], "".join(map(str, o["k"])), o["batch"], o["lr"], o["updates"])].append(r)
     order = {"english": 0, "english_natural": 1, "words": 2, "codes": 3, "codes_eqlen": 4, "codes_jitter": 5}
     rows, curve, curve_steps = [], [], []
-    for key in sorted(groups, key=lambda k: (k[1], k[2], k[3], k[5], order.get(k[0], 9), k[4])):
+    for key in sorted(groups, key=lambda k: (k[1], k[2], k[3], k[5], order.get(k[0].split(" ")[0], 9), k[0], k[4])):
         runs = groups[key]
         last = [r["history"][-1] for r in runs]
 
@@ -223,7 +224,7 @@ def language(results: list[dict]) -> str:
         reach_bytes = [_first_reaching(r["history"], "bytes_seen") for r in runs]
         ok_items = [x for x in reach_items if x is not None]
         ok_bytes = [x for x in reach_bytes if x is not None]
-        rows.append([*(str(k) for k in key), str(len(runs)),
+        rows.append([*(str(k) for k in key), f"{statistics.median(h['step'] for h in last):,.0f}", str(len(runs)),
                      col("iid"), col("iid", "selected"), col("iid", "always_empty_baseline"), col("dev"),
                      col("held_out_combo"), col("swap"), col("flip"),
                      col("cue_conflict") if any("cue_conflict" in h for h in last) else "–",
@@ -233,7 +234,7 @@ def language(results: list[dict]) -> str:
                      f"{statistics.fmean(r['mean_prompt_bytes'] for r in runs):.0f}" if "mean_prompt_bytes" in runs[0] else "–",
                      _fmt([h["train_seconds"] for h in last], pct=False)])
         curve.append((key, runs))
-    headers = ["arm", "init", "K", "batch", "lr", "updates", "seeds", "held-out ids %", "selected %",
+    headers = ["arm", "init", "K", "batch", "lr", "updates", "trained to (median)", "seeds", "held-out ids %", "selected %",
                "always-[] baseline %", "dev %", "held-out combo %", "swap %", "flip %", "cue-conflict %",
                "swap margin > 0 %", "runs ≥90% (median items)", "median MB to 90%", "prompt bytes (trained)",
                "train s (shared CPU)"]
@@ -287,6 +288,8 @@ def main() -> None:
         ("language", language),
         ("language_k1_u4000_seed0", language),
         ("language_k1", language),
+        ("language_alibi", language),
+        ("language_alibi_main", language),
         ("selection_init", language),
     ):
         path = root / f"{name}.jsonl"
