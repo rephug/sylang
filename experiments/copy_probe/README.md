@@ -11,6 +11,8 @@ This directory holds no checkpoints and downloads no model weights. It needs CPU
 | File | Purpose |
 |---|---|
 | `real_pipeline.py` | Runs the probes and one-factor training variants on the **project's own** `tiny.py`, `decode.py` and `binding.py` and its own data, read from an unpacked results packet passed with `--source` |
+| `followup.py` | COPY initialisation × identifier breadth × exposure matrix and the surrogate memorisation warm start, on the packet's model (`--source`) |
+| `language.py` | English-vs-Sylang comparison: `english` / `words` / `codes` / `codes_padded` arms rendered by the packet's codecs, negation-length padding, held-out identifiers and combinations, swap/flip counterfactuals, leakage `audit` |
 | `probes.py` | Model-agnostic checks: causality, visibility, gradient reach, parameter gradients, oracle labels, checkpoint round trip, decoder consistency, padding invariance, prompt dependence, counterfactual swap/replace |
 | `check_pipeline.py` | Runs every mechanical probe on a model and prints PASS/FAIL; a template for other trainers |
 | `model.py` | Independent reference: a 2-layer causal byte transformer, with three injectable defects used only to test the probes |
@@ -30,6 +32,10 @@ cd experiments/copy_probe
 ../../.venv/bin/python real_pipeline.py suite --source <packet> --workers 4  # ~1 h on 4 cores
 ../../.venv/bin/python run_suite.py matrix --workers 4                  # reference sweeps
 SYLANG_COPY_CURRICULUM=<packet>/copy/source/CURRICULUM.json ../../.venv/bin/python run_suite.py balanced12
+../../.venv/bin/python followup.py surrogate --source <packet> --out <ckpt-dir>
+../../.venv/bin/python followup.py copy-suite --source <packet> --surrogate <ckpt-dir>/surrogate.pt --save-copy96 <ckpt-dir>/copy96.pt
+../../.venv/bin/python language.py audit --source <packet>
+../../.venv/bin/python language.py suite --source <packet> --suite main --out results/language.jsonl
 ../../.venv/bin/python summarize.py results > results/SUMMARY.md
 ```
 

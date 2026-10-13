@@ -1,0 +1,70 @@
+{
+  "english": {
+    "mean_prompt_bytes": 177.8,
+    "mean_natural_bytes": 171.7,
+    "mean_prompt_bytes_by_k": {
+      "1": 111.8,
+      "2": 155.6,
+      "3": 199.6,
+      "4": 243.1
+    },
+    "n_negative_from_length_and_k": 0.4303,
+    "n_negative_from_k_only": 0.4365,
+    "record_polarity_from": {
+      "padded_line_length": 0.5002,
+      "features": 0.4999,
+      "filler_present": 1.0
+    }
+  },
+  "words": {
+    "mean_prompt_bytes": 202.1,
+    "mean_natural_bytes": 190.8,
+    "mean_prompt_bytes_by_k": {
+      "1": 142.5,
+      "2": 182.0,
+      "3": 221.8,
+      "4": 261.1
+    },
+    "n_negative_from_length_and_k": 0.4275,
+    "n_negative_from_k_only": 0.4365,
+    "record_polarity_from": {
+      "padded_line_length": 0.4988,
+      "features": 0.4999,
+      "filler_present": 1.0
+    }
+  },
+  "codes": {
+    "mean_prompt_bytes": 133.2,
+    "mean_natural_bytes": 133.2,
+    "mean_prompt_bytes_by_k": {
+      "1": 115.0,
+      "2": 127.1,
+      "3": 139.1,
+      "4": 151.1
+    },
+    "n_negative_from_length_and_k": 0.4345,
+    "n_negative_from_k_only": 0.4365,
+    "record_polarity_from": {
+      "padded_line_length": 0.4967,
+      "features": 0.4999,
+      "filler_present": 0.4965
+    }
+  },
+  "codes_padded": {
+    "mean_prompt_bytes": 202.1,
+    "mean_natural_bytes": 133.2,
+    "mean_prompt_bytes_by_k": {
+      "1": 142.5,
+      "2": 182.0,
+      "3": 221.8,
+      "4": 261.1
+    },
+    "n_negative_from_length_and_k": 0.4275,
+    "n_negative_from_k_only": 0.4365,
+    "record_polarity_from": {
+      "padded_line_length": 0.4988,
+      "features": 0.4999,
+      "filler_present": 0.4965
+    }
+  }
+}

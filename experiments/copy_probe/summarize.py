@@ -171,6 +171,78 @@ def real_pipeline(results: list[dict]) -> str:
     return "\n\n".join(sections)
 
 
+def copy_matrix(results: list[dict]) -> str:
+    """COPY initialisation x identifier breadth x exposure (followup.py)."""
+    groups: dict[tuple, list[dict]] = defaultdict(list)
+    for r in results:
+        o = r["overrides"]
+        groups[(o["init"], o["breadth"], o["updates"])].append(r)
+    rows = []
+    for key in sorted(groups):
+        runs = groups[key]
+
+        def frac(cohort, field):
+            return _fmt([r["final"][cohort][field] / r["final"][cohort]["n"] for r in runs])
+
+        rows.append([*(str(k) for k in key), str(runs[0]["exposures_per_row"]), str(len(runs)),
+                     frac("seen", "copy_exact"), frac("heldout_legacy12", "copy_exact"),
+                     frac("heldout_fresh108", "copy_exact"),
+                     _fmt([(r["final"]["heldout_legacy12"]["none_exact"] + r["final"]["heldout_fresh108"]["none_exact"]) / 120
+                           for r in runs]),
+                     _fmt([r["final"]["heldout_legacy12"]["wrong_that_are_training_ids"]
+                           + r["final"]["heldout_fresh108"]["wrong_that_are_training_ids"] for r in runs], pct=False)])
+    headers = ["init", "train ids", "updates", "exposures/row", "seeds", "seen COPY %", "legacy-12 held-out COPY %",
+               "fresh-108 held-out COPY %", "held-out NONE %", "held-out errors that are training ids"]
+    return _table(headers, rows)
+
+
+def _first_reaching(history: list[dict], field: str, threshold: float = 0.9):
+    for h in history:
+        if h["iid"]["exact"] >= threshold:
+            return h[field]
+    return None
+
+
+def language(results: list[dict]) -> str:
+    """English-vs-Sylang comparison (language.py)."""
+    groups: dict[tuple, list[dict]] = defaultdict(list)
+    for r in results:
+        o = r["overrides"]
+        groups[(o["arm"], o["init"], "".join(map(str, o["k"])), o["batch"], o["lr"], o["updates"])].append(r)
+    order = {"english": 0, "words": 1, "codes": 2, "codes_padded": 3}
+    rows, curve = [], []
+    for key in sorted(groups, key=lambda k: (k[1], k[2], k[3], k[4], k[5], order.get(k[0], 9))):
+        runs = groups[key]
+        last = [r["history"][-1] for r in runs]
+
+        def col(panel, field="exact"):
+            return _fmt([h[panel][field] for h in last])
+
+        reach_items = [_first_reaching(r["history"], "items_seen") for r in runs]
+        reach_bytes = [_first_reaching(r["history"], "bytes_seen") for r in runs]
+        ok_items = [x for x in reach_items if x is not None]
+        ok_bytes = [x for x in reach_bytes if x is not None]
+        rows.append([*(str(k) for k in key), str(len(runs)), col("iid"), col("held_out_combo"), col("swap"), col("flip"),
+                     _fmt([h["swap_tv"] for h in last], pct=False),
+                     f"{len(ok_items)}/{len(runs)}" + (f" ({statistics.median(ok_items):,.0f})" if ok_items else ""),
+                     (f"{statistics.median(ok_bytes) / 1e6:.2f} MB" if ok_bytes else "–"),
+                     f"{statistics.fmean(r['inference']['mean_prompt_bytes'] for r in runs):.0f}",
+                     _fmt([h["train_seconds"] for h in last], pct=False),
+                     _fmt([r["inference"]["mean_prefill_ms"] for r in runs], pct=False)])
+        steps = [h["step"] for h in runs[0]["history"]]
+        curve.append([key[0], key[1], key[4], *(_fmt([r["history"][i]["iid"]["exact"] for r in runs])
+                                                for i in range(len(steps)))])
+        curve_steps = steps
+    headers = ["arm", "init", "K", "batch", "lr", "updates", "seeds", "held-out ids %", "held-out combo %",
+               "swap %", "flip %", "swap TV", "runs ≥90% (median items)", "median bytes to 90%",
+               "mean prompt bytes", "train s", "prefill ms"]
+    table = _table(headers, rows)
+    if curve:
+        table += "\n\nHeld-out-identifier exact accuracy by update:\n\n" + _table(
+            ["arm", "init", "lr", *(str(s) for s in curve_steps)], curve)
+    return table
+
+
 def main() -> None:
     root = Path(sys.argv[1] if len(sys.argv) > 1 else "results")
     sections = []
@@ -183,6 +255,10 @@ def main() -> None:
         ("batch1_copy", matrix),
         ("balanced12", matrix),
         ("real_pipeline", real_pipeline),
+        ("copy_matrix", copy_matrix),
+        ("language_pilot", language),
+        ("language", language),
+        ("selection_init", language),
     ):
         path = root / f"{name}.jsonl"
         if path.exists():
