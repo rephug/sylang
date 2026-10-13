@@ -370,3 +370,31 @@ Swap margin, mean nats (> 0: the answer follows the roles) by update (runs that 
 | codes (alibi) | fresh | 1 | 0.001 | 0.05 (-0.00–0.10) | 0.08 (0.03–0.13) | 0.74 (-0.07–1.55) | 2.01 (0.55–3.47) | 6.12 (5.91–6.32) | 9.51 (8.99–10.03) | 11.92 (9.99–13.86) | 47.94 (24.07–71.82) | 79.68 (77.77–81.59) | 86.27 | – | – |
 | codes_jitter (alibi) | fresh | 1 | 0.001 | 0.01 (0.01–0.02) | 0.13 (0.10–0.16) | 0.36 (-0.19–0.92) | 6.53 (3.88–9.18) | 12.34 (11.87–12.81) | 12.74 (12.62–12.86) | 15.89 (14.74–17.04) | 41.39 (13.46–69.33) | 84.29 (80.14–88.45) | 92.27 (80.54–104.01) | 67.56 | 81.46 |
 
+## language_alibi_main
+
+| arm | init | K | batch | lr | updates | trained to (median) | seeds | held-out ids % | selected % | always-[] baseline % | dev % | held-out combo % | swap % | flip % | cue-conflict % | swap margin > 0 % | runs ≥90% (median items) | median MB to 90% | prompt bytes (trained) | train s (shared CPU) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| english_natural (alibi) | fresh | 1234 | 8 | 0.001 | 12000 | 12,000 | 1 | 87 | 82 | 28 | 86 | 91 | 87 | 91 | 87 | 100 | 1/1 (48,000) | 9.29 | 171 | 3469.81 |
+| codes (alibi) | fresh | 1234 | 8 | 0.001 | 12000 | 12,000 | 1 | 95 | 92 | 28 | 90 | 95 | 93 | 95 | 95 | 100 | 1/1 (64,000) | 9.91 | 133 | 2528.04 |
+
+Held-out-identifier exact accuracy by update (runs that stopped early at the ceiling end sooner):
+
+| arm | init | K | lr | 250 | 500 | 750 | 1000 | 1500 | 2000 | 3000 | 4000 | 6000 | 8000 | 10000 | 12000 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| english_natural (alibi) | fresh | 1234 | 0.001 | 0 | 0 | 22 | 28 | 28 | 28 | 28 | 28 | 91 | 95 | 98 | 87 |
+| codes (alibi) | fresh | 1234 | 0.001 | 0 | 0 | 19 | 28 | 28 | 28 | 28 | 28 | 28 | 96 | 98 | 95 |
+
+Held-out-identifier exact accuracy on selected (non-empty) answers by update (runs that stopped early at the ceiling end sooner):
+
+| arm | init | K | lr | 250 | 500 | 750 | 1000 | 1500 | 2000 | 3000 | 4000 | 6000 | 8000 | 10000 | 12000 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| english_natural (alibi) | fresh | 1234 | 0.001 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 88 | 93 | 97 | 82 |
+| codes (alibi) | fresh | 1234 | 0.001 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 95 | 97 | 92 |
+
+Swap margin, mean nats (> 0: the answer follows the roles) by update (runs that stopped early at the ceiling end sooner):
+
+| arm | init | K | lr | 250 | 500 | 750 | 1000 | 1500 | 2000 | 3000 | 4000 | 6000 | 8000 | 10000 | 12000 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| english_natural (alibi) | fresh | 1234 | 0.001 | -0.00 | 0.00 | -0.01 | -0.02 | 0.05 | 0.96 | 11.36 | 24.03 | 104.09 | 127.60 | 130.59 | 119.44 |
+| codes (alibi) | fresh | 1234 | 0.001 | 0.02 | -0.03 | -0.01 | 0.03 | 1.15 | 12.92 | 22.15 | 24.65 | 69.32 | 124.44 | 143.67 | 141.04 |
+

@@ -485,30 +485,42 @@ English has variable offsets and letter-dense surroundings, and does not learn a
 
 **K = 1**, 12,000 updates × 8 items, stopping once two checkpoints are at ≥ 97% on every panel:
 
-| Arm | Seeds | First update with ≥ 90% held-out exact | Median items (MB) to 90% | Final selected exact | Cue-conflict |
-|---|---|---|---|---|---|
-| `english_natural` | 2 | 2,000 and 2,000 | 16,000 (1.9 MB) | 100% | (no filler) |
-| `english` | 2 | 1,500 and 4,000 | 22,000 (2.7 MB) | 100% | **0%** |
-| `codes` | 1 | 4,000 | 32,000 (4.1 MB) | 100% | 100% |
-| `codes_jitter` | 1 | 4,000 | 32,000 (4.5 MB) | 100% | 100% |
-| `words` | 1 | 12,000 | 96,000 (14.8 MB) | 79% | **0%** |
+| Arm | First update with ≥ 90% held-out exact (seed 0, seed 1) | Median items (MB) to 90% | Final selected exact | Cue-conflict |
+|---|---|---|---|---|
+| `english_natural` | 2,000, 2,000 | **16,000 (1.9 MB)** | 100% | (no filler) |
+| `english` | 1,500, 4,000 | 22,000 (2.7 MB) | 100% | **0%** |
+| `codes` | 4,000, 6,000 | 40,000 (5.1 MB) | 100% | 100% |
+| `codes_jitter` | 4,000, 6,000 | 40,000 (5.7 MB) | 99% | 99% |
+| `words` | 12,000, 3,000 | 60,000 (9.3 MB) | 90% (79–100) | **0%** |
 
-**K = 1–4**: pending (`english_natural` and `codes`, running).
+**K = 1–4**, 12,000 updates × 8 items, seed 0 (seed 1 running):
+
+| Arm | Prompt bytes | First update with ≥ 90% held-out exact | Items (MB) to 90% | Peak held-out exact | Final held-out / selected exact |
+|---|---|---|---|---|---|
+| `english_natural` | 171 | 6,000 | 48,000 (9.3 MB) | 97.7% (update 10,000) | 87% / 82% |
+| `codes` | 133 | 8,000 | 64,000 (9.9 MB) | 97.7% (update 10,000) | 95% / 92% |
+
+Both runs peak at the same accuracy at the same update. Their final checkpoints differ by a constant-LR fluctuation: English drops from 97.7% to 86.7% between the last two checkpoints. Swap, flip and the held-out combination are all within 4 points of iid.
 
 **Reading.**
 
 - **Offsets stop mattering.** `codes` and `codes_jitter` learn at the same update.
-- **The ranking reverses.** Natural English needs half the items of `codes` and less than half the bytes.
+- **The ranking reverses at K = 1.** Natural English needs 40% of `codes`' items and bytes, and is the most consistent arm across seeds.
+- **At K = 1–4 they are close** (one seed). English needs 25% fewer items. Bytes processed are about equal, because each English item is longer. Peak accuracy is the same.
 - **The filler is a shortcut.** Every filler-arm model (`english` and `words`, both position schemes) scores 0% on the cue-conflict panel. These models read polarity from `~`, not from "not" or `negative`, so those arms say nothing about the languages. `english_natural` is the valid English arm. Under ALiBi it has no absolute positions from which to read prompt length, and its flip panel is 100%.
 
 #### 8.3.3 Against the pre-registered reading (§8.2)
 
-1. **Validity.** Under learned positions, only the `codes` variants are valid at K = 1, and no arm at K = 1–4 (`codes` 89.8%). Under ALiBi at K = 1, every arm except `words` is valid.
+1. **Validity.**
+   - Learned positions: only the `codes` variants are valid at K = 1, and no arm at K = 1–4 (`codes` 89.8%).
+   - ALiBi: every arm is valid at K = 1 (2 of 2 seeds). Both arms run so far are valid at K = 1–4 (seed 0).
 2. **Compression.** In natural prompts, `codes` is no shorter than English at K = 1 (115 vs 112 bytes; the batch header costs 35). At K = 1–4 it is 22% shorter (133 vs 172 bytes on average). Per-query FLOPs: §8.4.
 3. **Learning gain.** Its sign depends on the position scheme. It is positive for `codes` under learned positions and negative under ALiBi. It is not a property of the language.
 4. **Contrasts.** `codes` vs `codes_eqlen` shows that length costs about 3× under learned positions. `codes` vs `codes_jitter` shows that position variability costs about 5× under learned positions and nothing under ALiBi.
 5. **Reading the words.** The English and `words` filler arms fail this rule. Their results are reported with that caveat, and `english_natural` replaces English in the conclusions.
-6. **Non-inferiority.** Under ALiBi at K = 1, `codes` matches `english_natural` on final accuracy (100% on every panel), but needs twice the items.
+6. **Non-inferiority** (under ALiBi).
+   - At K = 1, `codes` matches `english_natural` on final accuracy (100% on every panel) but needs 2.5× the items.
+   - At K = 1–4 (seed 0), peak accuracy is equal. Final accuracy favours `codes` (95% vs 87%), but the gap is within the end-of-run fluctuation; seed 1 will tell.
 7. **Generalisation** (swap, flip and the held-out combination within 10 points of iid).
    - Every model at ceiling passes.
    - Learned-position `codes` at K = 1–4 is 83–93% against 90% iid, so it passes.
