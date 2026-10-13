@@ -68,8 +68,8 @@ The 0/48 says nothing about whether COPY pre-training helps *learning* selection
 | Real warm start × 12 / 96 identifiers, extra seeds | native (needs `efb2…`) | proposed: 2 more schedule seeds per arm, to put intervals on 2/12 and 432/432 |
 | Fresh vs surrogate × breadth 12/24/48/96 × exposure | local | **done** (above) |
 | COPY-init vs original-init on the *original* 64-example selection task | native (needs both real checkpoints) | the native team's proposed next run; not duplicated here |
-| Initialisation (fresh / COPY-pretrained / surrogate) on length-matched short-instruction selection with fresh identifiers | local | §8 |
-| English vs Sylang, matched budget, identifiers and lengths | local | §8 |
+| Initialisation (fresh / COPY-pretrained / surrogate) on length-matched short-instruction selection with fresh identifiers | local | **done**: COPY-96 learns, fresh and surrogate do not (§8.5) |
+| English vs Sylang, matched budget, identifiers and lengths | local | **done** for K = 1 and K = 1–4, both position schemes (§8.3) |
 
 ### 0.5 Length matching: the correction applied, and what each attempt cost
 
@@ -535,3 +535,36 @@ Both runs peak at the same accuracy at the same update. Their final checkpoints 
   - use a relative position scheme, or report both;
   - use natural English, not padded English, as the English arm, and control length through the item mix (equal records per K) instead of through filler;
   - compare at K ≥ 2, where the header is amortised.
+
+### 8.5 Selection from different initialisations [M-local]
+
+This asks the native team's question locally: does COPY pre-training help a model *learn* selection, even though it does not transfer zero-shot (§0.3)? `language.py suite --suite selection-init`.
+
+**Setup:**
+
+- **Task:** one length-matched English record (the `english` arm at K = 1), the 68-byte instruction, fresh identifiers, and the panels of §8.1.
+- **Recipe:** the packet's, with learned positions, batch 4 and LR 3e-4, for 6,144 updates (24,576 items).
+- **Initialisations, 3 seeds each:**
+  - **fresh**;
+  - **COPY-96**: the local fresh-init model trained on 96 balanced identifiers (§0.2);
+  - **surrogate**: the local memoriser (§0.2).
+- Each checkpoint's sha256 is verified at run time.
+
+| Initialisation | Seeds reaching ≥ 90% | Held-out selected exact | Held-out identifier letters / digits | Held-out combination | Swap / flip | Cue-conflict |
+|---|---|---|---|---|---|---|
+| **COPY-96** | 2 of 3 (90%, 67%, 100% selected) | **85% (67–100)** | 92–100% / 97–100% | 59% (52–65) | 88% / 93% | 0% |
+| fresh | 0 of 3 | 0% | 2–12% / 97–100% | 44% | 0% / 41% | 0% |
+| surrogate | 0 of 3 | 0% | 1–6% / 97–100% | 44% | 0% / 41% | 0% |
+
+All three COPY-96 runs escaped the plateau between updates 3,072 and 6,144. The fresh and surrogate runs show the digit-only failure of §8.3.1.
+
+**Reading:**
+
+- **COPY pre-training on broad identifiers does help the model learn selection.** That holds even though the COPY prompts share no format with this task (`a–f` identifiers, 8-byte prompts). It is the only one of the three initialisations that copies letters at variable offsets under learned positions within this budget. A memorising initialisation is no better than fresh.
+- **Two limits:**
+  - The held-out (relation, tense) combination lags at 59%: what it learned about the record wording transfers less well than the copying.
+  - Like every filler-arm model, it reads polarity from the filler (cue-conflict 0%).
+- **For the native runs:** the planned COPY-init vs original-init comparison on the 64-example task should improve with COPY-96 rather than the 12-identifier COPY checkpoint. It should be scored on held-out identifiers and on a held-out combination, not on training pairs.
+
+A comparison of English and `codes` starting from COPY-96 (learned positions, K = 1–4) is running.
+
