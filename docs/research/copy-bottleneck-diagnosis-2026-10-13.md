@@ -433,4 +433,93 @@ The binding builder already renders the same ASTs in two arms, `english` and `co
 1. At 4,000 updates, `english`, `english_natural` and `words` had begun to follow roles but selected nothing yet: 0% selected exact, against 100% for `codes`. Swap margin was +18, +3 and +13 nats against +69. A fixed 4,000-update budget can therefore show only "learned versus not yet". The K = 1 runs were restarted at 12,000 updates, with the same evaluation grid. The LR is constant, so a long run's update-4,000 checkpoint is the 4,000-update result.
 2. `codes` and English prompts are about the same length at K = 1 (115 and 112 bytes), so the gap is not compression. The `codes` record puts both identifiers at nearly fixed byte offsets. Under learned absolute positions that is a plausible shortcut to copying. `codes_jitter` was added to test it.
 
-Results: pending. The runs are in progress, and this section will be filled from `results/language_k1.jsonl` and `results/language.jsonl`.
+A third deviation came from the results themselves. The learned-position runs pointed at the position scheme, so §8.3.2 adds a single change to the model: ALiBi in place of the learned position table.
+
+Raw lines: `results/language_k1.jsonl`, `language.jsonl`, `language_alibi.jsonl`, `language_alibi_main.jsonl`; tables in `results/SUMMARY.md`. "Object offsets" is the number of distinct byte offsets of the first record's object over 2,000 items. **Seeds: 1 unless stated.** These are single runs with large effects, not estimates with intervals.
+
+#### 8.3.1 The packet's model (learned absolute positions)
+
+**K = 1**, 12,000 updates × 8 items:
+
+| Arm | Prompt bytes | Object offsets | First update with ≥ 90% held-out exact | Selected exact at 4,000 / final | Cue-conflict |
+|---|---|---|---|---|---|
+| `codes` | 115 | 4 | **2,000** | 100% / 100% | 100% |
+| `codes_eqlen` | 147 | 4 | 6,000 | 62% / 100% | 100% |
+| `codes_jitter` | 130 | 34 | 10,000 | 0% / 100% | 100% |
+| `english` | 112 | 32 | not reached | 0% / 0% | 0% |
+| `english_natural` | 109 | 40 | not reached | 0% / 0% | (no filler) |
+| `words` | 143 | 29 | not reached | 0% / 0% | 0% |
+
+**K = 1–4**, 12,000 updates × 8 items:
+
+| Arm | Selected exact | Held-out exact (always-`[]` 28%) | Swap margin, nats |
+|---|---|---|---|
+| `codes` | **86%** | 90% | +96 |
+| `english_natural` | 30% | 50% | +78 |
+| `english` | 0% | 28% | +25 |
+| `words` | 0% | 28% | +34 |
+| `codes_eqlen` | 0% | 28% | 0.0 |
+| `codes_jitter` | 0% | 28% | +17 |
+
+**What the failing models get wrong** (`language.py probe`, held-out selected answers):
+
+| Model | Identifier digits | Identifier letters | Greedy sample (target → output) |
+|---|---|---|---|
+| `english`, K = 1 | 100% | 3% | `f1y`,`w0a` → `i1i`,`t0i` |
+| `english_natural`, K = 1 | 100% | 4% | `f1y`,`w0a` → `a1a`,`a0a` |
+| `words`, K = 1 | 100% | 50% | `f1y`,`w0a` → `f1y`,`n0n` |
+| `codes_jitter`, K = 1–4 | 79% | 3% | `f1y`,`w0a` → `t1i`,`t0i` |
+
+The `words` row is the clearest single observation. Its subject always sits at the same offset and is copied exactly. Its object's offset varies, and only the object's digit, the one distinctive byte, survives.
+
+**Reading.** With a learned absolute position table, this model learns to copy a byte when the byte sits at a fixed offset, or when it is distinctive in content (the digit). It has not learned, within 12,000 updates, to copy an ordinary letter whose offset varies. The ingredients separate cleanly:
+
+- **same symbols, variable offsets** (`codes` → `codes_jitter`): about 5× more updates at K = 1, and failure at K = 1–4;
+- **same offsets, longer prompt** (`codes` → `codes_eqlen`): about 3× more updates.
+
+English has variable offsets and letter-dense surroundings, and does not learn at either K.
+
+#### 8.3.2 One change to the model: ALiBi instead of learned positions
+
+`use_alibi` keeps the packet's embedding, blocks, norm and output layer, drops the position table from the forward pass, and adds per-head ALiBi distance biases to the causal mask. Checks: causality; padding and batch invariance (8e-7); train/eval parity (0.0); and the packet's decoder produces the forward pass's argmax.
+
+**K = 1**, 12,000 updates × 8 items, stopping once two checkpoints are at ≥ 97% on every panel:
+
+| Arm | Seeds | First update with ≥ 90% held-out exact | Median items (MB) to 90% | Final selected exact | Cue-conflict |
+|---|---|---|---|---|---|
+| `english_natural` | 2 | 2,000 and 2,000 | 16,000 (1.9 MB) | 100% | (no filler) |
+| `english` | 2 | 1,500 and 4,000 | 22,000 (2.7 MB) | 100% | **0%** |
+| `codes` | 1 | 4,000 | 32,000 (4.1 MB) | 100% | 100% |
+| `codes_jitter` | 1 | 4,000 | 32,000 (4.5 MB) | 100% | 100% |
+| `words` | 1 | 12,000 | 96,000 (14.8 MB) | 79% | **0%** |
+
+**K = 1–4**: pending (`english_natural` and `codes`, running).
+
+**Reading.**
+
+- **Offsets stop mattering.** `codes` and `codes_jitter` learn at the same update.
+- **The ranking reverses.** Natural English needs half the items of `codes` and less than half the bytes.
+- **The filler is a shortcut.** Every filler-arm model (`english` and `words`, both position schemes) scores 0% on the cue-conflict panel. These models read polarity from `~`, not from "not" or `negative`, so those arms say nothing about the languages. `english_natural` is the valid English arm. Under ALiBi it has no absolute positions from which to read prompt length, and its flip panel is 100%.
+
+#### 8.3.3 Against the pre-registered reading (§8.2)
+
+1. **Validity.** Under learned positions, only the `codes` variants are valid at K = 1, and no arm at K = 1–4 (`codes` 89.8%). Under ALiBi at K = 1, every arm except `words` is valid.
+2. **Compression.** In natural prompts, `codes` is no shorter than English at K = 1 (115 vs 112 bytes; the batch header costs 35). At K = 1–4 it is 22% shorter (133 vs 172 bytes on average). Per-query FLOPs: §8.4.
+3. **Learning gain.** Its sign depends on the position scheme. It is positive for `codes` under learned positions and negative under ALiBi. It is not a property of the language.
+4. **Contrasts.** `codes` vs `codes_eqlen` shows that length costs about 3× under learned positions. `codes` vs `codes_jitter` shows that position variability costs about 5× under learned positions and nothing under ALiBi.
+5. **Reading the words.** The English and `words` filler arms fail this rule. Their results are reported with that caveat, and `english_natural` replaces English in the conclusions.
+6. **Non-inferiority.** Under ALiBi at K = 1, `codes` matches `english_natural` on final accuracy (100% on every panel), but needs twice the items.
+7. **Generalisation** (swap, flip and the held-out combination within 10 points of iid).
+   - Every model at ceiling passes.
+   - Learned-position `codes` at K = 1–4 is 83–93% against 90% iid, so it passes.
+   - Learned-position `codes_eqlen` fails on the held-out combination (85% vs 100%).
+   - ALiBi `words` had not finished learning (73% vs 92%).
+
+#### 8.3.4 What this means for the Sylang question
+
+- **The packet model's preference for `codes` is real but is not about the language.** It comes from fixed-width fields meeting a learned absolute position table. The same symbols at English-like offsets lose most of the advantage. A relative position scheme, used by most current language models, removes it and lets controlled English learn faster.
+- **The compression gain survives, and it is modest at small K.** The batch header is fixed overhead, so the byte saving grows with K. It counts only where accuracy is non-inferior; at K = 1 under ALiBi that costs `codes` twice the training items.
+- **For future runs:**
+  - use a relative position scheme, or report both;
+  - use natural English, not padded English, as the English arm, and control length through the item mix (equal records per K) instead of through filler;
+  - compare at K ≥ 2, where the header is amortised.
