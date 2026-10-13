@@ -5,6 +5,7 @@
     python language.py choose-lr --lr-results results/language_lr.jsonl --out results/language_lr_choice.json
     python language.py suite --source <packet> --suite main --lr-json results/language_lr_choice.json \
         --out results/language.jsonl
+    python language.py suite --source <packet> --suite single --updates 4000 --out results/language_k1.jsonl
     python language.py suite --source <packet> --suite selection-init --copy-init <copy96.pt> \
         --surrogate <surrogate.pt> --out results/selection_init.jsonl
     python language.py benchmark --source <packet> --out results/language_benchmark.json
@@ -515,6 +516,10 @@ def suite_configs(name: str, args) -> list[dict]:
         return [dict(base, arm=arm, seed=seed, lr=choice.get(arm, args.lr), updates=args.updates,
                      eval_at=[args.updates // 8, args.updates // 4, args.updates // 2, args.updates])
                 for seed, arm in itertools.product(range(args.seeds), ARMS)]  # arms interleaved
+    if name == 'single':  # one record per item: the selection task itself, in every arm
+        return [dict(base, arm=arm, seed=seed, k=[1], lr=args.lr, updates=args.updates,
+                     eval_at=[args.updates * i // 16 for i in (1, 2, 3, 4, 6, 8, 12)])
+                for seed, arm in itertools.product(range(args.seeds), ARMS)]
     if name == 'selection-init':
         inits = ['fresh'] + (['copy96'] if args.copy_init else []) + (['surrogate'] if args.surrogate else [])
         return [dict(base, arm='english', init=init, init_sha256=shas.get(init), k=[1], batch=4, lr=3e-4, seed=seed,
@@ -576,7 +581,7 @@ def main() -> None:
     a.add_argument('--out')
     s = sub.add_parser('suite')
     s.add_argument('--source', required=True)
-    s.add_argument('--suite', choices=('lr', 'main', 'selection-init'), required=True)
+    s.add_argument('--suite', choices=('lr', 'main', 'single', 'selection-init'), required=True)
     s.add_argument('--out', required=True)
     s.add_argument('--workers', type=int, default=4)
     s.add_argument('--seeds', type=int, default=3)

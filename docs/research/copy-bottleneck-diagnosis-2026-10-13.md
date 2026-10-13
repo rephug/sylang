@@ -354,3 +354,77 @@ The binding builder already renders the same ASTs in two arms, `english` and `co
 - From-scratch runs use 1 thread here against 4 natively. With deterministic algorithms, float differences of order 1e-5 between thread counts can change individual greedy bytes, though not the plateau.
 - Two seeds per binding arm. Arms that differ by 0% vs 100% are robust to that; the 768-update fresh-identifier rung is not (1/2).
 - The reference-model replica approximates a written description. Where it and the real-pipeline runs differ, the real runs take precedence.
+- The language comparison (§8) uses one learning rate for every arm, and few seeds: 3 at K = 1, fewer at K = 1–4. Differences of a few points are not resolvable.
+- Training seconds in §8 were measured with more worker processes than cores. Use bytes processed and benchmark FLOPs as the cost measures; only the serial benchmark's timings are clean.
+- The filler in English and `words` is a synthetic device. A result on those arms holds only if their cue-conflict accuracy stays close to iid; `english_natural` is the unpadded reference.
+
+---
+
+## 8. English versus Sylang on the packet's model [M-local]
+
+`language.py` runs the comparison designed in §6 on the packet's own `tiny` model, optimiser and byte tokenizer, with synthetic data and local CPU only.
+
+### 8.1 Design
+
+**Task.** Each item holds K predicate records. The answer is the JSON list of `[subject, object]` for every negative record, in record order, or `[]`. These are the packet's binding target bytes, identical in every arm. Two sizes:
+
+- **K = 1** (`--suite single`): the selection task itself. 4,000 updates × 8 items.
+- **K uniform in 1–4** (`--suite main`): multi-record selection in order. 12,000 updates × 8 items.
+
+**Arms.** The records are rendered by the packet's own codecs:
+
+| Arm | Rendering | Role in the comparison |
+|---|---|---|
+| `english` | Controlled English, with filler in the negation slot | Readable baseline, length-matched |
+| `english_natural` | Controlled English, no filler | What length matching costs or gains; carries the length cue |
+| `words` | Sylang batch words, with filler in the negation slot | Sylang layout with readable symbols |
+| `codes` | Sylang batch codes; polarity is letter case | The compact candidate |
+| `codes_eqlen` | `codes`, each record padded at line end to its English width | Same symbols as `codes` at English length: isolates sequence length |
+
+**Held equal across arms:**
+
+- the item stream: records, identifiers and their order, for each seed;
+- the 68-byte instruction;
+- the fresh initialisation under the same seed;
+- AdamW, batch 8, LR 1e-3, number of updates;
+- the evaluation panels.
+
+**Identifiers.** Three-character letter–digit–letter identifiers are drawn per record from a 5,362-identifier training split. Every evaluated identifier comes from the disjoint split, halved into dev (715) and test (683). Each identifier is used at most once per item.
+
+**Panels:**
+
+- iid test;
+- dev;
+- a held-out (relation, tense) combination never trained: `contain` + future;
+- **swap**: subject and object exchanged in every record;
+- **flip**: one record's polarity inverted;
+- **cue-conflict** (§0.5).
+
+**Metrics:**
+
+- **Exact match.** Teacher-forced exact is greedy exact. At the end of each run it is checked against the packet's decoder on 32 items.
+- **Selected-only exact.**
+- **The always-`[]` baseline.** 50% at K = 1; 28% at K = 1–4.
+- **Swap margin.** log p(swapped answer) − log p(original answer), given the swapped prompt.
+- **Cost per run:** items, bytes and training seconds at each checkpoint.
+- **Serial benchmark** (`language.py benchmark`): per-query prefill and decode time and FLOPs, single thread.
+
+**Learning rate.** A sweep at 2,000 updates × 8 (3e-4 against 1e-3, K = 1–4) left every arm on the plateau: 0% selected, and identifier-byte accuracy of 4–8%. It therefore carries no information about which LR suits which arm. All arms use 1e-3, fixed before the main runs. It is the rate that took fresh-identifier binding off the plateau with the long prompt in §2.3 (16 × 1,536 at 1e-3: 100%; 4 × 1,536 at 3e-4: 0%). That a single LR is fair to every arm is an assumption, recorded in §7.
+
+**Plateau evidence already visible.** On the 2,000-update plateau, the English and `words` models already scored 0–8% on the cue-conflict panel, against 28% on iid. Their only learned behaviour, answering `[]`, keys on the filler. This is why the panel exists. A trained model must be checked on it, not assumed to read the words.
+
+### 8.2 Pre-registered reading (written before any K = 1 or K = 1–4 result)
+
+1. **Validity.** An arm counts only if iid exact reaches ≥ 90% in at least 2 of 3 seeds. Arms that stay on the plateau are reported as "did not learn within budget", not compared.
+2. **Compression gain** is per-query bytes and FLOPs (benchmark), known before training. It counts only at non-inferior accuracy.
+3. **Learning gain** is the median number of training items to reach 90% iid exact, and the accuracy gap at equal items.
+4. **Two contrasts separate the gains:**
+   - `codes` vs `codes_eqlen` changes only sequence length;
+   - `english` vs `codes_eqlen` changes symbols and layout at about equal length.
+5. **Reading the words.** An arm's cue-conflict accuracy more than 20 points below its iid accuracy means its model relies on the filler, not the negation word. Its result is then reported with that caveat.
+6. **Non-inferiority (indicative at 3 seeds).** `codes` final iid exact is within 2 points of `english`, and so are held-out-combo, swap and flip.
+7. **Generalisation.** Swap and flip accuracy below iid by more than 10 points means the model uses item-level shortcuts rather than roles or polarity.
+
+### 8.3 Results
+
+Pending. The runs are in progress, and this section will be filled from `results/language_k1.jsonl` and `results/language.jsonl`.
