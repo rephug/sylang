@@ -206,6 +206,46 @@ Swap margin, mean nats (> 0: the answer follows the roles) by update (runs that 
 | codes_eqlen | fresh | 1234 | 0.0003 | 0.05 | -0.04 | -0.03 |
 | codes_eqlen | fresh | 1234 | 0.001 | -0.03 | -0.11 | -0.06 |
 
+## language
+
+| arm | init | K | batch | lr | updates | seeds | held-out ids % | selected % | always-[] baseline % | dev % | held-out combo % | swap % | flip % | cue-conflict % | swap margin > 0 % | runs ≥90% (median items) | median MB to 90% | prompt bytes (trained) | train s (shared CPU) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| english | fresh | 1234 | 8 | 0.001 | 12000 | 1 | 28 | 0 | 28 | 25 | 16 | 0 | 20 | 0 | 96 | 0/1 | – | 178 | 5498.46 |
+| english_natural | fresh | 1234 | 8 | 0.001 | 12000 | 1 | 50 | 30 | 28 | 45 | 36 | 28 | 41 | 50 | 99 | 0/1 | – | 171 | 5574.16 |
+| words | fresh | 1234 | 8 | 0.001 | 12000 | 1 | 28 | 0 | 28 | 25 | 16 | 0 | 20 | 0 | 96 | 0/1 | – | 202 | 5920.45 |
+| codes | fresh | 1234 | 8 | 0.001 | 12000 | 1 | 90 | 86 | 28 | 93 | 91 | 83 | 88 | 90 | 100 | 0/1 | – | 133 | 4532.80 |
+| codes_eqlen | fresh | 1234 | 8 | 0.001 | 12000 | 1 | 28 | 0 | 28 | 25 | 16 | 0 | 20 | 28 | 50 | 0/1 | – | 213 | 6130.51 |
+
+Held-out-identifier exact accuracy by update (runs that stopped early at the ceiling end sooner):
+
+| arm | init | K | lr | 1500 | 3000 | 6000 | 12000 |
+|---|---|---|---|---|---|---|---|
+| english | fresh | 1234 | 0.001 | 26 | 26 | 28 | 28 |
+| english_natural | fresh | 1234 | 0.001 | 16 | 21 | 27 | 50 |
+| words | fresh | 1234 | 0.001 | 28 | 28 | 28 | 28 |
+| codes | fresh | 1234 | 0.001 | 28 | 28 | 60 | 90 |
+| codes_eqlen | fresh | 1234 | 0.001 | 14 | 28 | 28 | 28 |
+
+Held-out-identifier exact accuracy on selected (non-empty) answers by update (runs that stopped early at the ceiling end sooner):
+
+| arm | init | K | lr | 1500 | 3000 | 6000 | 12000 |
+|---|---|---|---|---|---|---|---|
+| english | fresh | 1234 | 0.001 | 0 | 0 | 0 | 0 |
+| english_natural | fresh | 1234 | 0.001 | 0 | 0 | 0 | 30 |
+| words | fresh | 1234 | 0.001 | 0 | 0 | 0 | 0 |
+| codes | fresh | 1234 | 0.001 | 0 | 0 | 45 | 86 |
+| codes_eqlen | fresh | 1234 | 0.001 | 0 | 0 | 0 | 0 |
+
+Swap margin, mean nats (> 0: the answer follows the roles) by update (runs that stopped early at the ceiling end sooner):
+
+| arm | init | K | lr | 1500 | 3000 | 6000 | 12000 |
+|---|---|---|---|---|---|---|---|
+| english | fresh | 1234 | 0.001 | 0.01 | -0.07 | 1.04 | 24.56 |
+| english_natural | fresh | 1234 | 0.001 | -0.07 | 0.01 | 0.23 | 78.40 |
+| words | fresh | 1234 | 0.001 | -0.02 | 0.16 | 13.30 | 33.73 |
+| codes | fresh | 1234 | 0.001 | -0.02 | 1.06 | 54.46 | 96.06 |
+| codes_eqlen | fresh | 1234 | 0.001 | -0.05 | 0.01 | 0.01 | 0.00 |
+
 ## language_k1_u4000_seed0
 
 | arm | init | K | batch | lr | updates | seeds | held-out ids % | selected % | always-[] baseline % | dev % | held-out combo % | swap % | flip % | cue-conflict % | swap margin > 0 % | runs ≥90% (median items) | median MB to 90% | prompt bytes (trained) | train s (shared CPU) |
