@@ -639,16 +639,16 @@ def suite_configs(name: str, args) -> list[dict]:
         # those points are a subset of GRID, which later runs use with early stopping.
         return [dict(base, arm=arm, seed=seed, lr=choice.get(arm, args.lr), updates=args.updates,
                      early_stop=4000, eval_at=[u for u in GRID if u < args.updates])
-                for seed, arm in itertools.product(range(args.seeds), arms)]  # arms interleaved
+                for seed, arm in itertools.product(range(args.first_seed, args.seeds), arms)]  # arms interleaved
     if name == 'single':  # one record per item: the selection task itself, in every arm
         return [dict(base, arm=arm, seed=seed, k=[1], lr=args.lr, updates=args.updates, early_stop=4000,
                      eval_at=[u for u in GRID if u < args.updates])
-                for seed, arm in itertools.product(range(args.seeds), arms)]
+                for seed, arm in itertools.product(range(args.first_seed, args.seeds), arms)]
     if name == 'position':  # the same task with ALiBi in place of learned absolute positions
         k = [int(c) for c in args.k]
         return [dict(base, arm=arm, seed=seed, k=k, position='alibi', lr=args.lr, updates=args.updates,
                      early_stop=4000, eval_at=[u for u in GRID if u < args.updates])
-                for seed, arm in itertools.product(range(args.seeds), arms)]
+                for seed, arm in itertools.product(range(args.first_seed, args.seeds), arms)]
     if name == 'selection-init':
         inits = ['fresh'] + (['copy96'] if args.copy_init else []) + (['surrogate'] if args.surrogate else [])
         return [dict(base, arm='english', init=init, init_sha256=shas.get(init), k=[1], batch=4, lr=3e-4, seed=seed,
@@ -714,6 +714,7 @@ def main() -> None:
     s.add_argument('--out', required=True)
     s.add_argument('--workers', type=int, default=4)
     s.add_argument('--seeds', type=int, default=3)
+    s.add_argument('--first-seed', type=int, default=0, help='run seeds first-seed .. seeds-1')
     s.add_argument('--updates', type=int, default=4000)
     s.add_argument('--lr', type=float, default=1e-3)
     s.add_argument('--lr-json')
