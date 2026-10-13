@@ -146,3 +146,99 @@ never emitted at that position in training (10-12 of 12), so held-out failure is
 | surrogate | 96 | 192 | 4 | 3 | 100 | 100 | 100 | 100 | 0.00 |
 | surrogate | 96 | 1536 | 32 | 3 | 100 | 100 | 100 | 100 | 0.00 |
 
+## language_lr
+
+| arm | init | K | batch | lr | updates | seeds | held-out ids % | selected % | always-[] baseline % | dev % | held-out combo % | swap % | flip % | cue-conflict % | swap margin > 0 % | runs ≥90% (median items) | median MB to 90% | prompt bytes (trained) | train s (shared CPU) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| english | fresh | 1234 | 8 | 0.0003 | 2000 | 1 | 28 | 0 | 28 | 25 | 14 | 0 | 20 | 0 | 59 | 0/1 | – | 178 | 476.80 |
+| english | fresh | 1234 | 8 | 0.001 | 2000 | 1 | 28 | 0 | 28 | 24 | 16 | 0 | 20 | 0 | 52 | 0/1 | – | 178 | 465.86 |
+| english_natural | fresh | 1234 | 8 | 0.0003 | 2000 | 1 | 24 | 0 | 28 | 23 | 8 | 0 | 14 | 24 | 52 | 0/1 | – | 171 | 483.96 |
+| english_natural | fresh | 1234 | 8 | 0.001 | 2000 | 1 | 23 | 0 | 28 | 20 | 9 | 0 | 14 | 23 | 58 | 0/1 | – | 171 | 452.29 |
+| words | fresh | 1234 | 8 | 0.0003 | 2000 | 1 | 28 | 0 | 28 | 25 | 16 | 0 | 20 | 8 | 51 | 0/1 | – | 202 | 550.71 |
+| words | fresh | 1234 | 8 | 0.001 | 2000 | 1 | 28 | 0 | 28 | 25 | 14 | 0 | 20 | 0 | 62 | 0/1 | – | 202 | 511.48 |
+| codes | fresh | 1234 | 8 | 0.0003 | 2000 | 1 | 28 | 0 | 28 | 25 | 16 | 0 | 20 | 28 | 49 | 0/1 | – | 133 | 308.45 |
+| codes | fresh | 1234 | 8 | 0.001 | 2000 | 1 | 28 | 0 | 28 | 25 | 16 | 0 | 20 | 28 | 48 | 0/1 | – | 133 | 292.04 |
+| codes_eqlen | fresh | 1234 | 8 | 0.0003 | 2000 | 1 | 20 | 0 | 28 | 17 | 9 | 0 | 15 | 20 | 45 | 0/1 | – | 213 | 541.90 |
+| codes_eqlen | fresh | 1234 | 8 | 0.001 | 2000 | 1 | 24 | 0 | 28 | 21 | 12 | 0 | 16 | 24 | 47 | 0/1 | – | 213 | 544.88 |
+
+Held-out-identifier exact accuracy by update (runs that stopped early at the ceiling end sooner):
+
+| arm | init | K | lr | 500 | 1000 | 2000 |
+|---|---|---|---|---|---|---|
+| english | fresh | 1234 | 0.0003 | 17 | 28 | 28 |
+| english | fresh | 1234 | 0.001 | 26 | 27 | 28 |
+| english_natural | fresh | 1234 | 0.0003 | 11 | 17 | 24 |
+| english_natural | fresh | 1234 | 0.001 | 9 | 11 | 23 |
+| words | fresh | 1234 | 0.0003 | 23 | 28 | 28 |
+| words | fresh | 1234 | 0.001 | 19 | 28 | 28 |
+| codes | fresh | 1234 | 0.0003 | 8 | 14 | 28 |
+| codes | fresh | 1234 | 0.001 | 12 | 27 | 28 |
+| codes_eqlen | fresh | 1234 | 0.0003 | 5 | 12 | 20 |
+| codes_eqlen | fresh | 1234 | 0.001 | 14 | 14 | 24 |
+
+Held-out-identifier exact accuracy on selected (non-empty) answers by update (runs that stopped early at the ceiling end sooner):
+
+| arm | init | K | lr | 500 | 1000 | 2000 |
+|---|---|---|---|---|---|---|
+| english | fresh | 1234 | 0.0003 | 0 | 0 | 0 |
+| english | fresh | 1234 | 0.001 | 0 | 0 | 0 |
+| english_natural | fresh | 1234 | 0.0003 | 0 | 0 | 0 |
+| english_natural | fresh | 1234 | 0.001 | 0 | 0 | 0 |
+| words | fresh | 1234 | 0.0003 | 0 | 0 | 0 |
+| words | fresh | 1234 | 0.001 | 0 | 0 | 0 |
+| codes | fresh | 1234 | 0.0003 | 0 | 0 | 0 |
+| codes | fresh | 1234 | 0.001 | 0 | 0 | 0 |
+| codes_eqlen | fresh | 1234 | 0.0003 | 0 | 0 | 0 |
+| codes_eqlen | fresh | 1234 | 0.001 | 0 | 0 | 0 |
+
+Swap margin, mean nats (> 0: the answer follows the roles) by update (runs that stopped early at the ceiling end sooner):
+
+| arm | init | K | lr | 500 | 1000 | 2000 |
+|---|---|---|---|---|---|---|
+| english | fresh | 1234 | 0.0003 | 0.05 | 0.08 | 0.10 |
+| english | fresh | 1234 | 0.001 | 0.04 | -0.06 | -0.04 |
+| english_natural | fresh | 1234 | 0.0003 | 0.02 | -0.02 | 0.03 |
+| english_natural | fresh | 1234 | 0.001 | 0.03 | -0.03 | 0.07 |
+| words | fresh | 1234 | 0.0003 | -0.00 | 0.03 | 0.10 |
+| words | fresh | 1234 | 0.001 | -0.03 | 0.10 | 0.04 |
+| codes | fresh | 1234 | 0.0003 | 0.07 | 0.04 | 0.00 |
+| codes | fresh | 1234 | 0.001 | 0.21 | 0.05 | -0.07 |
+| codes_eqlen | fresh | 1234 | 0.0003 | 0.05 | -0.04 | -0.03 |
+| codes_eqlen | fresh | 1234 | 0.001 | -0.03 | -0.11 | -0.06 |
+
+## language_k1_u4000_seed0
+
+| arm | init | K | batch | lr | updates | seeds | held-out ids % | selected % | always-[] baseline % | dev % | held-out combo % | swap % | flip % | cue-conflict % | swap margin > 0 % | runs ≥90% (median items) | median MB to 90% | prompt bytes (trained) | train s (shared CPU) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| english | fresh | 1 | 8 | 0.001 | 4000 | 1 | 59 | 0 | 59 | 52 | 38 | 0 | 41 | 0 | 97 | 0/1 | – | 112 | 647.92 |
+| english_natural | fresh | 1 | 8 | 0.001 | 4000 | 1 | 59 | 0 | 59 | 52 | 44 | 0 | 41 | 59 | 90 | 0/1 | – | 109 | 690.43 |
+| words | fresh | 1 | 8 | 0.001 | 4000 | 1 | 59 | 0 | 59 | 52 | 44 | 0 | 41 | 0 | 87 | 0/1 | – | 143 | 847.46 |
+| codes | fresh | 1 | 8 | 0.001 | 4000 | 1 | 100 | 100 | 59 | 100 | 100 | 100 | 99 | 100 | 100 | 1/1 (16,000) | 2.03 | 115 | 612.72 |
+
+Held-out-identifier exact accuracy by update (runs that stopped early at the ceiling end sooner):
+
+| arm | init | K | lr | 250 | 500 | 750 | 1000 | 1500 | 2000 | 3000 | 4000 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| english | fresh | 1 | 0.001 | 59 | 59 | 59 | 59 | 59 | 59 | 59 | 59 |
+| english_natural | fresh | 1 | 0.001 | 59 | 59 | 59 | 59 | 59 | 59 | 59 | 59 |
+| words | fresh | 1 | 0.001 | 59 | 59 | 59 | 59 | 59 | 59 | 59 | 59 |
+| codes | fresh | 1 | 0.001 | 59 | 59 | 59 | 60 | 74 | 98 | 94 | 100 |
+
+Held-out-identifier exact accuracy on selected (non-empty) answers by update (runs that stopped early at the ceiling end sooner):
+
+| arm | init | K | lr | 250 | 500 | 750 | 1000 | 1500 | 2000 | 3000 | 4000 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| english | fresh | 1 | 0.001 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| english_natural | fresh | 1 | 0.001 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| words | fresh | 1 | 0.001 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| codes | fresh | 1 | 0.001 | 0 | 0 | 0 | 3 | 36 | 95 | 85 | 100 |
+
+Swap margin, mean nats (> 0: the answer follows the roles) by update (runs that stopped early at the ceiling end sooner):
+
+| arm | init | K | lr | 250 | 500 | 750 | 1000 | 1500 | 2000 | 3000 | 4000 |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| english | fresh | 1 | 0.001 | 0.21 | -0.04 | -0.03 | 0.09 | -0.03 | -0.00 | 8.72 | 18.23 |
+| english_natural | fresh | 1 | 0.001 | -0.02 | -0.31 | 0.17 | -0.08 | 0.23 | 0.19 | 0.96 | 3.48 |
+| words | fresh | 1 | 0.001 | -0.14 | 0.08 | -0.14 | 0.03 | 0.04 | 0.59 | 11.29 | 13.27 |
+| codes | fresh | 1 | 0.001 | -0.06 | -0.01 | 16.23 | 29.31 | 44.87 | 52.05 | 60.71 | 69.09 |
+

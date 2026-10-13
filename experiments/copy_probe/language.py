@@ -21,6 +21,7 @@ bytes in every arm.
 - ``words``: Sylang batch-v1 words with selective escaping; the same tab layout as codes.
 - ``codes``: Sylang batch-v1 codes with selective escaping.
 - ``codes_eqlen``: codes with each record line padded at its end to that record's English line width. It has the same symbols as codes at about English length; its prompts are 35 bytes longer because of the batch header.
+- ``codes_jitter``: codes with polarity-independent filler before the subject (0-3 bytes) and before the object (0-28 bytes), so identifier offsets vary about as much as in English. It separates fixed field positions from the symbols themselves.
 - ``english_natural``: controlled English with no filler at all. Here negation adds bytes, so length carries polarity information. This arm measures what the filler changes.
 
 Contrasts:
@@ -29,6 +30,7 @@ Contrasts:
 - **codes vs codes_eqlen**: same symbols, different length, so it isolates compression.
 - **english vs codes_eqlen**: format and symbols at about equal record length.
 - **words vs codes**: readable versus coded symbols in the same layout.
+- **codes vs codes_jitter**: same symbols and similar length, fixed versus variable identifier positions.
 
 **Fairness controls.**
 
@@ -58,10 +60,11 @@ if str(HERE) not in sys.path:
 
 from followup import Runtime  # noqa: E402
 
-ARMS = ('english', 'english_natural', 'words', 'codes', 'codes_eqlen')
+ARMS = ('english', 'english_natural', 'words', 'codes', 'codes_eqlen', 'codes_jitter')
 INSTRUCTION = 'List [subject,object] of each negative record in order; [] if none.\n'
 FILLER = '~'
-BASE_ARM = {'codes_eqlen': 'codes', 'english_natural': 'english'}  # arm -> codec rendering
+BASE_ARM = {'codes_eqlen': 'codes', 'codes_jitter': 'codes', 'english_natural': 'english'}  # arm -> codec
+JITTER = (3, 28)  # codes_jitter: up to 3 filler bytes before the subject, up to 28 before the object's tab
 RELATIONS = ('see', 'help', 'contain')
 TENSES = ('past', 'present', 'future')
 ASPECTS = ('simple', 'progressive', 'completed')
@@ -115,6 +118,18 @@ def _insert_slot_filler(longer: str, shorter: str, gap: int) -> str:
         suffix += 1
     cut = len(longer) - suffix
     return longer[:cut] + FILLER * gap + longer[cut:]
+
+
+def _jitter(line: str, statement: dict, number: int) -> str:
+    """Polarity-independent filler that moves the identifiers about as much as English does.
+
+    The amounts are a deterministic function of the identifiers and the record number,
+    never of polarity, so they carry no class information."""
+    digest = hashlib.sha256(f"{statement['subject']}|{statement['object']}|{number}".encode()).digest()
+    before_subject = digest[0] % (JITTER[0] + 1)
+    before_object = digest[1] % (JITTER[1] + 1)
+    cut = line.rindex('\t')
+    return FILLER * before_subject + line[:cut] + FILLER * before_object + line[cut:]
 
 
 class Renderer:
@@ -179,6 +194,8 @@ class Renderer:
             if arm == 'codes_eqlen':
                 width = len(self.record_line('english', statement, number, 'slot'))
                 line = line + FILLER * max(0, width - len(line))
+            elif arm == 'codes_jitter':
+                line = _jitter(line, statement, number)
             out.append(line)
         text = ''.join(h + '\n' for h in header) + ''.join(line + '\n' for line in out) + INSTRUCTION
         assert text.isascii()
@@ -362,8 +379,14 @@ def run(config: dict) -> dict:
         items_seen += len(rows)
         if step in checkpoints:
             history.append(dict(step=step, items_seen=items_seen, bytes_seen=bytes_seen,
-                                train_seconds=round(seconds, 2),
-                                **score(rt, model, panels, decode_check=32 if step == config['updates'] else 0)))
+                                train_seconds=round(seconds, 2), **score(rt, model, panels)))
+            if config.get('early_stop') and step >= config['early_stop'] and _at_ceiling(history[-2:]):
+                break  # two checkpoints in a row at the ceiling: later updates cannot change the reading
+    # Agreement between the teacher-forced exact flag and the packet's real greedy decoder.
+    rows = panels['iid'][:32]
+    flags = [r['exact'] for r in teacher_forced(rt, model, rows)]
+    decoded = [rt.generate(model, r['prompt'], len(r['target']) + 2) == r['target'] for r in rows]
+    history[-1]['decoder_agreement'] = dict(agree=sum(a == b for a, b in zip(flags, decoded)), n=len(rows))
     saved = None
     if config.get('save_dir'):  # keep the final model (scratch only; never committed)
         o = {k: config[k] for k in RESUME_KEYS}
@@ -405,7 +428,12 @@ def teacher_forced(rt: Runtime, model, rows: list[dict], batch: int = 32) -> lis
     return out
 
 
-def score(rt: Runtime, model, panels: dict, decode_check: int = 0) -> dict:
+def _at_ceiling(last_two: list[dict], level: float = 0.97) -> bool:
+    return len(last_two) == 2 and all(h[panel]['exact'] >= level for h in last_two
+                                      for panel in ('iid', 'dev', 'held_out_combo', 'swap', 'flip'))
+
+
+def score(rt: Runtime, model, panels: dict) -> dict:
     out = {}
     for name, rows in panels.items():
         exact = [r['exact'] for r in teacher_forced(rt, model, rows)]
@@ -429,12 +457,6 @@ def score(rt: Runtime, model, panels: dict, decode_check: int = 0) -> dict:
     margins = [a['logprob'] - b['logprob'] for a, b in zip(right, wrong)]
     out['swap_margin'] = dict(mean=round(statistics.fmean(margins), 3),
                               positive=round(sum(m > 0 for m in margins) / len(margins), 4), n=len(margins))
-    if decode_check:
-        # Agreement between the teacher-forced exact flag and the packet's real greedy decoder.
-        rows = panels['iid'][:decode_check]
-        flags = [r['exact'] for r in teacher_forced(rt, model, rows)]
-        decoded = [rt.generate(model, r['prompt'], len(r['target']) + 2) == r['target'] for r in rows]
-        out['decoder_agreement'] = dict(agree=sum(a == b for a, b in zip(flags, decoded)), n=len(rows))
     return out
 
 
@@ -515,21 +537,25 @@ def suite_configs(name: str, args) -> list[dict]:
     base = dict(source=args.source, copy_init=args.copy_init, surrogate=args.surrogate, init='fresh',
                 save_dir=args.save_dir,
                 init_sha256=None, k=[1, 2, 3, 4], batch=8)
+    arms = [a for a in ARMS if not args.arms or a in args.arms.split(',')]
     shas = {'copy96': _file_sha(args.copy_init) if args.copy_init else None,
             'surrogate': _file_sha(args.surrogate) if args.surrogate else None}
     if name == 'lr':
         return [dict(base, arm=arm, lr=lr, seed=0, updates=args.updates,
                      eval_at=[args.updates // 4, args.updates // 2, args.updates])
-                for lr, arm in itertools.product((3e-4, 1e-3), ARMS)]
+                for lr, arm in itertools.product((3e-4, 1e-3), arms)]
     if name == 'main':
         choice = json.loads(Path(args.lr_json).read_text()) if args.lr_json else {}
         return [dict(base, arm=arm, seed=seed, lr=choice.get(arm, args.lr), updates=args.updates,
                      eval_at=[args.updates // 8, args.updates // 4, args.updates // 2, args.updates])
-                for seed, arm in itertools.product(range(args.seeds), ARMS)]  # arms interleaved
+                for seed, arm in itertools.product(range(args.seeds), arms)]  # arms interleaved
     if name == 'single':  # one record per item: the selection task itself, in every arm
-        return [dict(base, arm=arm, seed=seed, k=[1], lr=args.lr, updates=args.updates,
-                     eval_at=[args.updates * i // 16 for i in (1, 2, 3, 4, 6, 8, 12)])
-                for seed, arm in itertools.product(range(args.seeds), ARMS)]
+        # A fixed grid, so runs of different lengths share their early checkpoints. A run stops
+        # early once two checkpoints from update 4,000 on reach 97% on every panel.
+        grid = [250, 500, 750, 1000, 1500, 2000, 3000, 4000, 6000, 8000, 10000, 12000, 16000]
+        return [dict(base, arm=arm, seed=seed, k=[1], lr=args.lr, updates=args.updates, early_stop=4000,
+                     eval_at=[u for u in grid if u < args.updates])
+                for seed, arm in itertools.product(range(args.seeds), arms)]
     if name == 'selection-init':
         inits = ['fresh'] + (['copy96'] if args.copy_init else []) + (['surrogate'] if args.surrogate else [])
         return [dict(base, arm='english', init=init, init_sha256=shas.get(init), k=[1], batch=4, lr=3e-4, seed=seed,
@@ -600,6 +626,7 @@ def main() -> None:
     s.add_argument('--lr-json')
     s.add_argument('--copy-init')
     s.add_argument('--surrogate')
+    s.add_argument('--arms', help='comma-separated subset of ' + ','.join(ARMS))
     s.add_argument('--save-dir', help='write each final model here (outside the repository)')
     c = sub.add_parser('choose-lr')
     c.add_argument('--lr-results', required=True)

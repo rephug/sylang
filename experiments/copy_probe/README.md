@@ -12,7 +12,7 @@ This directory holds no checkpoints and downloads no model weights. It needs CPU
 |---|---|
 | `real_pipeline.py` | Runs the probes and one-factor training variants on the **project's own** `tiny.py`, `decode.py` and `binding.py` and its own data, read from an unpacked results packet passed with `--source` |
 | `followup.py` | COPY initialisation × identifier breadth × exposure matrix and the surrogate memorisation warm start, on the packet's model (`--source`) |
-| `language.py` | English-vs-Sylang comparison: `english` / `english_natural` / `words` / `codes` / `codes_eqlen` arms rendered by the packet's codecs, filler in the negation slot, held-out identifiers and combinations, swap/flip/cue-conflict panels, leakage `audit`, inference `benchmark` |
+| `language.py` | English-vs-Sylang comparison: `english` / `english_natural` / `words` / `codes` / `codes_eqlen` / `codes_jitter` arms rendered by the packet's codecs, filler in the negation slot, held-out identifiers and combinations, swap/flip/cue-conflict panels, leakage `audit`, inference `benchmark` |
 | `probes.py` | Model-agnostic checks: causality, visibility, gradient reach, parameter gradients, oracle labels, checkpoint round trip, decoder consistency, padding invariance, prompt dependence, counterfactual swap/replace |
 | `check_pipeline.py` | Runs every mechanical probe on a model and prints PASS/FAIL; a template for other trainers |
 | `model.py` | Independent reference: a 2-layer causal byte transformer, with three injectable defects used only to test the probes |

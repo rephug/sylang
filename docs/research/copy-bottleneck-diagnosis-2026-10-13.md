@@ -88,13 +88,13 @@ Two checks measure what the adopted filler does, instead of assuming it is harml
 
 Audit of the adopted design over 40,000 training items. Lookup classifiers were fit on one half and scored on the other; chance is 50% per record, and K alone predicts the negative count 43.7% of the time:
 
-| Cue | english | english_natural | words | codes | codes_eqlen |
-|---|---|---|---|---|---|
-| Mean prompt bytes as trained | 177.8 | 171.7 | 202.1 | 133.2 | 212.8 |
-| Negative count from prompt length + K | 43.0% | **49.3%** | 42.8% | 43.5% | 43.0% |
-| Record polarity from line length | 50.0% | **70.3%** | 49.9% | 49.7% | 50.0% |
-| Record polarity from features | 50.0% | 50.0% | 50.0% | 50.0% | 50.0% |
-| Record polarity from filler presence | 100% | 49.7% | 100% | 49.7% | 49.8% |
+| Cue | english | english_natural | words | codes | codes_eqlen | codes_jitter |
+|---|---|---|---|---|---|---|
+| Mean prompt bytes as trained | 177.8 | 171.7 | 202.1 | 133.2 | 212.8 | 171.3 |
+| Negative count from prompt length + K | 43.0% | **49.3%** | 42.8% | 43.5% | 43.0% | 42.6% |
+| Record polarity from line length | 50.0% | **70.3%** | 49.9% | 49.7% | 50.0% | 50.0% |
+| Record polarity from features | 50.0% | 50.0% | 50.0% | 50.0% | 50.0% | 50.0% |
+| Record polarity from filler presence | 100% | 49.7% | 100% | 49.7% | 49.8% | 49.8% |
 
 The matched arms carry no length signal. Uncontrolled English does, which is the owner's point measured.
 
@@ -368,7 +368,7 @@ The binding builder already renders the same ASTs in two arms, `english` and `co
 
 **Task.** Each item holds K predicate records. The answer is the JSON list of `[subject, object]` for every negative record, in record order, or `[]`. These are the packet's binding target bytes, identical in every arm. Two sizes:
 
-- **K = 1** (`--suite single`): the selection task itself. 4,000 updates × 8 items.
+- **K = 1** (`--suite single`): the selection task itself. Planned as 4,000 updates × 8 items, then extended to 12,000 (§8.3). A run stops early once two checkpoints from update 4,000 on reach ≥ 97% on every panel.
 - **K uniform in 1–4** (`--suite main`): multi-record selection in order. 12,000 updates × 8 items.
 
 **Arms.** The records are rendered by the packet's own codecs:
@@ -380,6 +380,7 @@ The binding builder already renders the same ASTs in two arms, `english` and `co
 | `words` | Sylang batch words, with filler in the negation slot | Sylang layout with readable symbols |
 | `codes` | Sylang batch codes; polarity is letter case | The compact candidate |
 | `codes_eqlen` | `codes`, each record padded at line end to its English width | Same symbols as `codes` at English length: isolates sequence length |
+| `codes_jitter` | `codes` with 0–3 filler bytes before the subject and 0–28 before the object, drawn from the identifiers and record number, never from polarity | Same symbols, with identifier offsets as variable as English's (4 subject and 34 object offsets, against English's 4 and 32; `codes` has 1 and 4): isolates fixed field positions. Added after the first K = 1 results (§8.3) |
 
 **Held equal across arms:**
 
@@ -427,4 +428,9 @@ The binding builder already renders the same ASTs in two arms, `english` and `co
 
 ### 8.3 Results
 
-Pending. The runs are in progress, and this section will be filled from `results/language_k1.jsonl` and `results/language.jsonl`.
+**Deviations from the plan, both made after seeing seed 0 at K = 1 and recorded here:**
+
+1. At 4,000 updates, `english`, `english_natural` and `words` had begun to follow roles but selected nothing yet: 0% selected exact, against 100% for `codes`. Swap margin was +18, +3 and +13 nats against +69. A fixed 4,000-update budget can therefore show only "learned versus not yet". The K = 1 runs were restarted at 12,000 updates, with the same evaluation grid. The LR is constant, so a long run's update-4,000 checkpoint is the 4,000-update result.
+2. `codes` and English prompts are about the same length at K = 1 (115 and 112 bytes), so the gap is not compression. The `codes` record puts both identifiers at nearly fixed byte offsets. Under learned absolute positions that is a plausible shortcut to copying. `codes_jitter` was added to test it.
+
+Results: pending. The runs are in progress, and this section will be filled from `results/language_k1.jsonl` and `results/language.jsonl`.

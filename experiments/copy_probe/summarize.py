@@ -209,7 +209,7 @@ def language(results: list[dict]) -> str:
     for r in results:
         o = r["overrides"]
         groups[(o["arm"], o["init"], "".join(map(str, o["k"])), o["batch"], o["lr"], o["updates"])].append(r)
-    order = {"english": 0, "english_natural": 1, "words": 2, "codes": 3, "codes_eqlen": 4}
+    order = {"english": 0, "english_natural": 1, "words": 2, "codes": 3, "codes_eqlen": 4, "codes_jitter": 5}
     rows, curve, curve_steps = [], [], []
     for key in sorted(groups, key=lambda k: (k[1], k[2], k[3], k[5], order.get(k[0], 9), k[4])):
         runs = groups[key]
@@ -232,18 +232,26 @@ def language(results: list[dict]) -> str:
                      (f"{statistics.median(ok_bytes) / 1e6:.2f}" if ok_bytes else "–"),
                      f"{statistics.fmean(r['mean_prompt_bytes'] for r in runs):.0f}" if "mean_prompt_bytes" in runs[0] else "–",
                      _fmt([h["train_seconds"] for h in last], pct=False)])
-        curve_steps = [h["step"] for h in runs[0]["history"]]
-        curve.append([key[0], key[1], key[4], *(_fmt([r["history"][i]["iid"]["exact"] for r in runs
-                                                      if i < len(r["history"])])
-                                                for i in range(len(curve_steps)))])
+        curve.append((key, runs))
     headers = ["arm", "init", "K", "batch", "lr", "updates", "seeds", "held-out ids %", "selected %",
                "always-[] baseline %", "dev %", "held-out combo %", "swap %", "flip %", "cue-conflict %",
                "swap margin > 0 %", "runs ≥90% (median items)", "median MB to 90%", "prompt bytes (trained)",
                "train s (shared CPU)"]
     table = _table(headers, rows)
-    if curve:
-        table += "\n\nHeld-out-identifier exact accuracy by update:\n\n" + _table(
-            ["arm", "init", "lr", *(str(s) for s in curve_steps)], curve)
+    steps = sorted({h["step"] for _, runs in curve for r in runs for h in r["history"]})
+    for (panel, field, pct), title in (
+            (("iid", "exact", True), "Held-out-identifier exact accuracy"),
+            (("iid", "selected", True), "Held-out-identifier exact accuracy on selected (non-empty) answers"),
+            (("swap_margin", "mean", False), "Swap margin, mean nats (> 0: the answer follows the roles)")):
+        lines = []
+        for key, runs in curve:
+            by_step = {s: [h[panel][field] for r in runs for h in r["history"]
+                           if h["step"] == s and h[panel].get(field) is not None] for s in steps}
+            lines.append([key[0], key[1], key[2], f"{key[4]:g}",
+                          *(_fmt(by_step[s], pct) if by_step[s] else "–" for s in steps)])
+        if lines:
+            table += f"\n\n{title} by update (runs that stopped early at the ceiling end sooner):\n\n" + _table(
+                ["arm", "init", "K", "lr", *(str(s) for s in steps)], lines)
     return table
 
 
@@ -277,6 +285,7 @@ def main() -> None:
         ("copy_matrix", copy_matrix),
         ("language_lr", language),
         ("language", language),
+        ("language_k1_u4000_seed0", language),
         ("language_k1", language),
         ("selection_init", language),
     ):
