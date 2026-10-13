@@ -18,5 +18,8 @@
     0.06587648391723633
   ],
   "memorised_exact": 8,
-  "torch": "2.6.0+cpu"
+  "torch": "2.6.0+cpu",
+  "threads": 3,
+  "deterministic_algorithms": false,
+  "command": "followup.py surrogate --source <packet> --out <dir> --threads 3"
 }

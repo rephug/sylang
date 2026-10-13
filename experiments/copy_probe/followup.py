@@ -130,6 +130,7 @@ def surrogate(args) -> dict:
     out.mkdir(parents=True, exist_ok=True)
     (out / 'surrogate.pt').write_bytes(raw)
     meta = dict(kind='surrogate-memoriser', sha256=_sha(raw), bytes=len(raw), rows=len(rows),
+                threads=args.threads, deterministic_algorithms=torch.are_deterministic_algorithms_enabled(),
                 prompt_bytes=sorted({len(r['prompt'].encode()) for r in rows}),
                 recipe={k: recipe[k] for k in ('seed', 'steps', 'batch_size', 'learning_rate')},
                 first_last_loss=[losses[0], losses[-1]], memorised_exact=exact, torch=torch.__version__)
@@ -270,7 +271,7 @@ def _pred(subject, obj, relation, polarity, tense, aspect, evidence):
 
 
 class SelectionData:
-    """SUPERSEDED by ``language.py`` (negation-length padding). Kept because the
+    """SUPERSEDED by ``language.py`` (slot-placed negation filler). Kept because the
     diagnosis note reports its leak: exact length matching by stratified sampling
     made the record features 71% predictive of polarity.
 
@@ -432,7 +433,8 @@ def _suite(configs: list[dict], run, out: Path, workers: int) -> None:
     def key(c):
         return json.dumps({k: c[k] for k in run_keys[run]}, sort_keys=True)
 
-    todo = [c for c in configs if key(c) not in done]
+    # A requested checkpoint save is an output too: rerun its config if the file is missing.
+    todo = [c for c in configs if key(c) not in done or (c.get('save') and not Path(c['save']).exists())]
     print(f'{len(todo)} runs to do, {len(done)} done', flush=True)
     with ProcessPoolExecutor(max_workers=workers) as pool, out.open('a') as handle:
         futures = [pool.submit(run, c) for c in todo]

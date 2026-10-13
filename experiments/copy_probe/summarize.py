@@ -209,33 +209,37 @@ def language(results: list[dict]) -> str:
     for r in results:
         o = r["overrides"]
         groups[(o["arm"], o["init"], "".join(map(str, o["k"])), o["batch"], o["lr"], o["updates"])].append(r)
-    order = {"english": 0, "words": 1, "codes": 2, "codes_padded": 3}
-    rows, curve = [], []
-    for key in sorted(groups, key=lambda k: (k[1], k[2], k[3], k[4], k[5], order.get(k[0], 9))):
+    order = {"english": 0, "english_natural": 1, "words": 2, "codes": 3, "codes_eqlen": 4}
+    rows, curve, curve_steps = [], [], []
+    for key in sorted(groups, key=lambda k: (k[1], k[2], k[3], k[5], order.get(k[0], 9), k[4])):
         runs = groups[key]
         last = [r["history"][-1] for r in runs]
 
-        def col(panel, field="exact"):
-            return _fmt([h[panel][field] for h in last])
+        def col(panel, field="exact", pct=True):
+            vals = [h[panel][field] for h in last if panel in h and h[panel].get(field) is not None]
+            return _fmt(vals, pct)
 
         reach_items = [_first_reaching(r["history"], "items_seen") for r in runs]
         reach_bytes = [_first_reaching(r["history"], "bytes_seen") for r in runs]
         ok_items = [x for x in reach_items if x is not None]
         ok_bytes = [x for x in reach_bytes if x is not None]
-        rows.append([*(str(k) for k in key), str(len(runs)), col("iid"), col("held_out_combo"), col("swap"), col("flip"),
-                     _fmt([h["swap_tv"] for h in last], pct=False),
+        rows.append([*(str(k) for k in key), str(len(runs)),
+                     col("iid"), col("iid", "selected"), col("iid", "always_empty_baseline"), col("dev"),
+                     col("held_out_combo"), col("swap"), col("flip"),
+                     col("cue_conflict") if any("cue_conflict" in h for h in last) else "–",
+                     _fmt([h["swap_margin"]["positive"] for h in last if "swap_margin" in h]),
                      f"{len(ok_items)}/{len(runs)}" + (f" ({statistics.median(ok_items):,.0f})" if ok_items else ""),
-                     (f"{statistics.median(ok_bytes) / 1e6:.2f} MB" if ok_bytes else "–"),
-                     f"{statistics.fmean(r['inference']['mean_prompt_bytes'] for r in runs):.0f}",
-                     _fmt([h["train_seconds"] for h in last], pct=False),
-                     _fmt([r["inference"]["mean_prefill_ms"] for r in runs], pct=False)])
-        steps = [h["step"] for h in runs[0]["history"]]
-        curve.append([key[0], key[1], key[4], *(_fmt([r["history"][i]["iid"]["exact"] for r in runs])
-                                                for i in range(len(steps)))])
-        curve_steps = steps
-    headers = ["arm", "init", "K", "batch", "lr", "updates", "seeds", "held-out ids %", "held-out combo %",
-               "swap %", "flip %", "swap TV", "runs ≥90% (median items)", "median bytes to 90%",
-               "mean prompt bytes", "train s", "prefill ms"]
+                     (f"{statistics.median(ok_bytes) / 1e6:.2f}" if ok_bytes else "–"),
+                     f"{statistics.fmean(r['mean_prompt_bytes'] for r in runs):.0f}" if "mean_prompt_bytes" in runs[0] else "–",
+                     _fmt([h["train_seconds"] for h in last], pct=False)])
+        curve_steps = [h["step"] for h in runs[0]["history"]]
+        curve.append([key[0], key[1], key[4], *(_fmt([r["history"][i]["iid"]["exact"] for r in runs
+                                                      if i < len(r["history"])])
+                                                for i in range(len(curve_steps)))])
+    headers = ["arm", "init", "K", "batch", "lr", "updates", "seeds", "held-out ids %", "selected %",
+               "always-[] baseline %", "dev %", "held-out combo %", "swap %", "flip %", "cue-conflict %",
+               "swap margin > 0 %", "runs ≥90% (median items)", "median MB to 90%", "prompt bytes (trained)",
+               "train s (shared CPU)"]
     table = _table(headers, rows)
     if curve:
         table += "\n\nHeld-out-identifier exact accuracy by update:\n\n" + _table(
@@ -256,7 +260,7 @@ def main() -> None:
         ("balanced12", matrix),
         ("real_pipeline", real_pipeline),
         ("copy_matrix", copy_matrix),
-        ("language_pilot", language),
+        ("language_lr", language),
         ("language", language),
         ("selection_init", language),
     ):

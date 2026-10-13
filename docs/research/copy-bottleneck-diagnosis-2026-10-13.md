@@ -44,6 +44,7 @@ Reading:
 
 - **Only one combination fails: a memorisation-trained initialisation with a narrow identifier set.** The surrogate reproduces the native pattern: 2/12 → 1/12 at 12 identifiers, and full success at 96. Its held-out errors are overwhelmingly training spellings.
 - **Breadth is the robust fix.** 24 balanced identifiers already suffice even from the memoriser.
+- **The memorisation signal is far above chance.** A wrong but valid identifier falls in the training set by chance |train|/215 of the time: 5.6% at 12 identifiers. The surrogate's wrong held-out answers are training spellings in 218 of 317 cases (69%). Fresh initialisation makes far fewer errors, 27 in all, of which 15 (56%) are training spellings. Raw counts are not comparable across breadths, because the chance rate rises to 45% at 96.
 - **Fresh initialisation is a weaker, sufficient fix at 12 identifiers.** It mostly copies, but one seed emits 12 training spellings.
 - **Repetition is not the problem.** 96 identifiers × 32 exposures each (1,536 updates) is perfect. What drives memorisation is the narrow set, not repeated exposure to it.
 - **One confound remains.** At a fixed 192 updates, breadth and exposures per identifier move together. The 96 × 1,536 arm shows high exposure is harmless at high breadth. A 12-identifier × 4-exposure arm (24 updates) learned nothing from either initialisation, because 24 updates is too few overall, so it cannot separate the two.
@@ -70,28 +71,36 @@ The 0/48 says nothing about whether COPY pre-training helps *learning* selection
 | Initialisation (fresh / COPY-pretrained / surrogate) on length-matched short-instruction selection with fresh identifiers | local | §8 |
 | English vs Sylang, matched budget, identifiers and lengths | local | §8 |
 
-### 0.5 Length matching: the correction applied, and what it cost
+### 0.5 Length matching: the correction applied, and what each attempt cost
 
-The owner pointed out that random filler alone can leave the class predictable from length. My first implementation did match length distributions exactly, by stratified sampling within each prompt-length cell. A leakage audit then showed that the leak had only moved:
+The owner pointed out that random filler alone can leave the class predictable from length. Where negation costs bytes (English "not", Sylang words "negative"), every way of equalising length moves the information somewhere else. Each variant was audited before any comparison run (`language.py audit`, held-out lookup classifiers):
 
-- **Length:** length-only accuracy was exactly 50%.
-- **Features:** relation, tense, aspect and evidence predicted polarity **70.8%** of the time, against 50% by chance; evidence alone gave 60.6%. When negation costs bytes, equal lengths force the *other* content to differ between classes.
+| Design | What it equalises | Where the information went | Verdict |
+|---|---|---|---|
+| Stratified sampling within each prompt-length cell | Exact length distributions | Features: relation, tense, aspect and evidence predict polarity **70.8%** (chance 50%); evidence alone 60.6% | Rejected |
+| Filler at the end of each positive record | Record and prompt length | A "`~` at end of line" flag: a filler-only regex scores **100%** on English and `words` versus 19–33% on `codes` (found by an independent review) | Rejected |
+| **Filler in the negation slot** (adopted): `contain ~~~~~~~~~past` vs `contain negative past`; English `is ~~~~containing` vs `was not containing` | Record and prompt length; layout; feature distributions | A local marker inside the negation slot. That is the same position and kind of cue as `codes`' letter case (`s` vs `S`), but a different symbol from natural English | **Adopted**, with two checks (below) |
 
-The runs therefore use **negation-length padding** instead:
+Two checks measure what the adopted filler does, instead of assuming it is harmless:
 
-- each positive record line gets filler (`~`) equal to the bytes its own negative form adds in that arm;
-- features are sampled independently of polarity.
+- **Cue-conflict panel.** The same test items are rendered with the filler inverted: the shorter form is natural, and the longer form carries the filler in its slot. A model that reads "not"/"negative" keeps its accuracy; one that keys on `~` collapses.
+- **`english_natural` arm.** Controlled English with no filler at all. Its length does carry polarity information; it measures what the filler changes about learning.
 
-Audit over 40,000 items (`language.py audit`). Lookup classifiers were fit on one half and scored on the other:
+Audit of the adopted design over 40,000 training items. Lookup classifiers were fit on one half and scored on the other; chance is 50% per record, and K alone predicts the negative count 43.7% of the time:
 
-| Cue | english | words | codes | codes_padded |
-|---|---|---|---|---|
-| Negative count from prompt length + K (K alone: 43.7%) | 43.0% | 42.8% | 43.5% | 42.8% |
-| Record polarity from padded line length (chance 50%) | 50.0% | 49.9% | 49.7% | 49.9% |
-| Record polarity from features | 50.0% | 50.0% | 50.0% | 50.0% |
-| Record polarity from filler presence | 100% | 100% | 49.7% | 49.7% |
+| Cue | english | english_natural | words | codes | codes_eqlen |
+|---|---|---|---|---|---|
+| Mean prompt bytes as trained | 177.8 | 171.7 | 202.1 | 133.2 | 212.8 |
+| Negative count from prompt length + K | 43.0% | **49.3%** | 42.8% | 43.5% | 43.0% |
+| Record polarity from line length | 50.0% | **70.3%** | 49.9% | 49.7% | 50.0% |
+| Record polarity from features | 50.0% | 50.0% | 50.0% | 50.0% | 50.0% |
+| Record polarity from filler presence | 100% | 49.7% | 100% | 49.7% | 49.8% |
 
-The one residual cue is deliberate and local: in English and `words`, a positive record carries filler, carrying the same information as the absence of "not". The polarity-flip panel recomputes the padding, so it tests that the model reads each record.
+The matched arms carry no length signal. Uncontrolled English does, which is the owner's point measured.
+
+`codes_eqlen` pads each `codes` record at line end to the width of the matching English slot line. Its total prompt length therefore tracks English, which separates a sequence-length effect from a vocabulary effect. The padding is the same for both polarities, so it carries no class information (49.8%).
+
+Raw numbers: [`results/language_audit.json`](../../experiments/copy_probe/results/language_audit.json).
 
 ---
 

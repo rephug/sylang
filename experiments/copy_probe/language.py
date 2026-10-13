@@ -1,10 +1,13 @@
 """English-versus-Sylang comparison on the project's tiny byte model.
 
     python language.py audit --source <packet>
-    python language.py suite --source <packet> --suite pilot --out results/language_pilot.jsonl
-    python language.py suite --source <packet> --suite main --out results/language.jsonl
+    python language.py suite --source <packet> --suite lr --out results/language_lr.jsonl
+    python language.py choose-lr --lr-results results/language_lr.jsonl --out results/language_lr_choice.json
+    python language.py suite --source <packet> --suite main --lr-json results/language_lr_choice.json \
+        --out results/language.jsonl
     python language.py suite --source <packet> --suite selection-init --copy-init <copy96.pt> \
         --surrogate <surrogate.pt> --out results/selection_init.jsonl
+    python language.py benchmark --source <packet> --out results/language_benchmark.json
 
 **Task.** Each item holds K predicate records (K uniform in 1..4 by default). The
 answer is the JSON list of ``[subject, object]`` for every negative record, in
@@ -16,28 +19,32 @@ bytes in every arm.
 - ``english``: controlled English (``data.SCREEN.encode_english``).
 - ``words``: Sylang batch-v1 words with selective escaping; the same tab layout as codes.
 - ``codes``: Sylang batch-v1 codes with selective escaping.
-- ``codes_padded``: codes with each record line padded to that record's ``words`` line length. It has the same symbols as codes and the same length and layout as words.
+- ``codes_eqlen``: codes with each record line padded at its end to that record's English line width. It has the same symbols as codes at about English length; its prompts are 35 bytes longer because of the batch header.
+- ``english_natural``: controlled English with no filler at all. Here negation adds bytes, so length carries polarity information. This arm measures what the filler changes.
 
-Paired contrasts:
+Contrasts:
 
-- **codes vs codes_padded** isolates length (compression).
-- **words vs codes_padded** isolates the symbols at equal length.
-- **english vs words** compares prose with the tabular layout.
+- **english vs codes**: the headline comparison.
+- **codes vs codes_eqlen**: same symbols, different length, so it isolates compression.
+- **english vs codes_eqlen**: format and symbols at about equal record length.
+- **words vs codes**: readable versus coded symbols in the same layout.
 
 **Fairness controls.**
 
-- **Identical inputs except the rendering.** Every arm sees the same item stream (records, identifiers, order) for a given seed, the same instruction, model, initialisation, optimiser, learning rate, batch and number of updates.
-- **Negation-length padding.** Each positive record line carries filler (``~``) equal to the bytes its negative form adds in that arm. Record and prompt lengths are then independent of polarity, while features are sampled independently of polarity. Exact length-distribution matching by stratified sampling was rejected: it made features 71% predictive of polarity (see the diagnosis note). The filler is a local, per-record marker carrying the same information as the negation word; ``audit`` reports every residual cue.
-- **Held-out identifiers** (a disjoint split) and a **held-out (relation, tense) combination**.
-- **Counterfactual panels:** subject/object swap in every record, and a single-record polarity flip.
+- **Identical inputs except the rendering.** Every arm sees the same item stream (records, identifiers, order) for a given seed, the same instruction, model, initialisation, optimiser, batch and number of updates. The learning rate is the same for every arm (``--lr``), or is chosen per arm on the dev split (``--suite lr`` then ``choose-lr``) when that sweep separates the candidates.
+- **Slot-placed negation filler.** Where an arm spells negation with extra bytes (English "not", words "negative"), the positive form carries filler (``~``) *in the negation slot*, e.g. ``contain~~~~~~~~~ past`` against ``contain negative past``. Positive and negative records therefore have identical length and layout and differ only inside the slot, as codes records differ only in the case of one letter. Record and prompt lengths are independent of polarity, and features are sampled independently of polarity. ``audit`` reports held-out accuracy for every length cue.
+- **Held-out identifiers** (a test split disjoint from training, halved into dev and test), a **held-out (relation, tense) combination**, and counterfactual **swap** (subject/object in every record) and **flip** (one record's polarity) panels.
+- **Cue-conflict panel.** The same items are rendered with the filler inverted: the shorter polarity form is left natural, and the longer form gets the filler in its slot. A model that reads "not"/"negative" keeps its accuracy; a model that relies on the filler loses it. Arms without filler render this panel exactly as iid.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import itertools
 import json
 import random
+import statistics
 import sys
 import time
 from collections import Counter, defaultdict
@@ -50,9 +57,10 @@ if str(HERE) not in sys.path:
 
 from followup import Runtime  # noqa: E402
 
-ARMS = ('english', 'words', 'codes', 'codes_padded')
+ARMS = ('english', 'english_natural', 'words', 'codes', 'codes_eqlen')
 INSTRUCTION = 'List [subject,object] of each negative record in order; [] if none.\n'
 FILLER = '~'
+BASE_ARM = {'codes_eqlen': 'codes', 'english_natural': 'english'}  # arm -> codec rendering
 RELATIONS = ('see', 'help', 'contain')
 TENSES = ('past', 'present', 'future')
 ASPECTS = ('simple', 'progressive', 'completed')
@@ -69,62 +77,142 @@ def _ast(statement):
     return {'version': 'core-v0.1', 'statement': statement}
 
 
+def _with_polarity(statement, polarity):
+    return dict(statement, polarity=polarity)
+
+
+def slot_fill(positive: str, negative: str) -> tuple[str, str]:
+    """Pad the shorter of the two polarity forms inside the slot where they differ.
+
+    The common prefix and suffix are kept; the differing middle of the shorter
+    form is extended with FILLER to the longer middle's length.
+    """
+    prefix = 0
+    while prefix < min(len(positive), len(negative)) and positive[prefix] == negative[prefix]:
+        prefix += 1
+    suffix = 0
+    while (suffix < min(len(positive), len(negative)) - prefix
+           and positive[-1 - suffix] == negative[-1 - suffix]):
+        suffix += 1
+    pos_mid = positive[prefix:len(positive) - suffix]
+    neg_mid = negative[prefix:len(negative) - suffix]
+    width = max(len(pos_mid), len(neg_mid))
+    pos_mid = pos_mid + FILLER * (width - len(pos_mid))
+    neg_mid = neg_mid + FILLER * (width - len(neg_mid))
+    return (positive[:prefix] + pos_mid + positive[len(positive) - suffix:],
+            negative[:prefix] + neg_mid + negative[len(negative) - suffix:])
+
+
+def _insert_slot_filler(longer: str, shorter: str, gap: int) -> str:
+    """Insert ``gap`` FILLER bytes into ``longer`` at the end of the slot where it
+    differs from ``shorter`` (the same place slot_fill pads the shorter form)."""
+    prefix = 0
+    while prefix < min(len(longer), len(shorter)) and longer[prefix] == shorter[prefix]:
+        prefix += 1
+    suffix = 0
+    while suffix < min(len(longer), len(shorter)) - prefix and longer[-1 - suffix] == shorter[-1 - suffix]:
+        suffix += 1
+    cut = len(longer) - suffix
+    return longer[:cut] + FILLER * gap + longer[cut:]
+
+
 class Renderer:
-    """Arm renderings with negation-length padding, using the packet's codecs."""
+    """Arm renderings with slot-placed negation filler, using the packet's codecs."""
 
     def __init__(self, rt: Runtime):
         self.screen = rt.data.SCREEN
         self.target_text = rt.data.target_text
 
-    def _payload(self, arm: str, statements: list[dict]) -> str:
+    def payload(self, arm: str, statements: list[dict]) -> str:
+        """The codec's natural rendering (no filler)."""
         asts = [_ast(s) for s in statements]
         if arm == 'english':
             return self.screen.encode_english(asts)
         return self.screen.encode_batch(asts, arm, False, 'selective')
 
-    def _lines(self, arm: str, statements: list[dict]) -> tuple[list[str], list[str]]:
+    def lines(self, arm: str, statements: list[dict]) -> tuple[list[str], list[str]]:
         """(header lines, one line per record), each without its newline."""
-        lines = self._payload(arm, statements).split('\n')
-        assert lines[-1] == '', 'payload must end with a newline'
-        lines = lines[:-1]
-        header = lines[: len(lines) - len(statements)]
-        records = lines[len(header):]
-        assert len(records) == len(statements) and len(header) == (0 if arm == 'english' else 1)
+        parts = self.payload(arm, statements).split('\n')
+        assert parts[-1] == '', 'payload must end with a newline'
+        parts = parts[:-1]
+        header, records = parts[: len(parts) - len(statements)], parts[len(parts) - len(statements):]
+        assert len(header) == (0 if arm == 'english' else 1), (arm, header)
         return header, records
 
-    def _negation_bytes(self, arm: str, statement: dict) -> int:
-        if statement['polarity'] == 'negative':
-            return 0
-        negative = dict(statement, polarity='negative')
-        _, (pos,) = self._lines(arm, [statement])
-        _, (neg,) = self._lines(arm, [negative])
-        return len(neg.encode()) - len(pos.encode())
+    def record_line(self, arm: str, statement: dict, number: int, mode: str = 'slot') -> str:
+        """One record line as record ``number`` of its item.
 
-    def prompt(self, arm: str, statements: list[dict]) -> str:
-        base = 'words' if arm == 'codes_padded' else arm
-        header, records = self._lines('codes' if arm == 'codes_padded' else base, statements)
-        padded = []
-        for statement, line in zip(statements, records):
-            if arm == 'codes_padded':
-                _, (words_line,) = self._lines('words', [statement])
-                width = len(words_line.encode()) + self._negation_bytes('words', statement)
-            else:
-                width = len(line.encode()) + self._negation_bytes(arm, statement)
-            gap = width - len(line.encode())
-            assert gap >= 0, (arm, line)
-            padded.append(line + FILLER * gap)
-        return ''.join(h + '\n' for h in header) + ''.join(p + '\n' for p in padded) + INSTRUCTION
+        mode 'slot':     the shorter polarity form is padded with FILLER in the negation slot;
+        mode 'natural':  the codec's line, no filler;
+        mode 'conflict': filler inverted: the form that 'slot' would pad is left natural and
+                         the other form receives the same amount of filler in its slot.
+        """
+        def rendered(polarity):
+            # Placeholder records before it reproduce the item's numbering exactly.
+            before = [_statement(f'q{i}x', f'r{i}y', 'see', 'positive', 'present', 'simple', 'unspecified')
+                      for i in range(number - 1)]
+            _, records = self.lines(arm, before + [_with_polarity(statement, polarity)])
+            return records[-1]
+
+        natural = {p: rendered(p) for p in ('positive', 'negative')}
+        if mode == 'natural':
+            return natural[statement['polarity']]
+        filled = dict(zip(('positive', 'negative'), slot_fill(natural['positive'], natural['negative'])))
+        assert len(filled['positive']) == len(filled['negative'])
+        if mode == 'slot':
+            return filled[statement['polarity']]
+        assert mode == 'conflict'
+        own, other = statement['polarity'], 'negative' if statement['polarity'] == 'positive' else 'positive'
+        gap = len(filled[other]) - len(natural[other])  # filler the other form carries in 'slot' mode
+        if gap > 0:  # this is the longer form: it receives the filler instead
+            return _insert_slot_filler(natural[own], natural[other], gap)
+        return natural[own]  # this is the shorter form (or both are equal): no filler
+
+    def prompt(self, arm: str, statements: list[dict], conflict: bool = False) -> str:
+        base = BASE_ARM.get(arm, arm)
+        mode = 'natural' if arm == 'english_natural' else 'conflict' if conflict else 'slot'
+        header, _ = self.lines(base, statements)
+        out = []
+        for number, statement in enumerate(statements, 1):
+            line = self.record_line(base, statement, number, mode)
+            if arm == 'codes_eqlen':
+                width = len(self.record_line('english', statement, number, 'slot'))
+                line = line + FILLER * max(0, width - len(line))
+            out.append(line)
+        text = ''.join(h + '\n' for h in header) + ''.join(line + '\n' for line in out) + INSTRUCTION
+        assert text.isascii()
+        return text
+
+    def natural_prompt(self, arm: str, statements: list[dict]) -> str:
+        base = BASE_ARM.get(arm, arm)
+        return self.payload(base, statements) + INSTRUCTION
 
     def target(self, statements: list[dict]) -> str:
         return self.target_text([[s['subject'], s['object']] for s in statements if s['polarity'] == 'negative'])
+
+
+RESUME_KEYS = ('arm', 'init', 'init_sha256', 'k', 'updates', 'batch', 'lr', 'seed')
+
+
+def _file_sha(path: str) -> str:
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def _identifiers(split: str) -> list[str]:
+    """train: the FreshIds train split; dev/test: disjoint halves of the FreshIds test split."""
+    import tasks
+    if split == 'train':
+        return tasks.FreshIds('train').ids
+    half = {'dev': 0, 'test': 1}[split]
+    return [i for i in tasks.FreshIds('test').ids
+            if hashlib.sha256(('dev/test:' + i).encode()).digest()[0] % 2 == half]
 
 
 class ItemStream:
     """Items with independently sampled records; identical across arms for a seed."""
 
     def __init__(self, split: str, seed: int, k_values=(1, 2, 3, 4), combos: str = 'train'):
-        import tasks
-        self.ids = tasks.FreshIds(split).ids
+        self.ids = _identifiers(split)
         self.rng = random.Random(seed)
         self.k_values = tuple(k_values)
         self.combos = combos
@@ -132,8 +220,7 @@ class ItemStream:
     def record(self, used: set, held_out: bool | None) -> dict:
         while True:
             relation, tense = self.rng.choice(RELATIONS), self.rng.choice(TENSES)
-            is_held_out = (relation, tense) == HELD_OUT_COMBO
-            if held_out is not None and is_held_out != held_out:
+            if held_out is not None and ((relation, tense) == HELD_OUT_COMBO) != held_out:
                 continue
             subject, obj = self.rng.sample(self.ids, 2)
             if subject in used or obj in used:
@@ -142,13 +229,12 @@ class ItemStream:
             return _statement(subject, obj, relation, self.rng.choice(('positive', 'negative')), tense,
                               self.rng.choice(ASPECTS), self.rng.choice(EVIDENCES))
 
-    def item(self) -> list[dict]:
-        k = self.rng.choice(self.k_values)
+    def item(self, k: int | None = None) -> list[dict]:
+        k = k or self.rng.choice(self.k_values)
         used: set = set()
         if self.combos == 'train':
             return [self.record(used, False) for _ in range(k)]
-        # 'held_out': at least one record uses the held-out combination.
-        forced = self.rng.randrange(k)
+        forced = self.rng.randrange(k)  # at least one record uses the held-out combination
         return [self.record(used, True if i == forced else None) for i in range(k)]
 
 
@@ -163,74 +249,81 @@ def flip_one(statements, rng: random.Random):
     return flipped
 
 
-def eval_panels(seed: int = 7, n: int = 96) -> dict[str, list[list[dict]]]:
-    iid = ItemStream('test', seed)
+def eval_panels(k_values, per_k: int, seed: int = 7) -> dict[str, list[list[dict]]]:
+    """Fixed panels with ``per_k`` items for every K (held-out combo: half as many)."""
+    test = ItemStream('test', seed)
     combo = ItemStream('test', seed + 1, combos='held_out')
-    panels = {'iid': [iid.item() for _ in range(n)], 'held_out_combo': [combo.item() for _ in range(n // 2)]}
+    dev = ItemStream('dev', seed + 3)
+    panels = {
+        'iid': [test.item(k) for k in k_values for _ in range(per_k)],
+        'held_out_combo': [combo.item(k) for k in k_values for _ in range(max(8, per_k // 2))],
+        'dev': [dev.item(k) for k in k_values for _ in range(per_k)],
+    }
     rng = random.Random(seed + 2)
     panels['swap'] = [swap_roles(it) for it in panels['iid'] if any(s['polarity'] == 'negative' for s in it)]
     panels['flip'] = [flip_one(it, rng) for it in panels['iid']]
+    panels['cue_conflict'] = panels['iid']  # rendered with the filler cue inverted (see run)
     return panels
 
 
 # ---------------------------------------------------------------------------
-# Audit: what can predict the answer without reading the records?
+# Audit: can anything other than reading the records predict the answer?
 
 
-def _heldout_lookup_accuracy(pairs: list[tuple], majority_key=None) -> float:
-    """Fit a lookup classifier (feature value -> majority label) on the first half,
-    score it on the second half; unseen feature values fall back to the overall
-    majority of the first half."""
+def _heldout_lookup(pairs: list[tuple], groups: list | None = None) -> float:
+    """Fit feature -> majority label on the first half and score the second half.
+    Unseen features back off to the majority within the same group (e.g. K)."""
     half = len(pairs) // 2
-    table = defaultdict(Counter)
-    overall = Counter()
-    for feature, label in pairs[:half]:
-        table[feature][label] += 1
-        overall[label] += 1
-    default = overall.most_common(1)[0][0]
-    test = pairs[half:]
-    hits = sum((table[f].most_common(1)[0][0] if table[f] else default) == label for f, label in test)
-    return hits / len(test)
+    groups = groups or [0] * len(pairs)
+    table, by_group = defaultdict(Counter), defaultdict(Counter)
+    for (feature, label), group in zip(pairs[:half], groups[:half]):
+        table[(group, feature)][label] += 1
+        by_group[group][label] += 1
+    hits = 0
+    for (feature, label), group in zip(pairs[half:], groups[half:]):
+        counts = table[(group, feature)] or by_group[group]
+        hits += counts.most_common(1)[0][0] == label
+    return hits / (len(pairs) - half)
 
 
 def audit(args) -> dict:
-    """Held-out accuracy of classifiers that see only a cue, not the records' text."""
     rt = Runtime(args.source)
     renderer = Renderer(rt)
     stream = ItemStream('train', 20261013)
     items = [stream.item() for _ in range(args.items)]
+    n_negative = [sum(s['polarity'] == 'negative' for s in it) for it in items]
+    ks = [len(it) for it in items]
     report = {}
     for arm in ARMS:
         prompts = [renderer.prompt(arm, it) for it in items]
-        natural = [renderer._payload('codes' if arm == 'codes_padded' else arm, it) + INSTRUCTION for it in items]
-        n_negative = [sum(s['polarity'] == 'negative' for s in it) for it in items]
-        record_cues = defaultdict(list)
+        naturals = [renderer.natural_prompt(arm, it) for it in items]
+        base = BASE_ARM.get(arm, arm)
+        line_cues = defaultdict(list)
         for it, prompt in zip(items, prompts):
-            header, _ = renderer._lines('codes' if arm == 'codes_padded' else arm, it)
+            header, _ = renderer.lines(base, it)
             lines = prompt.split('\n')[len(header):len(header) + len(it)]
-            for st, line in zip(it, lines):
-                record_cues['padded_line_length'].append((len(line.encode()), st['polarity']))
-                record_cues['features'].append(((st['relation'], st['tense'], st['aspect'], st['evidence']),
-                                                st['polarity']))
-                record_cues['filler_present'].append((FILLER in line, st['polarity']))
+            for s, line in zip(it, lines):
+                line_cues['line_length'].append((len(line), s['polarity']))
+                line_cues['filler_count'].append((line.count(FILLER), s['polarity']))
+                line_cues['features'].append(((s['relation'], s['tense'], s['aspect'], s['evidence']), s['polarity']))
         report[arm] = dict(
-            mean_prompt_bytes=round(sum(len(p.encode()) for p in prompts) / len(prompts), 1),
-            mean_natural_bytes=round(sum(len(p.encode()) for p in natural) / len(natural), 1),
-            mean_prompt_bytes_by_k={k: round(sum(len(p.encode()) for it, p in zip(items, prompts) if len(it) == k)
-                                             / max(1, sum(len(it) == k for it in items)), 1) for k in (1, 2, 3, 4)},
-            n_negative_from_length_and_k=round(_heldout_lookup_accuracy(
-                [((len(it), len(p.encode())), n) for it, p, n in zip(items, prompts, n_negative)]), 4),
-            n_negative_from_k_only=round(_heldout_lookup_accuracy(
-                [(len(it), n) for it, n in zip(items, n_negative)]), 4),
-            record_polarity_from={name: round(_heldout_lookup_accuracy(pairs), 4)
-                                  for name, pairs in record_cues.items()},
+            mean_prompt_bytes=round(statistics.fmean(len(p) for p in prompts), 1),
+            mean_natural_bytes=round(statistics.fmean(len(p) for p in naturals), 1),
+            mean_natural_bytes_by_k={k: round(statistics.fmean(len(p) for p, kk in zip(naturals, ks) if kk == k), 1)
+                                     for k in sorted(set(ks))},
+            n_negative_from_k_only=round(_heldout_lookup([(0, n) for n in n_negative], ks), 4),
+            n_negative_from_k_and_length=round(_heldout_lookup([(len(p), n) for p, n in zip(prompts, n_negative)],
+                                                               ks), 4),
+            record_polarity_from={name: round(_heldout_lookup(pairs), 4) for name, pairs in line_cues.items()},
         )
     print(json.dumps(report, indent=2))
+    if args.out:
+        Path(args.out).write_text(json.dumps(report, indent=2) + '\n')
     return report
 
 
 # ---------------------------------------------------------------------------
-# Training
+# Training and scoring
 
 
 def run(config: dict) -> dict:
@@ -239,19 +332,22 @@ def run(config: dict) -> dict:
     torch.set_num_threads(config.get('threads', 1))
     rt = Runtime(config['source'])
     renderer = Renderer(rt)
-    seed = 20261013 + config['seed']
+    seed = 20261013 + config['seed']  # for loaded inits the seed varies only the data order
     model = rt.build(seed)
-    if config['init'] == 'copy96':
-        rt.load(model, config['copy_init'])
-    elif config['init'] == 'surrogate':
-        rt.load(model, config['surrogate'])
+    if config['init'] in ('copy96', 'surrogate'):
+        path = config['copy_init'] if config['init'] == 'copy96' else config['surrogate']
+        if _file_sha(path) != config['init_sha256']:
+            raise ValueError(f'initial checkpoint {path} does not match {config["init_sha256"]}')
+        rt.load(model, path)
     elif config['init'] != 'fresh':
         raise ValueError(config['init'])
     optimizer = rt.optimizer(model, config['lr'])
     stream = ItemStream('train', seed, k_values=tuple(config['k']))
-    panels = {name: [dict(prompt=renderer.prompt(config['arm'], it), target=renderer.target(it), statements=it)
-                     for it in items if len(it) in config['k']]
-              for name, items in eval_panels().items()}
+    per_k = max(32, 96 // len(config['k']))
+    panels = {name: [dict(prompt=renderer.prompt(config['arm'], it, conflict=(name == 'cue_conflict')),
+                          target=renderer.target(it), statements=it)
+                     for it in items]
+              for name, items in eval_panels(config['k'], per_k).items()}
     checkpoints = sorted(set(config['eval_at']) | {config['updates']})
     history, seconds, bytes_seen, items_seen = [], 0.0, 0, 0
     for step in range(1, config['updates'] + 1):
@@ -261,103 +357,214 @@ def run(config: dict) -> dict:
         started = time.perf_counter()
         rt.step(model, optimizer, rows)
         seconds += time.perf_counter() - started
-        bytes_seen += sum(len(r['prompt'].encode()) + len(r['target'].encode()) + 3 for r in rows)
+        bytes_seen += sum(len(r['prompt']) + len(r['target']) + 3 for r in rows)  # + BOS, SEP, EOS
         items_seen += len(rows)
         if step in checkpoints:
             history.append(dict(step=step, items_seen=items_seen, bytes_seen=bytes_seen,
-                                train_seconds=round(seconds, 2), **score(rt, model, panels)))
-    return dict(overrides={k: config[k] for k in ('arm', 'init', 'k', 'updates', 'batch', 'lr', 'seed')},
+                                train_seconds=round(seconds, 2),
+                                **score(rt, model, panels, decode_check=32 if step == config['updates'] else 0)))
+    return dict(overrides={k: config[k] for k in RESUME_KEYS},
                 torch=torch.__version__, history=history,
-                inference=inference_cost(rt, model, panels['iid']))
+                byte_roles=byte_role_accuracy(rt, model, panels['iid']),
+                mean_prompt_bytes=statistics.fmean(len(r['prompt']) for r in panels['iid']))
 
 
-def score(rt: Runtime, model, panels: dict) -> dict:
+def teacher_forced(rt: Runtime, model, rows: list[dict], batch: int = 32) -> list[dict]:
+    """One batched forward per chunk: per row, whether greedy decoding would emit
+    exactly target+EOS (argmax equals the target at every answer position, which is
+    equivalent for greedy decoding), the target's total log-probability, and the
+    per-position argmax hits."""
     import torch
+    from real_pipeline import collate_rows
 
-    out = {}
-    for name, rows in panels.items():
-        answers = [rt.generate(model, r['prompt'], 64) for r in rows]
-        exact = [a == r['target'] for a, r in zip(answers, rows)]
-        by_k = defaultdict(list)
-        for e, r in zip(exact, rows):
-            by_k[len(r['statements'])].append(e)
-        empty = [e for e, r in zip(exact, rows) if r['target'] == '[]']
-        out[name] = dict(exact=round(sum(exact) / len(rows), 4), n=len(rows),
-                         empty=round(sum(empty) / max(1, len(empty)), 4),
-                         by_k={k: round(sum(v) / len(v), 4) for k, v in sorted(by_k.items())})
-    # Swap TV at the first identifier byte of the answer (teacher forced).
     model.eval()
-    tv = []
+    out = []
     with torch.no_grad():
-        originals = [r for r in panels['iid'] if r['target'] != '[]']
-        for original, swapped in zip(originals, panels['swap']):
-            dists = []
-            for row in (original, swapped):
-                ids = ([rt.tiny.BOS] + rt.tiny.byte_ids(row['prompt']) + [rt.tiny.SEP]
-                       + rt.tiny.byte_ids(row['target'])[:3])
-                dists.append(model(torch.tensor([ids]))[0, -1].softmax(-1))
-            tv.append(float(0.5 * (dists[0] - dists[1]).abs().sum()))
-    out['swap_tv'] = round(sum(tv) / max(1, len(tv)), 4)
+        for start in range(0, len(rows), batch):
+            chunk = rows[start:start + batch]
+            inputs, labels = collate_rows(rt.tiny, chunk, rt.recipe['context'])
+            logp = model(inputs).log_softmax(-1)
+            argmax = logp.argmax(-1)
+            for i in range(len(chunk)):
+                mask = labels[i] != -100
+                target = labels[i][mask]
+                hits = (argmax[i][mask] == target)
+                out.append(dict(exact=bool(hits.all()),
+                                logprob=float(logp[i][mask].gather(1, target[:, None]).sum()),
+                                hits=hits.tolist(), target=target.tolist()))
     return out
 
 
-def inference_cost(rt: Runtime, model, rows: list[dict]) -> dict:
-    """Prefill time over the prompt and decode steps, measured on this machine."""
+def score(rt: Runtime, model, panels: dict, decode_check: int = 0) -> dict:
+    out = {}
+    for name, rows in panels.items():
+        exact = [r['exact'] for r in teacher_forced(rt, model, rows)]
+        selected = [e for e, r in zip(exact, rows) if r['target'] != '[]']
+        empty = [e for e, r in zip(exact, rows) if r['target'] == '[]']
+        by_k = defaultdict(list)
+        for e, r in zip(exact, rows):
+            by_k[len(r['statements'])].append(e)
+        out[name] = dict(exact=round(sum(exact) / len(rows), 4), n=len(rows),
+                         selected=round(sum(selected) / len(selected), 4) if selected else None,
+                         n_selected=len(selected),
+                         empty=round(sum(empty) / len(empty), 4) if empty else None, n_empty=len(empty),
+                         always_empty_baseline=round(len(empty) / len(rows), 4),
+                         by_k={k: round(sum(v) / len(v), 4) for k, v in sorted(by_k.items())})
+    # Swap margin over the whole answer: log p(swapped target | swapped prompt)
+    # minus log p(original target | swapped prompt). Positive means roles are followed.
+    originals = [r for r in panels['iid'] if r['target'] != '[]']
+    swapped = panels['swap']
+    right = teacher_forced(rt, model, swapped)
+    wrong = teacher_forced(rt, model, [dict(s, target=o['target']) for o, s in zip(originals, swapped)])
+    margins = [a['logprob'] - b['logprob'] for a, b in zip(right, wrong)]
+    out['swap_margin'] = dict(mean=round(statistics.fmean(margins), 3),
+                              positive=round(sum(m > 0 for m in margins) / len(margins), 4), n=len(margins))
+    if decode_check:
+        # Agreement between the teacher-forced exact flag and the packet's real greedy decoder.
+        rows = panels['iid'][:decode_check]
+        flags = [r['exact'] for r in teacher_forced(rt, model, rows)]
+        decoded = [rt.generate(model, r['prompt'], len(r['target']) + 2) == r['target'] for r in rows]
+        out['decoder_agreement'] = dict(agree=sum(a == b for a, b in zip(flags, decoded)), n=len(rows))
+    return out
+
+
+def byte_role_accuracy(rt: Runtime, model, rows: list[dict]) -> dict:
+    """Teacher-forced next-byte accuracy by role of the answer byte."""
+    hits, totals = Counter(), Counter()
+    for result in teacher_forced(rt, model, rows):
+        for hit, t in zip(result['hits'], result['target']):
+            ch = chr(t) if t < 128 else ''
+            role = ('eos' if t == rt.tiny.EOS else 'quote' if ch == '"' else
+                    'structure' if ch in '[],' else 'identifier')
+            totals[role] += 1
+            hits[role] += hit
+    return {role: round(hits[role] / totals[role], 4) for role in sorted(totals)}
+
+
+# ---------------------------------------------------------------------------
+# Serial inference-cost benchmark (weights do not affect timing)
+
+
+def _flops(length: int, layers: int, width: int, vocab: int) -> float:
+    """Approximate forward FLOPs for one full sequence of ``length`` positions."""
+    return length * (layers * (24 * width * width) + 2 * width * vocab) + layers * 4 * width * length * length
+
+
+def benchmark(args) -> dict:
     import torch
 
-    model.eval()
-    prefill = []
-    with torch.no_grad():
-        for r in rows:
-            ids = torch.tensor([[rt.tiny.BOS] + rt.tiny.byte_ids(r['prompt']) + [rt.tiny.SEP]])
-            started = time.perf_counter()
-            model(ids)
-            prefill.append(time.perf_counter() - started)
-    return dict(mean_prompt_bytes=sum(len(r['prompt'].encode()) for r in rows) / len(rows),
-                mean_answer_bytes=sum(len(r['target'].encode()) for r in rows) / len(rows),
-                mean_prefill_ms=round(1000 * sum(prefill) / len(prefill), 3))
+    torch.set_num_threads(1)
+    rt = Runtime(args.source)
+    renderer = Renderer(rt)
+    model = rt.build(0).eval()
+    width, layers, vocab = rt.recipe['width'], rt.recipe['layers'], rt.tiny.VOCAB
+    stream = ItemStream('test', 11)
+    items = [stream.item(k) for k in (1, 2, 3, 4) for _ in range(args.items_per_k)]
+    report = {}
+    for arm in ARMS:
+        rows = [(renderer.natural_prompt(arm, it), renderer.target(it), len(it)) for it in items]
+        prefill, decode, flops_prefill, flops_decode = [], [], [], []
+        with torch.no_grad():
+            for prompt, target, _ in rows:
+                ids = [rt.tiny.BOS] + rt.tiny.byte_ids(prompt) + [rt.tiny.SEP]
+                answer = rt.tiny.byte_ids(target) + [rt.tiny.EOS]
+                for _ in range(2):  # warm-up
+                    model(torch.tensor([ids]))
+                times = []
+                for _ in range(args.repeats):
+                    started = time.perf_counter()
+                    model(torch.tensor([ids]))
+                    times.append(time.perf_counter() - started)
+                prefill.append(statistics.median(times))
+                started = time.perf_counter()  # reference decoding: one full forward per generated byte
+                for i in range(len(answer)):
+                    model(torch.tensor([ids + answer[:i]]))
+                decode.append(time.perf_counter() - started)
+                flops_prefill.append(_flops(len(ids), layers, width, vocab))
+                flops_decode.append(sum(_flops(len(ids) + i, layers, width, vocab) for i in range(len(answer))))
+        report[arm] = dict(
+            mean_prompt_bytes=round(statistics.fmean(len(p) for p, _, _ in rows), 1),
+            mean_prompt_bytes_by_k={k: round(statistics.fmean(len(p) for p, _, kk in rows if kk == k), 1)
+                                    for k in (1, 2, 3, 4)},
+            mean_answer_bytes=round(statistics.fmean(len(t) for _, t, _ in rows), 1),
+            prefill_ms_median=round(1000 * statistics.median(prefill), 3),
+            decode_ms_mean=round(1000 * statistics.fmean(decode), 2),
+            prefill_gflops_mean=round(statistics.fmean(flops_prefill) / 1e9, 4),
+            decode_gflops_mean=round(statistics.fmean(flops_decode) / 1e9, 4),
+        )
+    print(json.dumps(report, indent=2))
+    Path(args.out).write_text(json.dumps(report, indent=2) + '\n')
+    return report
+
+
+# ---------------------------------------------------------------------------
+# Suites
 
 
 def suite_configs(name: str, args) -> list[dict]:
     base = dict(source=args.source, copy_init=args.copy_init, surrogate=args.surrogate, init='fresh',
-                k=[1, 2, 3, 4], batch=8, lr=1e-3)
-    configs = []
-    if name == 'pilot':
-        for arm, lr in itertools.product(('english', 'codes'), (3e-4, 1e-3)):
-            configs.append(dict(base, arm=arm, lr=lr, seed=0, updates=4000, eval_at=[500, 1000, 2000, 4000]))
-    elif name == 'main':
-        for arm, seed in itertools.product(ARMS, range(args.seeds)):
-            configs.append(dict(base, arm=arm, seed=seed, lr=args.lr, updates=args.updates,
-                                eval_at=[args.updates // 8, args.updates // 4, args.updates // 2, args.updates]))
-    elif name == 'selection-init':
+                init_sha256=None, k=[1, 2, 3, 4], batch=8)
+    shas = {'copy96': _file_sha(args.copy_init) if args.copy_init else None,
+            'surrogate': _file_sha(args.surrogate) if args.surrogate else None}
+    if name == 'lr':
+        return [dict(base, arm=arm, lr=lr, seed=0, updates=args.updates,
+                     eval_at=[args.updates // 4, args.updates // 2, args.updates])
+                for lr, arm in itertools.product((3e-4, 1e-3), ARMS)]
+    if name == 'main':
+        choice = json.loads(Path(args.lr_json).read_text()) if args.lr_json else {}
+        return [dict(base, arm=arm, seed=seed, lr=choice.get(arm, args.lr), updates=args.updates,
+                     eval_at=[args.updates // 8, args.updates // 4, args.updates // 2, args.updates])
+                for seed, arm in itertools.product(range(args.seeds), ARMS)]  # arms interleaved
+    if name == 'selection-init':
         inits = ['fresh'] + (['copy96'] if args.copy_init else []) + (['surrogate'] if args.surrogate else [])
-        for init, seed in itertools.product(inits, range(args.seeds)):
-            configs.append(dict(base, arm='english', init=init, k=[1], batch=4, lr=3e-4, seed=seed,
-                                updates=3072, eval_at=[192, 384, 768, 1536, 3072]))
-    else:
-        raise ValueError(name)
-    return configs
+        return [dict(base, arm='english', init=init, init_sha256=shas.get(init), k=[1], batch=4, lr=3e-4, seed=seed,
+                     updates=args.updates,
+                     eval_at=[args.updates // 16, args.updates // 8, args.updates // 4, args.updates // 2,
+                              args.updates])
+                for seed, init in itertools.product(range(args.seeds), inits)]
+    raise ValueError(name)
 
 
 def suite(args) -> None:
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
-    keys = ('arm', 'init', 'k', 'updates', 'batch', 'lr', 'seed')
     done = set()
     if out.exists():
         done = {json.dumps(json.loads(l)['overrides'], sort_keys=True) for l in out.read_text().splitlines() if l}
     todo = [c for c in suite_configs(args.suite, args)
-            if json.dumps({k: c[k] for k in keys}, sort_keys=True) not in done]
+            if json.dumps({k: c[k] for k in RESUME_KEYS}, sort_keys=True) not in done]
     print(f'{len(todo)} runs to do, {len(done)} done', flush=True)
+    errors = out.with_suffix('.errors.jsonl')
     with ProcessPoolExecutor(max_workers=args.workers) as pool, out.open('a') as handle:
-        for future in as_completed([pool.submit(run, c) for c in todo]):
-            result = future.result()
+        futures = {pool.submit(run, c): c for c in todo}
+        for future in as_completed(futures):
+            try:
+                result = future.result()
+            except Exception as error:  # keep the other runs; record the failure separately
+                with errors.open('a') as err:
+                    err.write(json.dumps({'overrides': {k: futures[future][k] for k in RESUME_KEYS},
+                                          'error': repr(error)}) + '\n')
+                print('FAILED', {k: futures[future][k] for k in RESUME_KEYS}, repr(error), flush=True)
+                continue
             handle.write(json.dumps(result) + '\n')
             handle.flush()
             last = result['history'][-1]
-            print(json.dumps(result['overrides']), 'iid', last['iid']['exact'], 'combo',
-                  last['held_out_combo']['exact'], 'swap', last['swap']['exact'], 'flip', last['flip']['exact'],
-                  flush=True)
+            print(json.dumps(result['overrides']), 'iid', last['iid']['exact'], 'selected', last['iid']['selected'],
+                  'dev', last['dev']['exact'], 'combo', last['held_out_combo']['exact'],
+                  'swap', last['swap']['exact'], 'flip', last['flip']['exact'],
+                  'cue_conflict', last['cue_conflict']['exact'], flush=True)
+
+
+def choose_lr(args) -> None:
+    """Pick each arm's LR by final dev-panel exact accuracy (ties: the smaller LR)."""
+    best = {}
+    for line in Path(args.lr_results).read_text().splitlines():
+        r = json.loads(line)
+        o, dev = r['overrides'], r['history'][-1]['dev']['exact']
+        if o['arm'] not in best or (dev, -o['lr']) > (best[o['arm']][0], -best[o['arm']][1]):
+            best[o['arm']] = (dev, o['lr'])
+    Path(args.out).write_text(json.dumps({arm: lr for arm, (_, lr) in best.items()}, indent=2) + '\n')
+    print(json.dumps({arm: dict(lr=lr, dev=dev) for arm, (dev, lr) in best.items()}))
 
 
 def main() -> None:
@@ -365,22 +572,29 @@ def main() -> None:
     sub = p.add_subparsers(dest='command', required=True)
     a = sub.add_parser('audit')
     a.add_argument('--source', required=True)
-    a.add_argument('--items', type=int, default=20000)
+    a.add_argument('--items', type=int, default=40000)
+    a.add_argument('--out')
     s = sub.add_parser('suite')
     s.add_argument('--source', required=True)
-    s.add_argument('--suite', choices=('pilot', 'main', 'selection-init'), required=True)
+    s.add_argument('--suite', choices=('lr', 'main', 'selection-init'), required=True)
     s.add_argument('--out', required=True)
     s.add_argument('--workers', type=int, default=4)
     s.add_argument('--seeds', type=int, default=3)
     s.add_argument('--updates', type=int, default=4000)
     s.add_argument('--lr', type=float, default=1e-3)
+    s.add_argument('--lr-json')
     s.add_argument('--copy-init')
     s.add_argument('--surrogate')
+    c = sub.add_parser('choose-lr')
+    c.add_argument('--lr-results', required=True)
+    c.add_argument('--out', required=True)
+    b = sub.add_parser('benchmark')
+    b.add_argument('--source', required=True)
+    b.add_argument('--out', required=True)
+    b.add_argument('--items-per-k', type=int, default=16)
+    b.add_argument('--repeats', type=int, default=5)
     args = p.parse_args()
-    if args.command == 'audit':
-        audit(args)
-    else:
-        suite(args)
+    {'audit': audit, 'suite': suite, 'choose-lr': choose_lr, 'benchmark': benchmark}[args.command](args)
 
 
 if __name__ == '__main__':
