@@ -364,7 +364,16 @@ def run(config: dict) -> dict:
             history.append(dict(step=step, items_seen=items_seen, bytes_seen=bytes_seen,
                                 train_seconds=round(seconds, 2),
                                 **score(rt, model, panels, decode_check=32 if step == config['updates'] else 0)))
-    return dict(overrides={k: config[k] for k in RESUME_KEYS},
+    saved = None
+    if config.get('save_dir'):  # keep the final model (scratch only; never committed)
+        o = {k: config[k] for k in RESUME_KEYS}
+        name = (f"{o['arm']}-{o['init']}-k{''.join(map(str, o['k']))}-u{o['updates']}-b{o['batch']}"
+                f"-lr{o['lr']:g}-s{o['seed']}.pt")
+        raw = rt.state_bytes(model)
+        Path(config['save_dir']).mkdir(parents=True, exist_ok=True)
+        (Path(config['save_dir']) / name).write_bytes(raw)
+        saved = dict(file=name, sha256=hashlib.sha256(raw).hexdigest())
+    return dict(overrides={k: config[k] for k in RESUME_KEYS}, saved=saved,
                 torch=torch.__version__, history=history,
                 byte_roles=byte_role_accuracy(rt, model, panels['iid']),
                 mean_prompt_bytes=statistics.fmean(len(r['prompt']) for r in panels['iid']))
@@ -504,6 +513,7 @@ def benchmark(args) -> dict:
 
 def suite_configs(name: str, args) -> list[dict]:
     base = dict(source=args.source, copy_init=args.copy_init, surrogate=args.surrogate, init='fresh',
+                save_dir=args.save_dir,
                 init_sha256=None, k=[1, 2, 3, 4], batch=8)
     shas = {'copy96': _file_sha(args.copy_init) if args.copy_init else None,
             'surrogate': _file_sha(args.surrogate) if args.surrogate else None}
@@ -590,6 +600,7 @@ def main() -> None:
     s.add_argument('--lr-json')
     s.add_argument('--copy-init')
     s.add_argument('--surrogate')
+    s.add_argument('--save-dir', help='write each final model here (outside the repository)')
     c = sub.add_parser('choose-lr')
     c.add_argument('--lr-results', required=True)
     c.add_argument('--out', required=True)
