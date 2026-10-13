@@ -266,56 +266,41 @@ The builder's caps would block the budget-based fixes. `binding.schedule` limits
 
 ## 5. Next two experiments
 
-Both run on the native CPU in minutes.
+### 5.1 Status of the original proposals
 
-### E1: confirm the initialisation effect on the unchanged COPY packet
-
-Run the COPY packet, with the patch, six times:
-
-- 3 warm-started and 3 fresh;
-- seeds varied by the torch/Python seed and the schedule shuffle seed;
-- otherwise identical to the run already made.
-
-Score held-out COPY exact, per-byte accuracy and the predeclared contrasts. Each run takes under 10 s of training.
-
-The fresh arm has already passed once here, at the recipe seed, with the patched worker (§1). E1 repeats it natively, across seeds, against warm-started runs of the same packet.
-
-| Outcome | Reading |
+| Proposal | Status |
 |---|---|
-| Fresh ≥ 11/12 held-out in ≥ 2 of 3 seeds, **and** warm ≤ 4/12 in ≥ 2 of 3 | **Initialisation confirmed as the cause.** Stop warm-starting from the memorisation checkpoint for capability probes |
-| Both high | The 2/12 run was a seed outlier. Explanation 2 is withdrawn |
-| Both low on native hardware | Something differs between native and these runs. Run `real_pipeline.py audit` natively and diff configurations |
+| **E1**: initialisation × the unchanged COPY packet | **Answered.** Natively: warm start + 96 identifiers gives 432/432 (§0.1). Locally: the breadth × initialisation matrix (§0.2). Breadth matters more than initialisation; fresh initialisation is sufficient, but not necessary. |
+| **E2**: copy *new* identifiers in selection, with no length cue | **Answered, with a twist.** With the packet's learned absolute positions, fresh-initialised English selection does not learn within 12,000 × 8 updates: it copies digits, not letters (§8.3.1). It does learn with either of two single changes: a COPY-96 initialisation (§8.5), or relative positions (ALiBi, §8.3.2). Length matching uses slot filler, audited in §0.5. The filler itself became a shortcut (cue-conflict 0%), so the next runs use natural English. |
 
-### E2: copy *new* identifiers in the binding task, with no length cue
+### 5.2 Next two experiments (revised after §8)
 
-Change the binding data, not the model:
+Both are native runs: they need the real warm start, more seeds, or the target model's tokenizer.
 
-- **Fresh identifiers per quartet** from a large split with independent characters. Hold out a disjoint identifier set and keep the existing unseen-pair checks.
-- **Short instruction**, identical for every row, e.g. `[] if positive, else [["subject","object"]].`
-- **No length cue:** a random 0–16-byte neutral filler before the record, drawn independently of polarity, so length predicts nothing and absolute positions vary.
-- **Fresh initialisation** (the patch).
-- **Budget ladder** of 768, 1,536 and 3,072 updates at batch 4, LR 3e-4 (the epoch and step caps must be raised), plus one arm at batch 16 / LR 1e-3. Use 3 seeds.
+**N1: the language comparison where it can mean something.**
 
-Log per update: first-byte vs suffix loss, prompt dependence (bits) and swap TV on a fixed probe set.
+- **Arms:** natural controlled English, `codes`, and one compact readable baseline (e.g. the tab-word layout without filler), all with the same item stream.
+- **Model:** the packet's `tiny` with relative positions (ALiBi, as `language.py --suite position`). If absolute positions must stay, add `codes_jitter` as a fourth arm, so a fixed-offset advantage is visible as such.
+- **Tasks:** K = 1–4 and K = 4–8. The batch header is amortised only at larger K.
+- **Budget:** 12,000 updates × 8, LR 1e-3 and 3e-4, 3 seeds per arm.
+- **Scoring:** held-out identifiers, a held-out (relation, tense) combination, swap and flip panels; items, bytes and FLOPs to 90%; peak and final accuracy.
+- **Success**, decided before running:
+  - every arm reaches ≥ 90% held-out exact in ≥ 2 of 3 seeds;
+  - `codes` is worth pursuing only if it is within 2 points of the best readable arm on every panel at equal FLOPs, **and** at least 10% cheaper per query in prefill FLOPs.
+- **Expected from the local single-seed result:** `codes` passes the cost criterion at K = 1–4 (22% fewer bytes) and is roughly tied on accuracy per byte. If that holds over seeds, the honest claim is "a compression gain at equal accuracy", not "easier to learn".
 
-**Success** means all of the following in 3/3 seeds at some rung of the ladder:
+**N2: COPY-96 initialisation for the 64-example selection task.**
 
-- ≥ 95% exact on held-out *fresh-identifier* selected prompts;
-- ≥ 95% on held-out empties;
-- swap TV ≥ 0.9;
-- a length-only classifier at chance on the training data.
+- **Arms:** the native team's planned COPY-init vs original-init comparison, using the 96-identifier COPY checkpoint (432/432), plus a fresh arm.
+- **Scoring:** fresh held-out identifiers and a held-out combination, as well as the original 48 checks, which reuse the training identifiers.
+- **Budget:** the packet's (batch 4, LR 3e-4), with the epoch cap raised so that 6,144 updates are allowed. Locally, COPY-96 escaped only between updates 3,072 and 6,144.
+- **Success:** COPY-96-init ≥ 90% on fresh-identifier selected checks in ≥ 2 of 3 seeds, with fresh and original-init lower. A held-out combination below 70% would show the copying transferring but the record understanding not.
 
-Reference points:
-
-- short instruction, fresh identifiers, no jitter: 100% at 1,536 updates × 4 (2/2 seeds);
-- long instruction, fresh identifiers: 100% at 1,536 updates × 16 with LR 1e-3 (2/2 seeds);
-- the reference model with jitter: 32% at 3,000 × 32.
-
-So the jitter rung may need the larger budget. If E2 fails at every rung while E1 passes, the remaining obstacle is position-invariant retrieval. Then compare learned absolute positions with a relative scheme, as a separate, single change.
+**Cheap check before N1 (no training): token counts.** Tokenise every arm's prompts with the tokenizer of the model Sylang is meant for. In pretrained BPE models, English is cheap and code-like strings fragment, so the 22% byte saving may shrink or reverse in tokens (2026-10-04 review). If `codes` is not ≥ 10% cheaper in tokens, N1's cost criterion fails before any training.
 
 ---
 
-## 6. A fair English-versus-Sylang comparison (after E2 passes)
+## 6. A fair English-versus-Sylang comparison (design; run in §8)
 
 The binding builder already renders the same ASTs in two arms, `english` and `codes` (`binding.render(asts, arm)`, with an AST round-trip check). Build the comparison on that.
 
