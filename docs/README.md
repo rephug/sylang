@@ -16,3 +16,4 @@ This directory contains comprehensive documentation for the Sylang constructed l
 
 - [One Token, One Meaning](research/one-token-one-meaning.md) - How Sylang Prime addresses polysemanticity in language models
 - [LLM Performance and Benefits Report](research/Sylang%20Prime_%20LLM%20Performance%20and%20Benefits%20Report.pdf) - Detailed analysis of performance improvements with Sylang
+- [Copy bottleneck diagnosis (2026-10-13)](research/copy-bottleneck-diagnosis-2026-10-13.md) - Why the tiny byte model formats answers but does not copy identifiers, with runtime probes and one-factor runs on the project's own model
