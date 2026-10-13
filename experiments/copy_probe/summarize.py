@@ -290,6 +290,7 @@ def main() -> None:
         ("language_k1", language),
         ("language_alibi", language),
         ("language_alibi_main", language),
+        ("language_copy96", language),
         ("selection_init", language),
     ):
         path = root / f"{name}.jsonl"
