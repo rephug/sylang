@@ -8,6 +8,7 @@
     python language.py suite --source <packet> --suite single --updates 4000 --out results/language_k1.jsonl
     python language.py suite --source <packet> --suite selection-init --copy-init <copy96.pt> \
         --surrogate <surrogate.pt> --out results/selection_init.jsonl
+    python language.py probe --source <packet> --out results/language_probe.jsonl <ckpt-dir>/*.pt
     python language.py benchmark --source <packet> --out results/language_benchmark.json
 
 **Task.** Each item holds K predicate records (K uniform in 1..4 by default). The
@@ -467,10 +468,38 @@ def byte_role_accuracy(rt: Runtime, model, rows: list[dict]) -> dict:
         for hit, t in zip(result['hits'], result['target']):
             ch = chr(t) if t < 128 else ''
             role = ('eos' if t == rt.tiny.EOS else 'quote' if ch == '"' else
-                    'structure' if ch in '[],' else 'identifier')
+                    'structure' if ch in '[],' else 'identifier_digit' if ch.isdigit() else 'identifier_letter')
             totals[role] += 1
             hits[role] += hit
     return {role: round(hits[role] / totals[role], 4) for role in sorted(totals)}
+
+
+def probe(args) -> None:
+    """Answer-byte accuracy by role for saved checkpoints, plus greedy samples.
+
+    The arm and K are read from the file name written by ``--save-dir``."""
+    import torch
+
+    torch.set_num_threads(1)
+    rt = Runtime(args.source)
+    renderer = Renderer(rt)
+    out = []
+    for path in sorted(args.checkpoints):
+        name = Path(path).name
+        arm = name.split('-fresh-')[0].split('-copy96-')[0].split('-surrogate-')[0]
+        k_values = [int(c) for c in name.split('-k')[1].split('-')[0]]
+        model = rt.load(rt.build(0), path).eval()
+        items = eval_panels(k_values, max(32, 96 // len(k_values)))['iid']
+        rows = [dict(prompt=renderer.prompt(arm, it), target=renderer.target(it)) for it in items]
+        selected = [r for r in rows if r['target'] != '[]']
+        samples = [dict(target=r['target'], greedy=rt.generate(model, r['prompt'], len(r['target']) + 2))
+                   for r in selected[:args.samples]]
+        record = dict(file=name, sha256=_file_sha(path), arm=arm, k=k_values,
+                      byte_roles_selected=byte_role_accuracy(rt, model, selected), samples=samples)
+        out.append(record)
+        print(json.dumps(record), flush=True)
+    if args.out:
+        Path(args.out).write_text(''.join(json.dumps(r) + '\n' for r in out))
 
 
 # ---------------------------------------------------------------------------
@@ -631,13 +660,18 @@ def main() -> None:
     c = sub.add_parser('choose-lr')
     c.add_argument('--lr-results', required=True)
     c.add_argument('--out', required=True)
+    pr = sub.add_parser('probe')
+    pr.add_argument('--source', required=True)
+    pr.add_argument('--out')
+    pr.add_argument('--samples', type=int, default=4)
+    pr.add_argument('checkpoints', nargs='+')
     b = sub.add_parser('benchmark')
     b.add_argument('--source', required=True)
     b.add_argument('--out', required=True)
     b.add_argument('--items-per-k', type=int, default=16)
     b.add_argument('--repeats', type=int, default=5)
     args = p.parse_args()
-    {'audit': audit, 'suite': suite, 'choose-lr': choose_lr, 'benchmark': benchmark}[args.command](args)
+    {'audit': audit, 'suite': suite, 'choose-lr': choose_lr, 'probe': probe, 'benchmark': benchmark}[args.command](args)
 
 
 if __name__ == '__main__':
