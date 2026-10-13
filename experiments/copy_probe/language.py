@@ -6,6 +6,8 @@
     python language.py suite --source <packet> --suite main --lr-json results/language_lr_choice.json \
         --out results/language.jsonl
     python language.py suite --source <packet> --suite single --updates 4000 --out results/language_k1.jsonl
+    python language.py suite --source <packet> --suite position --arms english,words,codes,codes_jitter \
+        --updates 12000 --out results/language_alibi.jsonl
     python language.py suite --source <packet> --suite selection-init --copy-init <copy96.pt> \
         --surrogate <surrogate.pt> --out results/selection_init.jsonl
     python language.py probe --source <packet> --out results/language_probe.jsonl <ckpt-dir>/*.pt
@@ -211,6 +213,50 @@ class Renderer:
 
 
 RESUME_KEYS = ('arm', 'init', 'init_sha256', 'k', 'updates', 'batch', 'lr', 'seed')
+POSITIONS = ('learned', 'alibi')  # learned: the packet's absolute position table (default)
+
+
+def _overrides(config: dict) -> dict:
+    """The identifying settings of a run. ``position`` appears only when it is not the
+    default, so results written before the option existed keep their keys."""
+    out = {k: config[k] for k in RESUME_KEYS}
+    if config.get('position', 'learned') != 'learned':
+        out['position'] = config['position']
+    return out
+
+
+def use_alibi(model, heads: int, pad: int):
+    """Replace the learned absolute positions with ALiBi distance biases: one change.
+
+    The token embedding, blocks, final norm and output layer are the packet's own
+    modules; the position table is left in place but unused. Attention gets a per-head
+    additive bias of -slope * (query - key) on top of the causal mask."""
+    import torch
+
+    slopes = torch.tensor([2.0 ** (-8.0 * (h + 1) / heads) for h in range(heads)])
+
+    def forward(ids):
+        batch, length = ids.shape
+        index = torch.arange(length, device=ids.device)
+        distance = (index[:, None] - index[None, :]).clamp(min=0).float()
+        bias = -slopes.to(ids.device)[:, None, None] * distance
+        bias = bias.masked_fill(torch.ones(length, length, dtype=torch.bool, device=ids.device).triu(1),
+                                float('-inf'))
+        mask = bias.repeat(batch, 1, 1)  # (batch * heads, L, L), index = n * heads + h
+        x = model.tokens(ids)
+        # The fused inference fast path mishandles per-head float masks (NaN with padding);
+        # use the standard path for this model only and restore the global flag.
+        fast = torch.backends.mha.get_fastpath_enabled()
+        torch.backends.mha.set_fastpath_enabled(False)
+        try:
+            for block in model.blocks:
+                x = block(x, src_mask=mask, src_key_padding_mask=ids.eq(pad))
+        finally:
+            torch.backends.mha.set_fastpath_enabled(fast)
+        return model.output(model.norm(x))
+
+    model.forward = forward
+    return model
 
 
 def _file_sha(path: str) -> str:
@@ -360,6 +406,10 @@ def run(config: dict) -> dict:
         rt.load(model, path)
     elif config['init'] != 'fresh':
         raise ValueError(config['init'])
+    if config.get('position', 'learned') == 'alibi':
+        use_alibi(model, rt.recipe['heads'], rt.tiny.PAD)
+    elif config.get('position', 'learned') != 'learned':
+        raise ValueError(config['position'])
     optimizer = rt.optimizer(model, config['lr'])
     stream = ItemStream('train', seed, k_values=tuple(config['k']))
     per_k = max(32, 96 // len(config['k']))
@@ -390,14 +440,14 @@ def run(config: dict) -> dict:
     history[-1]['decoder_agreement'] = dict(agree=sum(a == b for a, b in zip(flags, decoded)), n=len(rows))
     saved = None
     if config.get('save_dir'):  # keep the final model (scratch only; never committed)
-        o = {k: config[k] for k in RESUME_KEYS}
+        o = _overrides(config)
         name = (f"{o['arm']}-{o['init']}-k{''.join(map(str, o['k']))}-u{o['updates']}-b{o['batch']}"
-                f"-lr{o['lr']:g}-s{o['seed']}.pt")
+                f"-lr{o['lr']:g}-s{o['seed']}" + (f"-{o['position']}" if 'position' in o else '') + '.pt')
         raw = rt.state_bytes(model)
         Path(config['save_dir']).mkdir(parents=True, exist_ok=True)
         (Path(config['save_dir']) / name).write_bytes(raw)
         saved = dict(file=name, sha256=hashlib.sha256(raw).hexdigest())
-    return dict(overrides={k: config[k] for k in RESUME_KEYS}, saved=saved,
+    return dict(overrides=_overrides(config), saved=saved,
                 torch=torch.__version__, history=history,
                 byte_roles=byte_role_accuracy(rt, model, panels['iid']),
                 mean_prompt_bytes=statistics.fmean(len(r['prompt']) for r in panels['iid']))
@@ -489,6 +539,8 @@ def probe(args) -> None:
         arm = name.split('-fresh-')[0].split('-copy96-')[0].split('-surrogate-')[0]
         k_values = [int(c) for c in name.split('-k')[1].split('-')[0]]
         model = rt.load(rt.build(0), path).eval()
+        if name.endswith('-alibi.pt'):
+            use_alibi(model, rt.recipe['heads'], rt.tiny.PAD)
         items = eval_panels(k_values, max(32, 96 // len(k_values)))['iid']
         rows = [dict(prompt=renderer.prompt(arm, it), target=renderer.target(it)) for it in items]
         selected = [r for r in rows if r['target'] != '[]']
@@ -585,6 +637,12 @@ def suite_configs(name: str, args) -> list[dict]:
         return [dict(base, arm=arm, seed=seed, k=[1], lr=args.lr, updates=args.updates, early_stop=4000,
                      eval_at=[u for u in grid if u < args.updates])
                 for seed, arm in itertools.product(range(args.seeds), arms)]
+    if name == 'position':  # the same task with ALiBi in place of learned absolute positions
+        grid = [250, 500, 750, 1000, 1500, 2000, 3000, 4000, 6000, 8000, 10000, 12000, 16000]
+        k = [int(c) for c in args.k]
+        return [dict(base, arm=arm, seed=seed, k=k, position='alibi', lr=args.lr, updates=args.updates,
+                     early_stop=4000, eval_at=[u for u in grid if u < args.updates])
+                for seed, arm in itertools.product(range(args.seeds), arms)]
     if name == 'selection-init':
         inits = ['fresh'] + (['copy96'] if args.copy_init else []) + (['surrogate'] if args.surrogate else [])
         return [dict(base, arm='english', init=init, init_sha256=shas.get(init), k=[1], batch=4, lr=3e-4, seed=seed,
@@ -602,7 +660,7 @@ def suite(args) -> None:
     if out.exists():
         done = {json.dumps(json.loads(l)['overrides'], sort_keys=True) for l in out.read_text().splitlines() if l}
     todo = [c for c in suite_configs(args.suite, args)
-            if json.dumps({k: c[k] for k in RESUME_KEYS}, sort_keys=True) not in done]
+            if json.dumps(_overrides(c), sort_keys=True) not in done]
     print(f'{len(todo)} runs to do, {len(done)} done', flush=True)
     errors = out.with_suffix('.errors.jsonl')
     with ProcessPoolExecutor(max_workers=args.workers) as pool, out.open('a') as handle:
@@ -612,9 +670,9 @@ def suite(args) -> None:
                 result = future.result()
             except Exception as error:  # keep the other runs; record the failure separately
                 with errors.open('a') as err:
-                    err.write(json.dumps({'overrides': {k: futures[future][k] for k in RESUME_KEYS},
+                    err.write(json.dumps({'overrides': _overrides(futures[future]),
                                           'error': repr(error)}) + '\n')
-                print('FAILED', {k: futures[future][k] for k in RESUME_KEYS}, repr(error), flush=True)
+                print('FAILED', _overrides(futures[future]), repr(error), flush=True)
                 continue
             handle.write(json.dumps(result) + '\n')
             handle.flush()
@@ -646,7 +704,7 @@ def main() -> None:
     a.add_argument('--out')
     s = sub.add_parser('suite')
     s.add_argument('--source', required=True)
-    s.add_argument('--suite', choices=('lr', 'main', 'single', 'selection-init'), required=True)
+    s.add_argument('--suite', choices=('lr', 'main', 'single', 'position', 'selection-init'), required=True)
     s.add_argument('--out', required=True)
     s.add_argument('--workers', type=int, default=4)
     s.add_argument('--seeds', type=int, default=3)
@@ -656,6 +714,7 @@ def main() -> None:
     s.add_argument('--copy-init')
     s.add_argument('--surrogate')
     s.add_argument('--arms', help='comma-separated subset of ' + ','.join(ARMS))
+    s.add_argument('--k', default='1', help="record counts for --suite position, e.g. 1 or 1234")
     s.add_argument('--save-dir', help='write each final model here (outside the repository)')
     c = sub.add_parser('choose-lr')
     c.add_argument('--lr-results', required=True)
