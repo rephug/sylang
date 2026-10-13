@@ -614,34 +614,40 @@ def benchmark(args) -> dict:
 # Suites
 
 
+# A fixed evaluation grid, so runs of different lengths share their early checkpoints. Runs
+# with early_stop end once two checkpoints from that update on reach 97% on every panel.
+GRID = [250, 500, 750, 1000, 1500, 2000, 3000, 4000, 6000, 8000, 10000, 12000, 16000]
+
+
 def suite_configs(name: str, args) -> list[dict]:
-    base = dict(source=args.source, copy_init=args.copy_init, surrogate=args.surrogate, init='fresh',
+    base = dict(source=args.source, copy_init=args.copy_init, surrogate=args.surrogate, init=args.init,
                 save_dir=args.save_dir,
                 init_sha256=None, k=[1, 2, 3, 4], batch=8)
     arms = [a for a in ARMS if not args.arms or a in args.arms.split(',')]
     shas = {'copy96': _file_sha(args.copy_init) if args.copy_init else None,
             'surrogate': _file_sha(args.surrogate) if args.surrogate else None}
+    if args.init != 'fresh' and not shas.get(args.init):
+        raise SystemExit(f'--init {args.init} needs --copy-init or --surrogate')
+    base['init_sha256'] = shas.get(args.init)
     if name == 'lr':
         return [dict(base, arm=arm, lr=lr, seed=0, updates=args.updates,
                      eval_at=[args.updates // 4, args.updates // 2, args.updates])
                 for lr, arm in itertools.product((3e-4, 1e-3), arms)]
     if name == 'main':
         choice = json.loads(Path(args.lr_json).read_text()) if args.lr_json else {}
+        # The first K=1-4 runs were evaluated at updates/8, /4, /2 and the end; at 12,000 updates
+        # those points are a subset of GRID, which later runs use with early stopping.
         return [dict(base, arm=arm, seed=seed, lr=choice.get(arm, args.lr), updates=args.updates,
-                     eval_at=[args.updates // 8, args.updates // 4, args.updates // 2, args.updates])
+                     early_stop=4000, eval_at=[u for u in GRID if u < args.updates])
                 for seed, arm in itertools.product(range(args.seeds), arms)]  # arms interleaved
     if name == 'single':  # one record per item: the selection task itself, in every arm
-        # A fixed grid, so runs of different lengths share their early checkpoints. A run stops
-        # early once two checkpoints from update 4,000 on reach 97% on every panel.
-        grid = [250, 500, 750, 1000, 1500, 2000, 3000, 4000, 6000, 8000, 10000, 12000, 16000]
         return [dict(base, arm=arm, seed=seed, k=[1], lr=args.lr, updates=args.updates, early_stop=4000,
-                     eval_at=[u for u in grid if u < args.updates])
+                     eval_at=[u for u in GRID if u < args.updates])
                 for seed, arm in itertools.product(range(args.seeds), arms)]
     if name == 'position':  # the same task with ALiBi in place of learned absolute positions
-        grid = [250, 500, 750, 1000, 1500, 2000, 3000, 4000, 6000, 8000, 10000, 12000, 16000]
         k = [int(c) for c in args.k]
         return [dict(base, arm=arm, seed=seed, k=k, position='alibi', lr=args.lr, updates=args.updates,
-                     early_stop=4000, eval_at=[u for u in grid if u < args.updates])
+                     early_stop=4000, eval_at=[u for u in GRID if u < args.updates])
                 for seed, arm in itertools.product(range(args.seeds), arms)]
     if name == 'selection-init':
         inits = ['fresh'] + (['copy96'] if args.copy_init else []) + (['surrogate'] if args.surrogate else [])
@@ -714,6 +720,8 @@ def main() -> None:
     s.add_argument('--copy-init')
     s.add_argument('--surrogate')
     s.add_argument('--arms', help='comma-separated subset of ' + ','.join(ARMS))
+    s.add_argument('--init', default='fresh', choices=('fresh', 'copy96', 'surrogate'),
+                   help='initial weights for the lr/main/single/position suites')
     s.add_argument('--k', default='1', help="record counts for --suite position, e.g. 1 or 1234")
     s.add_argument('--save-dir', help='write each final model here (outside the repository)')
     c = sub.add_parser('choose-lr')
