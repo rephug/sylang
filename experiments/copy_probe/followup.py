@@ -217,10 +217,17 @@ def copy_run(config: dict) -> dict:
         rt.load(model, config['surrogate'])
     elif config['init'] != 'fresh':
         raise ValueError(config['init'])
+    if config.get('position', 'learned') == 'alibi':
+        from language import use_alibi  # lazy: language imports this module
+        use_alibi(model, rt.recipe['heads'], rt.tiny.PAD)
+    elif config.get('position', 'learned') != 'learned':
+        raise ValueError(config['position'])
     optimizer = rt.optimizer(model)
     started = time.monotonic()
-    losses = [rt.step(model, optimizer, rows)
-              for rows in _copy_schedule(train_ids, config['updates'], random.Random(seed + 1))]
+    schedule = list(_copy_schedule(train_ids, config['updates'], random.Random(seed + 1)))
+    items_seen = sum(len(rows) for rows in schedule)
+    bytes_seen = sum(len(r['prompt']) + len(r['target']) + 3 for rows in schedule for r in rows)
+    losses = [rt.step(model, optimizer, rows) for rows in schedule]
     seconds = time.monotonic() - started
     final = {}
     train_set = set(train_ids)
@@ -241,8 +248,12 @@ def copy_run(config: dict) -> dict:
     if config.get('save'):
         Path(config['save']).parent.mkdir(parents=True, exist_ok=True)
         Path(config['save']).write_bytes(raw)
-    return dict(overrides={k: config[k] for k in ('init', 'breadth', 'updates', 'seed')},
+    overrides = {k: config[k] for k in ('init', 'breadth', 'updates', 'seed')}
+    if config.get('position', 'learned') != 'learned':
+        overrides['position'] = config['position']
+    return dict(overrides=overrides,
                 exposures_per_row=config['updates'] * 2 // config['breadth'],
+                items_seen=items_seen, bytes_seen=bytes_seen,
                 train_seconds=round(seconds, 2), loss_first_last=[losses[0], losses[-1]],
                 checkpoint_sha256=_sha(raw), final=final)
 
@@ -462,6 +473,13 @@ def main() -> None:
     c.add_argument('--out', default=str(HERE / 'results' / 'copy_matrix.jsonl'))
     c.add_argument('--workers', type=int, default=4)
     c.add_argument('--save-copy96', help='save the fresh-init 96-identifier seed-0 model here')
+    cp = sub.add_parser('copy-pretrain', help='one COPY run (fresh, 96 identifiers by default) saved as an init')
+    cp.add_argument('--source', required=True)
+    cp.add_argument('--out', required=True, help='checkpoint path; a .json with the run record is written beside it')
+    cp.add_argument('--position', default='learned', choices=('learned', 'alibi'))
+    cp.add_argument('--breadth', type=int, default=96)
+    cp.add_argument('--updates', type=int, default=192)
+    cp.add_argument('--seed', type=int, default=0)
     t = sub.add_parser('select-suite')
     t.add_argument('--source', required=True)
     t.add_argument('--surrogate')
@@ -471,6 +489,13 @@ def main() -> None:
     args = p.parse_args()
     if args.command == 'surrogate':
         surrogate(args)
+    elif args.command == 'copy-pretrain':
+        result = copy_run(dict(source=args.source, init='fresh', breadth=args.breadth, updates=args.updates,
+                               seed=args.seed, position=args.position, save=args.out))
+        Path(args.out).with_suffix('.json').write_text(json.dumps(result, indent=2) + '\n')
+        print(json.dumps({k: result[k] for k in ('overrides', 'items_seen', 'bytes_seen', 'train_seconds',
+                                                 'checkpoint_sha256')}))
+        print(json.dumps(result['final']))
     elif args.command == 'copy-suite':
         configs = list(copy_configs(args.source, args.surrogate))
         if args.save_copy96:

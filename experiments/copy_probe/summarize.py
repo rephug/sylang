@@ -275,8 +275,55 @@ def _peak(run: dict, panel: str = "iid", field: str = "exact") -> float:
     return max(h[panel][field] for h in run["history"])
 
 
+def _selected_checkpoint(run: dict) -> dict:
+    """The dev-selected checkpoint: the earliest grid checkpoint with the highest dev exact."""
+    step = run.get("dev_selected_step")
+    for h in run["history"]:
+        if h["step"] == step:
+            return h
+    return max(run["history"], key=lambda h: (h["dev"]["exact"], -h["step"]))
+
+
+def _items_to_90(run: dict, field: str = "items_seen", threshold: float = 0.9):
+    """First point on the fine iid curve (grid checkpoints included) at or above the
+    threshold; None when never reached (reported as censored)."""
+    points = [(h["step"], h[field], h["iid"]["exact"]) for h in run["history"]]
+    points += [(f["step"], f[field], f["iid_exact"]) for f in run.get("fine", [])]
+    for _, value, exact in sorted(points):
+        if exact >= threshold:
+            return value
+    return None
+
+
+def _median_censored(values: list) -> str:
+    ok = [v for v in values if v is not None]
+    censored = len(values) - len(ok)
+    if not ok or censored > len(values) // 2:
+        return f"∞ ({censored}/{len(values)} censored)"
+    med = statistics.median(ok) if censored == 0 else sorted(ok)[len(values) // 2] if len(ok) > len(values) // 2 else None
+    text = f"{med:,.0f}" if med is not None else "∞"
+    if len(ok) > 1:
+        text += f" ({min(ok):,.0f}–{max(ok):,.0f})"
+    if censored:
+        text += f" [{censored} censored]"
+    return text
+
+
+def _paired_bootstrap(a_flags: list[str], b_flags: list[str], resamples: int = 1000, seed: int = 0):
+    """Mean of per-item differences a-b (in points) averaged over seeds, with a 90% bootstrap
+    interval over items. a_flags/b_flags: one flag string per seed, same panel items."""
+    import random
+    pairs = list(zip(a_flags, b_flags))
+    n = len(pairs[0][0])
+    diffs = [statistics.fmean(int(a[i]) - int(b[i]) for a, b in pairs) for i in range(n)]
+    rng = random.Random(seed)
+    means = sorted(statistics.fmean(diffs[rng.randrange(n)] for _ in range(n)) for _ in range(resamples))
+    return 100 * statistics.fmean(diffs), 100 * means[int(0.05 * resamples)], 100 * means[int(0.95 * resamples) - 1]
+
+
 def study(results: list[dict]) -> str:
-    """Design-v2 study (language.py --suite study): K up to 8, hold-outs separated."""
+    """Design-v2 study (language.py --suite study): K up to 8, hold-outs separated.
+    Headline numbers are read at the dev-selected checkpoint."""
     groups: dict[tuple, list[dict]] = defaultdict(list)
     for r in results:
         o = r["overrides"]
@@ -284,52 +331,86 @@ def study(results: list[dict]) -> str:
                 "".join(map(str, o["k"])), o["updates"], o["lr"], o["batch"])].append(r)
     order = {"english_natural": 0, "codes": 1, "compact": 2}
     rows, curve = [], []
-    panels_seen: list[str] = []
     for key in sorted(groups, key=lambda k: (k[4], k[1], k[3], k[2], order.get(k[0], 9), k[0])):
-        runs = groups[key]
+        runs = sorted(groups[key], key=lambda r: r["overrides"]["seed"])
+        sel = [_selected_checkpoint(r) for r in runs]
         last = [r["history"][-1] for r in runs]
-        for h in last:
-            for name, v in h.items():
-                if isinstance(v, dict) and "exact" in v and name not in panels_seen:
-                    panels_seen.append(name)
 
-        def col(panel, field="exact", pct=True):
-            vals = [h[panel][field] for h in last if panel in h and h[panel].get(field) is not None]
+        def col(panel, field="exact", pct=True, at=sel):
+            vals = [h[panel][field] for h in at if panel in h and h[panel].get(field) is not None]
             return _fmt(vals, pct) if vals else "–"
 
-        reach_items = [x for x in (_first_reaching(r["history"], "items_seen") for r in runs) if x is not None]
-        reach_bytes = [x for x in (_first_reaching(r["history"], "bytes_seen") for r in runs) if x is not None]
         long_k = [statistics.fmean(v for k, v in h["iid"]["by_k"].items() if int(k) >= 5)
-                  for h in last if any(int(k) >= 5 for k in h["iid"]["by_k"])]
+                  for h in sel if any(int(k) >= 5 for k in h["iid"]["by_k"])]
         switches = [h.get("stage_switch") for r in runs for h in r["history"] if h.get("stage_switch")]
         rows.append([key[0], key[1], key[2], key[3] + (f" (switch {statistics.median(switches):,.0f})" if switches else ""),
-                     str(len(runs)), f"{statistics.median(h['step'] for h in last):,.0f}",
-                     f"{len(reach_items)}/{len(runs)}" + (f" ({statistics.median(reach_items):,.0f}" + (
-                         f"; {min(reach_items):,.0f}–{max(reach_items):,.0f})" if len(reach_items) > 1 else ")") if reach_items else ""),
-                     (f"{statistics.median(reach_bytes) / 1e6:.1f}" if reach_bytes else "–"),
-                     _fmt([_peak(r) for r in runs]), col("iid"), col("iid", "selected"), col("iid", "empty"),
-                     _fmt(long_k) if long_k else "–",
-                     col("combo", "selected"), col("both", "selected"), col("similar", "selected"),
-                     col("reorder"), col("swap"), col("flip"),
+                     ",".join(str(r["overrides"]["seed"]) for r in runs),
+                     f"{statistics.median(r['dev_selected_step'] or 0 for r in runs):,.0f}",
+                     f"{statistics.median(h['step'] for h in last):,.0f}",
+                     _median_censored([_items_to_90(r) for r in runs]),
+                     _median_censored([(lambda v: v / 1e6 if v else None)(_items_to_90(r, "bytes_seen")) for r in runs]).replace(",", ""),
+                     col("iid"), col("iid", "selected"), col("iid", "empty"), _fmt(long_k) if long_k else "–",
+                     col("seen", "selected"), col("combo", "selected"), col("both", "selected"),
+                     col("similar", "selected"), col("similar_control", "selected"),
+                     col("reorder"), col("swap"), col("flip"), _fmt([_peak(r) for r in runs]),
                      f"{statistics.fmean(r['mean_prompt_bytes'] for r in runs):.0f}",
                      _fmt([h["train_seconds"] for h in last], pct=False)])
         curve.append((key, runs))
-    headers = ["arm", "positions", "init", "curriculum", "seeds", "trained to (median)",
-               "runs ≥90% iid (median items; range)", "median MB to 90%", "peak iid %", "final iid %",
-               "final iid selected %", "final iid empty %", "iid K=5–8 %", "combo selected %",
-               "both selected %", "similar selected %", "reorder %", "swap %", "flip %",
-               "prompt bytes", "train s (shared CPU)"]
-    table = _table(headers, rows)
+    headers = ["arm", "positions", "init", "curriculum", "seeds", "dev-selected update (median)",
+               "trained to (median)", "items to 90% iid (median; range)", "MB to 90% iid",
+               "iid %", "iid selected %", "iid empty %", "iid K=5–8 %", "seen selected %", "combo selected %",
+               "both selected %", "similar selected %", "similar-control selected %", "reorder %", "swap %",
+               "flip %", "peak iid % (descriptive)", "prompt bytes", "train s (shared CPU)"]
+    table = "At the dev-selected checkpoint unless stated. Mean over seeds (min–max).\n\n" + _table(headers, rows)
+    # Per-seed ratios of items-to-90% for every method against the mixed/fresh baseline of the same arm.
+    ratio_rows = []
+    for key, runs in curve:
+        base_key = (key[0], key[1], "fresh", "mixed", *key[4:])
+        if key[2:4] == ("fresh", "mixed") or base_key not in groups:
+            continue
+        base = {r["overrides"]["seed"]: _items_to_90(r) for r in groups[base_key]}
+        ratios = []
+        for r in runs:
+            m, b = _items_to_90(r), base.get(r["overrides"]["seed"])
+            ratios.append("–" if b is None and m is None else "∞" if m is None else "0 (baseline censored)" if b is None
+                          else f"{m / b:.2f}")
+        ratio_rows.append([key[0], key[1], key[2], key[3], ", ".join(ratios)])
+    if ratio_rows:
+        table += "\n\nItems-to-90% ratio, method / baseline (fresh, mixed), paired by seed:\n\n" + _table(
+            ["arm", "positions", "init", "curriculum", "ratio per seed"], ratio_rows)
+    # Paired per-item bootstrap: compact minus codes on the shared panels, averaged over seeds.
+    boot_rows = []
+    for key, runs in curve:
+        if key[0] != "compact":
+            continue
+        codes_key = ("codes", *key[1:])
+        if codes_key not in groups:
+            continue
+        codes_runs = {r["overrides"]["seed"]: r for r in groups[codes_key]}
+        shared = [r for r in runs if r["overrides"]["seed"] in codes_runs]
+        if not shared:
+            continue
+        for panel in ("iid", "combo", "both", "similar", "reorder"):
+            a = [_selected_checkpoint(r)[panel]["flags"] for r in shared]
+            b = [_selected_checkpoint(codes_runs[r["overrides"]["seed"]])[panel]["flags"] for r in shared]
+            mean, lo, hi = _paired_bootstrap(a, b)
+            boot_rows.append([key[1], key[2], key[3], panel, str(len(shared)), f"{mean:+.1f}", f"[{lo:+.1f}, {hi:+.1f}]",
+                              "yes" if lo > -3 else "no"])
+    if boot_rows:
+        table += ("\n\ncompact − codes, paired per item at the dev-selected checkpoint, points (90% bootstrap over "
+                  "items; non-inferior if the lower bound is above −3):\n\n"
+                  + _table(["positions", "init", "curriculum", "panel", "seeds", "mean", "90% interval", "non-inferior"], boot_rows))
     steps = sorted({h["step"] for _, runs in curve for r in runs for h in r["history"]})
     for (panel, field, pct), title in ((("iid", "exact", True), "iid exact"),
                                         (("iid", "selected", True), "iid selected-only exact"),
-                                        (("combo", "selected", True), "combo selected-only exact")):
+                                        (("combo", "selected", True), "combo selected-only exact"),
+                                        (("both", "selected", True), "both selected-only exact")):
         lines = []
         for key, runs in curve:
             by_step = {s: [h[panel][field] for r in runs for h in r["history"]
                            if h["step"] == s and panel in h and h[panel].get(field) is not None] for s in steps}
             lines.append([key[0], key[1], key[2], key[3], *(_fmt(by_step[s], pct) if by_step[s] else "–" for s in steps)])
-        table += f"\n\n{title} by update (early-stopped runs end sooner):\n\n" + _table(
+        table += f"\n\n{title} by grid update (early-stopped runs end sooner):\n\n" + _table(
             ["arm", "positions", "init", "curriculum", *(str(s) for s in steps)], lines)
     return table
 

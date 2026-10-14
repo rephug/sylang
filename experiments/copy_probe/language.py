@@ -84,6 +84,7 @@ HELD_OUT = {
     'v2': ((('relation', 'tense'), ('contain', 'future')), (('relation', 'aspect'), ('help', 'completed'))),
 }
 CURRICULA = ('mixed', 'staged', 'k1mix')
+FINE_EVERY, FINE_FROM = 250, 1000  # design v2: iid-only evaluations between grid checkpoints
 STAGE_CAP = 3000  # staged: K=1 only until the dev K=1 panel reaches 97%, or this many updates
 
 
@@ -334,32 +335,60 @@ class ItemStream:
         forced = self.rng.randrange(k)  # at least one record uses a held-out combination
         return [self.record(used, True if i == forced else None) for i in range(k)]
 
-    def similar_item(self, k: int) -> list[dict]:
+    def similar_item(self, k: int) -> tuple[list[dict], list[tuple[int, str]], set]:
         """K >= 2 records: every negative record has a positive partner whose subject or
-        object differs from the negative's in exactly one character."""
+        object differs from the negative's in exactly one character and is itself an
+        identifier of this split. Returns (records, [(partner index, varied role)], used)."""
         assert k >= 2
         used: set = set()
-        records = []
+        pairs = []
         for _ in range(max(1, k // 2)):
             negative = self.record(used, False, 'negative')
             partner = self.record(used, False, 'positive')
             role = self.rng.choice(('subject', 'object'))
+            used.discard(partner[role])
             partner[role] = self._one_char_variant(negative[role], used)
-            records += [negative, partner]
+            pairs.append((negative, partner, role))
+        records = [r for pair in pairs for r in pair[:2]]
         while len(records) < k:
             records.append(self.record(used, False, 'positive'))
-        self.rng.shuffle(records)
-        return records
+        order = list(range(len(records)))
+        self.rng.shuffle(order)
+        records = [records[i] for i in order]
+        partners = [(order.index(2 * j + 1), role) for j, (_, _, role) in enumerate(pairs)]
+        return records, partners, used
 
     def _one_char_variant(self, identifier: str, used: set) -> str:
         letters, digits = 'abcdefghijklmnopqrstuvwxyz', '0123456789'
-        while True:
+        candidates = []
+        for i, ch in enumerate(identifier):
+            pool = digits if ch.isdigit() else letters
+            for c in pool:
+                if c != ch:
+                    v = identifier[:i] + c + identifier[i + 1:]
+                    if v in self.id_set and v not in used:
+                        candidates.append(v)
+        if not candidates:  # rare: no one-character variant exists in this split
             i = self.rng.randrange(len(identifier))
             pool = digits if identifier[i].isdigit() else letters
-            new = identifier[:i] + self.rng.choice(pool.replace(identifier[i], '')) + identifier[i + 1:]
-            if new not in used:
-                used.add(new)
-                return new
+            candidates = [identifier[:i] + c + identifier[i + 1:] for c in pool if c != identifier[i]]
+            candidates = [v for v in candidates if v not in used]
+        new = self.rng.choice(candidates)
+        used.add(new)
+        return new
+
+    def dissimilar_control(self, records: list[dict], partners: list, used: set, rng: random.Random) -> list[dict]:
+        """The same item with each partner's varied identifier replaced by a fresh
+        identifier of this split (the paired control for ``similar_item``)."""
+        out = [dict(r) for r in records]
+        for index, role in partners:
+            while True:
+                fresh = rng.choice(self.ids)
+                if fresh not in used:
+                    used.add(fresh)
+                    break
+            out[index][role] = fresh
+        return out
 
 
 def swap_roles(statements):
@@ -407,19 +436,33 @@ def study_panels(k_values, per_k: int, design: str = 'v2', seed: int = 7, filler
     combo = ItemStream('train', seed + 1, combos='held_out', design=design)
     both = ItemStream('test', seed + 4, combos='held_out', design=design)
     dev = ItemStream('dev', seed + 3, design=design)
+    seen = ItemStream('train', seed + 6, design=design)
     similar = ItemStream('test', seed + 5, design=design)
-    half = max(8, per_k // 2)
     panels = {
         'iid': [test.item(k) for k in k_values for _ in range(per_k)],
-        'combo': [combo.item(k) for k in k_values for _ in range(half)],
-        'both': [both.item(k) for k in k_values for _ in range(half)],
+        'seen': [seen.item(k) for k in k_values for _ in range(per_k)],  # training-split ids, trained combos
+        'combo': [combo.item(k) for k in k_values for _ in range(per_k)],
+        'both': [both.item(k) for k in k_values for _ in range(per_k)],
         'dev': [dev.item(k) for k in k_values for _ in range(per_k)],
-        'similar': [similar.similar_item(k) for k in k_values if k >= 2 for _ in range(per_k)],
     }
+    control_rng = random.Random(seed + 8)
+    panels['similar'], panels['similar_control'] = [], []
+    for k in k_values:
+        if k < 2:
+            continue
+        for _ in range(per_k):
+            records, partners, used = similar.similar_item(k)
+            panels['similar'].append(records)
+            panels['similar_control'].append(similar.dissimilar_control(records, partners, used, control_rng))
     rng = random.Random(seed + 2)
     panels['reorder'] = [reorder(it, rng) for it in panels['iid'] if len(it) >= 2]
     panels['swap'] = [swap_roles(it) for it in panels['iid'] if any(s['polarity'] == 'negative' for s in it)]
     panels['flip'] = [flip_one(it, rng) for it in panels['iid']]
+    # Dev-split counterfactuals, used for early stopping and checkpoint selection only.
+    dev_rng = random.Random(seed + 9)
+    panels['dev_reorder'] = [reorder(it, dev_rng) for it in panels['dev'] if len(it) >= 2]
+    panels['dev_swap'] = [swap_roles(it) for it in panels['dev'] if any(s['polarity'] == 'negative' for s in it)]
+    panels['dev_flip'] = [flip_one(it, dev_rng) for it in panels['dev']]
     if filler:
         panels['cue_conflict'] = panels['iid']
     return panels
@@ -517,14 +560,18 @@ def run(config: dict) -> dict:
         stop_panels = ('iid', 'dev', 'held_out_combo', 'swap', 'flip')
     else:
         raw_panels = study_panels(config['k'], per_k, design, filler=config['arm'] in FILLER_ARMS)
-        stop_panels = ('iid', 'dev', 'swap', 'flip', 'reorder')
+        stop_panels = ('dev', 'dev_swap', 'dev_flip', 'dev_reorder')  # never the test panels
     panels = {name: [dict(prompt=renderer.prompt(config['arm'], it, conflict=(name == 'cue_conflict')),
                           target=renderer.target(it), statements=it)
                      for it in items]
               for name, items in raw_panels.items()}
+    context = rt.recipe['context']
+    longest = max(len(r['prompt']) + len(r['target']) + 3 for rows in panels.values() for r in rows)
+    assert longest <= context, f'panel sequence of {longest} bytes exceeds the context of {context}'
     checkpoints = sorted(set(config['eval_at']) | {config['updates']})
-    history, seconds, bytes_seen, items_seen = [], 0.0, 0, 0
+    history, fine, seconds, bytes_seen, items_seen = [], [], 0.0, 0, 0
     stage_switch = None  # staged curriculum: the update at which K=1-only training ended
+    best_dev, best_state, best_step = -1.0, None, None
     for step in range(1, config['updates'] + 1):
         if curriculum == 'staged' and stage_switch is None:
             items = [stream.item(1) for _ in range(config['batch'])]
@@ -534,15 +581,25 @@ def run(config: dict) -> dict:
             items = [stream.item() for _ in range(config['batch'])]
         rows = [dict(id=str(i), prompt=renderer.prompt(config['arm'], it), target=renderer.target(it))
                 for i, it in enumerate(items)]
+        longest = max(longest, max(len(r['prompt']) + len(r['target']) + 3 for r in rows))
+        assert longest <= context, f'training sequence of {longest} bytes exceeds the context of {context}'
         started = time.perf_counter()
         rt.step(model, optimizer, rows)
         seconds += time.perf_counter() - started
         bytes_seen += sum(len(r['prompt']) + len(r['target']) + 3 for r in rows)  # + BOS, SEP, EOS
         items_seen += len(rows)
+        if design != 'v1' and step % FINE_EVERY == 0 and step >= FINE_FROM and step not in checkpoints:
+            exact = [r['exact'] for r in teacher_forced(rt, model, panels['iid'])]
+            selected = [e for e, r in zip(exact, panels['iid']) if r['target'] != '[]']
+            fine.append(dict(step=step, items_seen=items_seen, bytes_seen=bytes_seen,
+                             iid_exact=round(sum(exact) / len(exact), 4),
+                             iid_selected=round(sum(selected) / len(selected), 4)))
         if step in checkpoints:
             history.append(dict(step=step, items_seen=items_seen, bytes_seen=bytes_seen,
                                 train_seconds=round(seconds, 2), **score(rt, model, panels)))
             h = history[-1]
+            if h['dev']['exact'] > best_dev:  # strict: the earliest best dev checkpoint is kept
+                best_dev, best_step, best_state = h['dev']['exact'], step, rt.state_bytes(model)
             print(f"[{config['arm']} s{config['seed']} {config.get('position', 'learned')} {curriculum} "
                   f"{config['init']}] step {step} items {items_seen} train_s {seconds:.0f} "
                   f"iid {h['iid']['exact']} sel {h['iid']['selected']} dev {h['dev']['exact']} "
@@ -559,19 +616,21 @@ def run(config: dict) -> dict:
     flags = [r['exact'] for r in teacher_forced(rt, model, rows)]
     decoded = [rt.generate(model, r['prompt'], len(r['target']) + 2) == r['target'] for r in rows]
     history[-1]['decoder_agreement'] = dict(agree=sum(a == b for a, b in zip(flags, decoded)), n=len(rows))
-    saved = None
-    if config.get('save_dir'):  # keep the final model (scratch only; never committed)
+    saved = devbest = None
+    if config.get('save_dir'):  # keep the final and the dev-best models (scratch only; never committed)
         o = _overrides(config)
         name = (f"{o['arm']}-{o['init']}-k{''.join(map(str, o['k']))}-u{o['updates']}-b{o['batch']}"
                 f"-lr{o['lr']:g}-s{o['seed']}" + (f"-{o['position']}" if 'position' in o else '')
-                + (f"-{o['curriculum']}" if 'curriculum' in o else '') + (f"-{o['design']}" if 'design' in o else '')
-                + '.pt')
+                + (f"-{o['curriculum']}" if 'curriculum' in o else '') + (f"-{o['design']}" if 'design' in o else ''))
         raw = rt.state_bytes(model)
         Path(config['save_dir']).mkdir(parents=True, exist_ok=True)
-        (Path(config['save_dir']) / name).write_bytes(raw)
-        saved = dict(file=name, sha256=hashlib.sha256(raw).hexdigest())
-    return dict(overrides=_overrides(config), saved=saved,
-                torch=torch.__version__, history=history,
+        (Path(config['save_dir']) / (name + '.pt')).write_bytes(raw)
+        saved = dict(file=name + '.pt', sha256=hashlib.sha256(raw).hexdigest())
+        if best_state is not None:
+            (Path(config['save_dir']) / (name + '-devbest.pt')).write_bytes(best_state)
+            devbest = dict(file=name + '-devbest.pt', sha256=hashlib.sha256(best_state).hexdigest(), step=best_step)
+    return dict(overrides=_overrides(config), saved=saved, devbest=devbest, dev_selected_step=best_step,
+                torch=torch.__version__, history=history, fine=fine, max_sequence_bytes=longest,
                 byte_roles=byte_role_accuracy(rt, model, panels['iid']),
                 mean_prompt_bytes=statistics.fmean(len(r['prompt']) for r in panels['iid']))
 
@@ -617,6 +676,7 @@ def score(rt: Runtime, model, panels: dict) -> dict:
         for e, r in zip(exact, rows):
             by_k[len(r['statements'])].append(e)
         out[name] = dict(exact=round(sum(exact) / len(rows), 4), n=len(rows),
+                         flags=''.join('1' if e else '0' for e in exact),
                          selected=round(sum(selected) / len(selected), 4) if selected else None,
                          n_selected=len(selected),
                          empty=round(sum(empty) / len(empty), 4) if empty else None, n_empty=len(empty),
@@ -669,8 +729,16 @@ def probe(args) -> None:
         selected = [r for r in rows if r['target'] != '[]']
         samples = [dict(target=r['target'], greedy=rt.generate(model, r['prompt'], len(r['target']) + 2))
                    for r in selected[:args.samples]]
+        # Position dependence without training: the same prompts with 0..3 newline bytes
+        # prepended. Learned absolute positions see every byte move; relative positions do not.
+        shift = {}
+        for n_shift in range(4):
+            shifted = [dict(r, prompt='\n' * n_shift + r['prompt']) for r in rows]
+            flags = [r['exact'] for r in teacher_forced(rt, model, shifted)]
+            shift[n_shift] = round(sum(flags) / len(flags), 4)
         record = dict(file=name, sha256=_file_sha(path), arm=arm, k=k_values,
-                      byte_roles_selected=byte_role_accuracy(rt, model, selected), samples=samples)
+                      byte_roles_selected=byte_role_accuracy(rt, model, selected), shift_iid_exact=shift,
+                      samples=samples)
         out.append(record)
         print(json.dumps(record), flush=True)
     if args.out:
