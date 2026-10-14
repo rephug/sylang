@@ -793,6 +793,82 @@ def example(args) -> None:
         print()
 
 
+def _error_kind(result: dict) -> str:
+    """Classify a wrong teacher-forced answer by its first wrong byte: 'polarity' (the
+    decision between [] and [[ at bytes 0-1), 'copy' (an identifier byte) or 'structure'."""
+    hits, target = result['hits'], result['target']
+    first = next(i for i, h in enumerate(hits) if not h)
+    if first <= 1:
+        return 'polarity'
+    ch = chr(target[first]) if target[first] < 128 else ''
+    return 'structure' if ch in '[],"' or target[first] >= 256 else 'copy'
+
+
+def breakdown(args) -> None:
+    """Per-record view of the combo and both panels for a saved design-v2 checkpoint, decoded
+    with the packet's greedy decoder: inclusion of each negative record's pair and exclusion of
+    each positive record's pair, split by held-out versus trained record, polarity, which held-out
+    combination and K; whole-answer error types by first wrong byte."""
+    import torch
+
+    torch.set_num_threads(1)
+    rt = Runtime(args.source)
+    renderer = Renderer(rt)
+    name = Path(args.checkpoint).name
+    arm = _arm_from_name(name)
+    model = rt.load(rt.build(0), args.checkpoint).eval()
+    if '-alibi' in name:
+        use_alibi(model, rt.recipe['heads'], rt.tiny.PAD)
+    k_values = [int(c) for c in name.split('-k')[1].split('-')[0]]
+    panels = study_panels(k_values, max(32, 96 // len(k_values)), 'v2')
+    report = dict(file=name, sha256=_file_sha(args.checkpoint), arm=arm, panels={})
+    for panel in args.panels.split(','):
+        items = panels[panel]
+        rows = [dict(prompt=renderer.prompt(arm, it), target=renderer.target(it), statements=it) for it in items]
+        results = teacher_forced(rt, model, rows)
+        record_cells, answer_cells, kinds = defaultdict(lambda: [0, 0]), defaultdict(lambda: [0, 0]), Counter()
+        invalid = 0
+        for row, res in zip(rows, results):
+            answer = rt.generate(model, row['prompt'], len(row['target']) + 2)
+            try:
+                pairs = [tuple(x) for x in json.loads(answer)] if answer is not None else None
+            except (ValueError, TypeError):
+                pairs = None
+            if pairs is None:
+                invalid += 1
+            held = [is_held_out(s, 'v2') for s in row['statements']]
+            which = next((f"{HELD_OUT['v2'][i][1][0]}+{HELD_OUT['v2'][i][1][1]}"
+                          for i in range(len(HELD_OUT['v2']))
+                          if any(tuple(s[f] for f in HELD_OUT['v2'][i][0]) == HELD_OUT['v2'][i][1]
+                                 for s in row['statements'])), 'none')
+            k = len(row['statements'])
+            for s, h in zip(row['statements'], held):
+                pair = (s['subject'], s['object'])
+                ok = False if pairs is None else (pair in pairs) if s['polarity'] == 'negative' else (pair not in pairs)
+                for cell in ((f"record={'held-out' if h else 'trained'}", s['polarity']),
+                             (f"combination={which if h else 'trained'}", s['polarity']),
+                             (f"K={k}", s['polarity'])):
+                    record_cells[cell][0] += ok
+                    record_cells[cell][1] += 1
+            for cell in (f"combination={which}", f"K={k}", f"held-out record is {row['statements'][held.index(True)]['polarity']}" if any(held) else 'no held-out record'):
+                answer_cells[cell][0] += res['exact']
+                answer_cells[cell][1] += 1
+            if not res['exact']:
+                kinds[_error_kind(res)] += 1
+        report['panels'][panel] = dict(
+            n=len(rows), exact=round(sum(r['exact'] for r in results) / len(rows), 4), invalid_json=invalid,
+            per_record={f"{a} / {b}": dict(correct=c, n=n, rate=round(c / n, 4)) for (a, b), (c, n) in sorted(record_cells.items())},
+            per_answer={a: dict(correct=c, n=n, rate=round(c / n, 4)) for a, (c, n) in sorted(answer_cells.items())},
+            error_kinds=dict(kinds))
+        print(f"--- {panel}: exact {report['panels'][panel]['exact']}, invalid JSON {invalid}, errors {dict(kinds)}")
+        for cell, v in report['panels'][panel]['per_record'].items():
+            print(f"  record {cell}: {v['correct']}/{v['n']} = {v['rate']:.3f}")
+        for cell, v in report['panels'][panel]['per_answer'].items():
+            print(f"  answer {cell}: {v['correct']}/{v['n']} = {v['rate']:.3f}")
+    if args.out:
+        Path(args.out).write_text(json.dumps(report, indent=2) + '\n')
+
+
 # ---------------------------------------------------------------------------
 # Serial inference-cost benchmark (weights do not affect timing)
 
@@ -800,6 +876,12 @@ def example(args) -> None:
 def _flops(length: int, layers: int, width: int, vocab: int) -> float:
     """Approximate forward FLOPs for one full sequence of ``length`` positions."""
     return length * (layers * (24 * width * width) + 2 * width * vocab) + layers * 4 * width * length * length
+
+
+def _flops_cached_step(prefix: int, layers: int, width: int, vocab: int) -> float:
+    """Approximate FLOPs to generate one byte with a KV cache holding ``prefix`` positions:
+    the projections, MLPs and output layer for one position, plus attention over the prefix."""
+    return layers * (24 * width * width) + 2 * width * vocab + layers * 4 * width * prefix
 
 
 def benchmark(args) -> dict:
@@ -810,12 +892,15 @@ def benchmark(args) -> dict:
     renderer = Renderer(rt)
     model = rt.build(0).eval()
     width, layers, vocab = rt.recipe['width'], rt.recipe['layers'], rt.tiny.VOCAB
-    stream = ItemStream('test', 11)
-    items = [stream.item(k) for k in (1, 2, 3, 4) for _ in range(args.items_per_k)]
-    report = {}
-    for arm in ARMS:
+    k_values = [int(c) for c in args.k]
+    stream = ItemStream('test', 11, k_values=tuple(k_values))
+    items = [stream.item(k) for k in k_values for _ in range(args.items_per_k)]
+    report = {'config': dict(k_values=k_values, items_per_k=args.items_per_k, repeats=args.repeats, threads=1,
+                             decode_timing='reference decoder: one full forward per generated byte (no KV cache)',
+                             decode_cached_flops='analytic: one position per byte plus attention over the prefix')}
+    for arm in [a for a in ARMS if not args.arms or a in args.arms.split(',')]:
         rows = [(renderer.natural_prompt(arm, it), renderer.target(it), len(it)) for it in items]
-        prefill, decode, flops_prefill, flops_decode = [], [], [], []
+        prefill, decode, flops_prefill, flops_decode, flops_cached = [], [], [], [], []
         with torch.no_grad():
             for prompt, target, _ in rows:
                 ids = [rt.tiny.BOS] + rt.tiny.byte_ids(prompt) + [rt.tiny.SEP]
@@ -834,15 +919,20 @@ def benchmark(args) -> dict:
                 decode.append(time.perf_counter() - started)
                 flops_prefill.append(_flops(len(ids), layers, width, vocab))
                 flops_decode.append(sum(_flops(len(ids) + i, layers, width, vocab) for i in range(len(answer))))
+                flops_cached.append(sum(_flops_cached_step(len(ids) + i, layers, width, vocab)
+                                        for i in range(len(answer))))
         report[arm] = dict(
             mean_prompt_bytes=round(statistics.fmean(len(p) for p, _, _ in rows), 1),
             mean_prompt_bytes_by_k={k: round(statistics.fmean(len(p) for p, _, kk in rows if kk == k), 1)
-                                    for k in (1, 2, 3, 4)},
+                                    for k in k_values},
             mean_answer_bytes=round(statistics.fmean(len(t) for _, t, _ in rows), 1),
             prefill_ms_median=round(1000 * statistics.median(prefill), 3),
-            decode_ms_mean=round(1000 * statistics.fmean(decode), 2),
+            prefill_ms_by_k={k: round(1000 * statistics.median(t for t, (_, _, kk) in zip(prefill, rows) if kk == k), 3)
+                             for k in k_values},
+            decode_ms_mean_reference_decoder=round(1000 * statistics.fmean(decode), 2),
             prefill_gflops_mean=round(statistics.fmean(flops_prefill) / 1e9, 4),
-            decode_gflops_mean=round(statistics.fmean(flops_decode) / 1e9, 4),
+            decode_gflops_mean_reference_decoder=round(statistics.fmean(flops_decode) / 1e9, 4),
+            decode_gflops_mean_kv_cached=round(statistics.fmean(flops_cached) / 1e9, 5),
         )
     print(json.dumps(report, indent=2))
     Path(args.out).write_text(json.dumps(report, indent=2) + '\n')
@@ -987,14 +1077,21 @@ def main() -> None:
     e.add_argument('--k', type=int, default=4)
     e.add_argument('--items', type=int, default=2)
     e.add_argument('--seed', type=int, default=2026)
+    bd = sub.add_parser('breakdown')
+    bd.add_argument('--source', required=True)
+    bd.add_argument('--checkpoint', required=True)
+    bd.add_argument('--panels', default='combo,both')
+    bd.add_argument('--out')
     b = sub.add_parser('benchmark')
     b.add_argument('--source', required=True)
     b.add_argument('--out', required=True)
     b.add_argument('--items-per-k', type=int, default=16)
     b.add_argument('--repeats', type=int, default=5)
+    b.add_argument('--k', default='1234', help='record counts, e.g. 1234 or 12345678')
+    b.add_argument('--arms', help='comma-separated subset of ' + ','.join(ARMS))
     args = p.parse_args()
     {'audit': audit, 'suite': suite, 'choose-lr': choose_lr, 'probe': probe, 'example': example,
-     'benchmark': benchmark}[args.command](args)
+     'breakdown': breakdown, 'benchmark': benchmark}[args.command](args)
 
 
 if __name__ == '__main__':

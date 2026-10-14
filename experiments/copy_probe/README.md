@@ -19,6 +19,8 @@ This directory holds no checkpoints and downloads no model weights. It needs CPU
 | `tasks.py` | Reference tasks: repeat-copy control, COPY/NONE, two-fact role selection, balanced and fresh identifier sources, and an approximate replica of the English regime |
 | `train.py`, `run_suite.py`, `summarize.py` | Reference training, the sweeps behind the diagnosis, and the summary tables |
 | `test_probes.py` | Each probe passes on the reference model and fails on the defect it targets |
+| `tokens.py` | Qwen 3 token accounting of every arm and K: header, records, instruction and answer tokens and bytes, break-even K, compact variants |
+| `combo_analysis.py` | Why learned-position models fail the held-out combination: per-combination accuracy, answer-offset seen/novel split, error types by first wrong byte |
 | `patches/` | Description of the fresh-initialisation option for the project's COPY packet |
 
 ## Run
@@ -43,8 +45,13 @@ SYLANG_COPY_CURRICULUM=<packet>/copy/source/CURRICULUM.json ../../.venv/bin/pyth
 ../../.venv/bin/python language.py suite --source <packet> --suite main --init copy96 --copy-init <ckpt-dir>/copy96.pt --arms english_natural,codes --seeds 1 --updates 12000 --out results/language_copy96.jsonl
 ../../.venv/bin/python language.py suite --source <packet> --suite study --k 12345678 --arms english_natural,codes,compact --position alibi --curriculum mixed --updates 10000 --seeds 3 --save-dir <ckpt-dir>/study --out results/language_study.jsonl
 ../../.venv/bin/python language.py probe --source <packet> <ckpt-dir>/language/*.pt   # needs --save-dir on the suites
+../../.venv/bin/python followup.py copy-pretrain --source <packet> --position alibi --updates 1536 --out <ckpt-dir>/copy96_alibi.pt   # ALiBi COPY-96 init
+../../.venv/bin/python language.py suite --source <packet> --suite study --k 12345678 --arms english_natural,compact --position alibi --init copy96 --copy-init <ckpt-dir>/copy96_alibi.pt --updates 10000 --out results/language_study_copy96.jsonl
 ../../.venv/bin/python language.py example --source <packet> --checkpoint <ckpt-dir>/study/compact-fresh-k12345678-u10000-b8-lr0.001-s0-alibi-v2.pt --k 4
-../../.venv/bin/python language.py benchmark --source <packet> --out results/language_benchmark.json   # on an idle CPU
+../../.venv/bin/python language.py breakdown --source <packet> --checkpoint <ckpt-dir>/study/compact-fresh-k12345678-u10000-b8-lr0.001-s0-alibi-v2-devbest.pt --out results/breakdown_compact_s0.json
+../../.venv/bin/python combo_analysis.py --source <packet> --out results/combo_analysis.json <ckpt-dir>/selection_init/*.pt <ckpt-dir>/language_alibi/*.pt
+../../.venv/bin/python tokens.py --source <packet> --tokenizer <qwen3-tokenizer.json> --out results/tokens_qwen3.json
+../../.venv/bin/python language.py benchmark --source <packet> --k 12345678 --out results/language_benchmark_k8.json   # on an idle CPU
 ../../.venv/bin/python summarize.py results > results/SUMMARY.md
 ```
 
