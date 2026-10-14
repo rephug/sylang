@@ -8,6 +8,7 @@
     python language.py suite --source <packet> --suite single --updates 4000 --out results/language_k1.jsonl
     python language.py suite --source <packet> --suite position --arms english,words,codes,codes_jitter \
         --updates 12000 --out results/language_alibi.jsonl
+    python language.py suite --source <packet> --suite study --k 12345678 --arms english_natural,codes,compact --position alibi --curriculum mixed --updates 10000 --out results/language_study.jsonl
     python language.py suite --source <packet> --suite selection-init --copy-init <copy96.pt> \
         --surrogate <surrogate.pt> --out results/selection_init.jsonl
     python language.py probe --source <packet> --out results/language_probe.jsonl <ckpt-dir>/*.pt
@@ -25,6 +26,7 @@ bytes in every arm.
 - ``codes``: Sylang batch-v1 codes with selective escaping.
 - ``codes_eqlen``: codes with each record line padded at its end to that record's English line width. It has the same symbols as codes at about English length; its prompts are 35 bytes longer because of the batch header.
 - ``codes_jitter``: codes with polarity-independent filler before the subject (0-3 bytes) and before the object (0-28 bytes), so identifier offsets vary about as much as in English. It separates fixed field positions from the symbols themselves.
+- ``compact``: codes without the batch header line. The header is implied by convention; the record lines are byte-identical to codes.
 - ``english_natural``: controlled English with no filler at all. Here negation adds bytes, so length carries polarity information. This arm measures what the filler changes.
 
 Contrasts:
@@ -63,16 +65,30 @@ if str(HERE) not in sys.path:
 
 from followup import Runtime  # noqa: E402
 
-ARMS = ('english', 'english_natural', 'words', 'codes', 'codes_eqlen', 'codes_jitter')
+ARMS = ('english', 'english_natural', 'words', 'codes', 'codes_eqlen', 'codes_jitter', 'compact')
 INSTRUCTION = 'List [subject,object] of each negative record in order; [] if none.\n'
 FILLER = '~'
-BASE_ARM = {'codes_eqlen': 'codes', 'codes_jitter': 'codes', 'english_natural': 'english'}  # arm -> codec
+BASE_ARM = {'codes_eqlen': 'codes', 'codes_jitter': 'codes', 'compact': 'codes',
+            'english_natural': 'english'}  # arm -> codec rendering
+FILLER_ARMS = ('english', 'words')  # arms whose positive records carry slot filler
 JITTER = (3, 28)  # codes_jitter: up to 3 filler bytes before the subject, up to 28 before the object's tab
 RELATIONS = ('see', 'help', 'contain')
 TENSES = ('past', 'present', 'future')
 ASPECTS = ('simple', 'progressive', 'completed')
 EVIDENCES = ('unspecified', 'direct', 'reported', 'inferred')
 HELD_OUT_COMBO = ('contain', 'future')  # (relation, tense) never in training records
+# Feature combinations never seen in training, by design version. 'v1' is the original
+# single (relation, tense) hold-out; 'v2' adds a (relation, aspect) hold-out.
+HELD_OUT = {
+    'v1': ((('relation', 'tense'), ('contain', 'future')),),
+    'v2': ((('relation', 'tense'), ('contain', 'future')), (('relation', 'aspect'), ('help', 'completed'))),
+}
+CURRICULA = ('mixed', 'staged', 'k1mix')
+STAGE_CAP = 3000  # staged: K=1 only until the dev K=1 panel reaches 97%, or this many updates
+
+
+def is_held_out(statement: dict, design: str = 'v1') -> bool:
+    return any(tuple(statement[f] for f in fields) == values for fields, values in HELD_OUT[design])
 
 
 def _statement(subject, obj, relation, polarity, tense, aspect, evidence):
@@ -200,13 +216,18 @@ class Renderer:
             elif arm == 'codes_jitter':
                 line = _jitter(line, statement, number)
             out.append(line)
+        if arm == 'compact':  # the batch header is implied by convention, not sent
+            header = []
         text = ''.join(h + '\n' for h in header) + ''.join(line + '\n' for line in out) + INSTRUCTION
         assert text.isascii()
         return text
 
     def natural_prompt(self, arm: str, statements: list[dict]) -> str:
         base = BASE_ARM.get(arm, arm)
-        return self.payload(base, statements) + INSTRUCTION
+        payload = self.payload(base, statements)
+        if arm == 'compact':
+            payload = payload.split('\n', 1)[1]
+        return payload + INSTRUCTION
 
     def target(self, statements: list[dict]) -> str:
         return self.target_text([[s['subject'], s['object']] for s in statements if s['polarity'] == 'negative'])
@@ -222,6 +243,10 @@ def _overrides(config: dict) -> dict:
     out = {k: config[k] for k in RESUME_KEYS}
     if config.get('position', 'learned') != 'learned':
         out['position'] = config['position']
+    if config.get('design', 'v1') != 'v1':
+        out['design'] = config['design']
+    if config.get('curriculum', 'mixed') != 'mixed':
+        out['curriculum'] = config['curriculum']
     return out
 
 
@@ -277,31 +302,64 @@ def _identifiers(split: str) -> list[str]:
 class ItemStream:
     """Items with independently sampled records; identical across arms for a seed."""
 
-    def __init__(self, split: str, seed: int, k_values=(1, 2, 3, 4), combos: str = 'train'):
+    def __init__(self, split: str, seed: int, k_values=(1, 2, 3, 4), combos: str = 'train', design: str = 'v1'):
         self.ids = _identifiers(split)
+        self.id_set = set(self.ids)
         self.rng = random.Random(seed)
         self.k_values = tuple(k_values)
         self.combos = combos
+        self.design = design
 
-    def record(self, used: set, held_out: bool | None) -> dict:
+    def record(self, used: set, held_out: bool | None, polarity: str | None = None) -> dict:
+        """One record whose identifiers are unused in the item. ``held_out`` True forces a
+        held-out feature combination, False forbids one, None allows either."""
         while True:
-            relation, tense = self.rng.choice(RELATIONS), self.rng.choice(TENSES)
-            if held_out is not None and ((relation, tense) == HELD_OUT_COMBO) != held_out:
+            features = (self.rng.choice(RELATIONS), self.rng.choice(TENSES), self.rng.choice(ASPECTS),
+                        self.rng.choice(EVIDENCES))
+            statement = _statement('', '', features[0], polarity or self.rng.choice(('positive', 'negative')),
+                                   *features[1:])
+            if held_out is not None and is_held_out(statement, self.design) != held_out:
                 continue
             subject, obj = self.rng.sample(self.ids, 2)
             if subject in used or obj in used:
                 continue
             used.update((subject, obj))
-            return _statement(subject, obj, relation, self.rng.choice(('positive', 'negative')), tense,
-                              self.rng.choice(ASPECTS), self.rng.choice(EVIDENCES))
+            return dict(statement, subject=subject, object=obj)
 
     def item(self, k: int | None = None) -> list[dict]:
         k = k or self.rng.choice(self.k_values)
         used: set = set()
         if self.combos == 'train':
             return [self.record(used, False) for _ in range(k)]
-        forced = self.rng.randrange(k)  # at least one record uses the held-out combination
+        forced = self.rng.randrange(k)  # at least one record uses a held-out combination
         return [self.record(used, True if i == forced else None) for i in range(k)]
+
+    def similar_item(self, k: int) -> list[dict]:
+        """K >= 2 records: every negative record has a positive partner whose subject or
+        object differs from the negative's in exactly one character."""
+        assert k >= 2
+        used: set = set()
+        records = []
+        for _ in range(max(1, k // 2)):
+            negative = self.record(used, False, 'negative')
+            partner = self.record(used, False, 'positive')
+            role = self.rng.choice(('subject', 'object'))
+            partner[role] = self._one_char_variant(negative[role], used)
+            records += [negative, partner]
+        while len(records) < k:
+            records.append(self.record(used, False, 'positive'))
+        self.rng.shuffle(records)
+        return records
+
+    def _one_char_variant(self, identifier: str, used: set) -> str:
+        letters, digits = 'abcdefghijklmnopqrstuvwxyz', '0123456789'
+        while True:
+            i = self.rng.randrange(len(identifier))
+            pool = digits if identifier[i].isdigit() else letters
+            new = identifier[:i] + self.rng.choice(pool.replace(identifier[i], '')) + identifier[i + 1:]
+            if new not in used:
+                used.add(new)
+                return new
 
 
 def swap_roles(statements):
@@ -329,6 +387,41 @@ def eval_panels(k_values, per_k: int, seed: int = 7) -> dict[str, list[list[dict
     panels['swap'] = [swap_roles(it) for it in panels['iid'] if any(s['polarity'] == 'negative' for s in it)]
     panels['flip'] = [flip_one(it, rng) for it in panels['iid']]
     panels['cue_conflict'] = panels['iid']  # rendered with the filler cue inverted (see run)
+    return panels
+
+
+def reorder(statements, rng: random.Random):
+    """The same records in a different order (K >= 2); the answer order follows."""
+    while True:
+        permuted = rng.sample(statements, len(statements))
+        if permuted != statements:
+            return permuted
+
+
+def study_panels(k_values, per_k: int, design: str = 'v2', seed: int = 7, filler: bool = False) -> dict:
+    """Design-v2 panels. Identifier and combination hold-outs are separated:
+    iid = unseen identifiers, trained combinations; combo = training-split identifiers,
+    a held-out combination; both = unseen identifiers and a held-out combination.
+    reorder, similar, swap and flip are counterfactual or adversarial variants."""
+    test = ItemStream('test', seed, design=design)
+    combo = ItemStream('train', seed + 1, combos='held_out', design=design)
+    both = ItemStream('test', seed + 4, combos='held_out', design=design)
+    dev = ItemStream('dev', seed + 3, design=design)
+    similar = ItemStream('test', seed + 5, design=design)
+    half = max(8, per_k // 2)
+    panels = {
+        'iid': [test.item(k) for k in k_values for _ in range(per_k)],
+        'combo': [combo.item(k) for k in k_values for _ in range(half)],
+        'both': [both.item(k) for k in k_values for _ in range(half)],
+        'dev': [dev.item(k) for k in k_values for _ in range(per_k)],
+        'similar': [similar.similar_item(k) for k in k_values if k >= 2 for _ in range(per_k)],
+    }
+    rng = random.Random(seed + 2)
+    panels['reorder'] = [reorder(it, rng) for it in panels['iid'] if len(it) >= 2]
+    panels['swap'] = [swap_roles(it) for it in panels['iid'] if any(s['polarity'] == 'negative' for s in it)]
+    panels['flip'] = [flip_one(it, rng) for it in panels['iid']]
+    if filler:
+        panels['cue_conflict'] = panels['iid']
     return panels
 
 
@@ -367,7 +460,8 @@ def audit(args) -> dict:
         line_cues = defaultdict(list)
         for it, prompt in zip(items, prompts):
             header, _ = renderer.lines(base, it)
-            lines = prompt.split('\n')[len(header):len(header) + len(it)]
+            n_header = 0 if arm == 'compact' else len(header)
+            lines = prompt.split('\n')[n_header:n_header + len(it)]
             for s, line in zip(it, lines):
                 line_cues['line_length'].append((len(line), s['polarity']))
                 line_cues['filler_count'].append((line.count(FILLER), s['polarity']))
@@ -412,16 +506,32 @@ def run(config: dict) -> dict:
     elif config.get('position', 'learned') != 'learned':
         raise ValueError(config['position'])
     optimizer = rt.optimizer(model, config['lr'])
-    stream = ItemStream('train', seed, k_values=tuple(config['k']))
+    design = config.get('design', 'v1')
+    curriculum = config.get('curriculum', 'mixed')
+    if curriculum not in CURRICULA:
+        raise ValueError(curriculum)
+    stream = ItemStream('train', seed, k_values=tuple(config['k']), design=design)
     per_k = max(32, 96 // len(config['k']))
+    if design == 'v1':
+        raw_panels = eval_panels(config['k'], per_k)
+        stop_panels = ('iid', 'dev', 'held_out_combo', 'swap', 'flip')
+    else:
+        raw_panels = study_panels(config['k'], per_k, design, filler=config['arm'] in FILLER_ARMS)
+        stop_panels = ('iid', 'dev', 'swap', 'flip', 'reorder')
     panels = {name: [dict(prompt=renderer.prompt(config['arm'], it, conflict=(name == 'cue_conflict')),
                           target=renderer.target(it), statements=it)
                      for it in items]
-              for name, items in eval_panels(config['k'], per_k).items()}
+              for name, items in raw_panels.items()}
     checkpoints = sorted(set(config['eval_at']) | {config['updates']})
     history, seconds, bytes_seen, items_seen = [], 0.0, 0, 0
+    stage_switch = None  # staged curriculum: the update at which K=1-only training ended
     for step in range(1, config['updates'] + 1):
-        items = [stream.item() for _ in range(config['batch'])]
+        if curriculum == 'staged' and stage_switch is None:
+            items = [stream.item(1) for _ in range(config['batch'])]
+        elif curriculum == 'k1mix':
+            items = [stream.item(1 if stream.rng.random() < 0.25 else None) for _ in range(config['batch'])]
+        else:
+            items = [stream.item() for _ in range(config['batch'])]
         rows = [dict(id=str(i), prompt=renderer.prompt(config['arm'], it), target=renderer.target(it))
                 for i, it in enumerate(items)]
         started = time.perf_counter()
@@ -432,7 +542,17 @@ def run(config: dict) -> dict:
         if step in checkpoints:
             history.append(dict(step=step, items_seen=items_seen, bytes_seen=bytes_seen,
                                 train_seconds=round(seconds, 2), **score(rt, model, panels)))
-            if config.get('early_stop') and step >= config['early_stop'] and _at_ceiling(history[-2:]):
+            h = history[-1]
+            print(f"[{config['arm']} s{config['seed']} {config.get('position', 'learned')} {curriculum} "
+                  f"{config['init']}] step {step} items {items_seen} train_s {seconds:.0f} "
+                  f"iid {h['iid']['exact']} sel {h['iid']['selected']} dev {h['dev']['exact']} "
+                  + ' '.join(f"{n}_sel {h[n]['selected']}" for n in ('combo', 'both', 'similar') if n in h),
+                  flush=True)
+            if curriculum == 'staged' and stage_switch is None and (
+                    history[-1]['dev']['by_k'].get(1, 0) >= 0.97 or step >= STAGE_CAP):
+                stage_switch = step
+                history[-1]['stage_switch'] = step
+            if config.get('early_stop') and step >= config['early_stop'] and _at_ceiling(history[-2:], stop_panels):
                 break  # two checkpoints in a row at the ceiling: later updates cannot change the reading
     # Agreement between the teacher-forced exact flag and the packet's real greedy decoder.
     rows = panels['iid'][:32]
@@ -443,7 +563,9 @@ def run(config: dict) -> dict:
     if config.get('save_dir'):  # keep the final model (scratch only; never committed)
         o = _overrides(config)
         name = (f"{o['arm']}-{o['init']}-k{''.join(map(str, o['k']))}-u{o['updates']}-b{o['batch']}"
-                f"-lr{o['lr']:g}-s{o['seed']}" + (f"-{o['position']}" if 'position' in o else '') + '.pt')
+                f"-lr{o['lr']:g}-s{o['seed']}" + (f"-{o['position']}" if 'position' in o else '')
+                + (f"-{o['curriculum']}" if 'curriculum' in o else '') + (f"-{o['design']}" if 'design' in o else '')
+                + '.pt')
         raw = rt.state_bytes(model)
         Path(config['save_dir']).mkdir(parents=True, exist_ok=True)
         (Path(config['save_dir']) / name).write_bytes(raw)
@@ -480,9 +602,9 @@ def teacher_forced(rt: Runtime, model, rows: list[dict], batch: int = 32) -> lis
     return out
 
 
-def _at_ceiling(last_two: list[dict], level: float = 0.97) -> bool:
-    return len(last_two) == 2 and all(h[panel]['exact'] >= level for h in last_two
-                                      for panel in ('iid', 'dev', 'held_out_combo', 'swap', 'flip'))
+def _at_ceiling(last_two: list[dict], panels=('iid', 'dev', 'held_out_combo', 'swap', 'flip'),
+                level: float = 0.97) -> bool:
+    return len(last_two) == 2 and all(h[panel]['exact'] >= level for h in last_two for panel in panels)
 
 
 def score(rt: Runtime, model, panels: dict) -> dict:
@@ -540,7 +662,7 @@ def probe(args) -> None:
         arm = name.split('-fresh-')[0].split('-copy96-')[0].split('-surrogate-')[0]
         k_values = [int(c) for c in name.split('-k')[1].split('-')[0]]
         model = rt.load(rt.build(0), path).eval()
-        if name.endswith('-alibi.pt'):
+        if '-alibi' in name:
             use_alibi(model, rt.recipe['heads'], rt.tiny.PAD)
         items = eval_panels(k_values, max(32, 96 // len(k_values)))['iid']
         rows = [dict(prompt=renderer.prompt(arm, it), target=renderer.target(it)) for it in items]
@@ -651,6 +773,12 @@ def suite_configs(name: str, args) -> list[dict]:
         return [dict(base, arm=arm, seed=seed, k=k, position='alibi', lr=args.lr, updates=args.updates,
                      early_stop=4000, eval_at=[u for u in GRID if u < args.updates])
                 for seed, arm in itertools.product(range(args.first_seed, args.seeds), arms)]
+    if name == 'study':  # design v2: K up to 8, two held-out combinations, the full panel set
+        k = [int(c) for c in args.k]
+        return [dict(base, arm=arm, seed=seed, k=k, design='v2', position=args.position,
+                     curriculum=args.curriculum, lr=args.lr, updates=args.updates, early_stop=4000,
+                     eval_at=[u for u in GRID if u < args.updates])
+                for seed, arm in itertools.product(range(args.first_seed, args.seeds), arms)]
     if name == 'selection-init':
         inits = ['fresh'] + (['copy96'] if args.copy_init else []) + (['surrogate'] if args.surrogate else [])
         selection_arms = args.arms.split(',') if args.arms else ['english']
@@ -686,10 +814,9 @@ def suite(args) -> None:
             handle.write(json.dumps(result) + '\n')
             handle.flush()
             last = result['history'][-1]
-            print(json.dumps(result['overrides']), 'iid', last['iid']['exact'], 'selected', last['iid']['selected'],
-                  'dev', last['dev']['exact'], 'combo', last['held_out_combo']['exact'],
-                  'swap', last['swap']['exact'], 'flip', last['flip']['exact'],
-                  'cue_conflict', last['cue_conflict']['exact'], flush=True)
+            panels = [k for k, v in last.items() if isinstance(v, dict) and 'exact' in v]
+            print(json.dumps(result['overrides']), 'step', last['step'], 'selected', last['iid']['selected'],
+                  ' '.join(f"{name} {last[name]['exact']}" for name in panels), flush=True)
 
 
 def choose_lr(args) -> None:
@@ -713,7 +840,7 @@ def main() -> None:
     a.add_argument('--out')
     s = sub.add_parser('suite')
     s.add_argument('--source', required=True)
-    s.add_argument('--suite', choices=('lr', 'main', 'single', 'position', 'selection-init'), required=True)
+    s.add_argument('--suite', choices=('lr', 'main', 'single', 'position', 'study', 'selection-init'), required=True)
     s.add_argument('--out', required=True)
     s.add_argument('--workers', type=int, default=4)
     s.add_argument('--seeds', type=int, default=3)
@@ -726,7 +853,9 @@ def main() -> None:
     s.add_argument('--arms', help='comma-separated subset of ' + ','.join(ARMS))
     s.add_argument('--init', default='fresh', choices=('fresh', 'copy96', 'surrogate'),
                    help='initial weights for the lr/main/single/position suites')
-    s.add_argument('--k', default='1', help="record counts for --suite position, e.g. 1 or 1234")
+    s.add_argument('--k', default='1', help="record counts for --suite position/study, e.g. 1, 1234 or 12345678")
+    s.add_argument('--position', default='alibi', choices=POSITIONS, help='--suite study: position scheme')
+    s.add_argument('--curriculum', default='mixed', choices=CURRICULA, help='--suite study: training curriculum')
     s.add_argument('--save-dir', help='write each final model here (outside the repository)')
     c = sub.add_parser('choose-lr')
     c.add_argument('--lr-results', required=True)

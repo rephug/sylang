@@ -271,6 +271,69 @@ def language_benchmark(report: dict) -> str:
                    "decode ms (mean)", "prefill GFLOPs", "decode GFLOPs", "prefill FLOPs vs english"], rows)
 
 
+def _peak(run: dict, panel: str = "iid", field: str = "exact") -> float:
+    return max(h[panel][field] for h in run["history"])
+
+
+def study(results: list[dict]) -> str:
+    """Design-v2 study (language.py --suite study): K up to 8, hold-outs separated."""
+    groups: dict[tuple, list[dict]] = defaultdict(list)
+    for r in results:
+        o = r["overrides"]
+        groups[(o["arm"], o.get("position", "learned"), o["init"], o.get("curriculum", "mixed"),
+                "".join(map(str, o["k"])), o["updates"], o["lr"], o["batch"])].append(r)
+    order = {"english_natural": 0, "codes": 1, "compact": 2}
+    rows, curve = [], []
+    panels_seen: list[str] = []
+    for key in sorted(groups, key=lambda k: (k[4], k[1], k[3], k[2], order.get(k[0], 9), k[0])):
+        runs = groups[key]
+        last = [r["history"][-1] for r in runs]
+        for h in last:
+            for name, v in h.items():
+                if isinstance(v, dict) and "exact" in v and name not in panels_seen:
+                    panels_seen.append(name)
+
+        def col(panel, field="exact", pct=True):
+            vals = [h[panel][field] for h in last if panel in h and h[panel].get(field) is not None]
+            return _fmt(vals, pct) if vals else "–"
+
+        reach_items = [x for x in (_first_reaching(r["history"], "items_seen") for r in runs) if x is not None]
+        reach_bytes = [x for x in (_first_reaching(r["history"], "bytes_seen") for r in runs) if x is not None]
+        long_k = [statistics.fmean(v for k, v in h["iid"]["by_k"].items() if int(k) >= 5)
+                  for h in last if any(int(k) >= 5 for k in h["iid"]["by_k"])]
+        switches = [h.get("stage_switch") for r in runs for h in r["history"] if h.get("stage_switch")]
+        rows.append([key[0], key[1], key[2], key[3] + (f" (switch {statistics.median(switches):,.0f})" if switches else ""),
+                     str(len(runs)), f"{statistics.median(h['step'] for h in last):,.0f}",
+                     f"{len(reach_items)}/{len(runs)}" + (f" ({statistics.median(reach_items):,.0f}" + (
+                         f"; {min(reach_items):,.0f}–{max(reach_items):,.0f})" if len(reach_items) > 1 else ")") if reach_items else ""),
+                     (f"{statistics.median(reach_bytes) / 1e6:.1f}" if reach_bytes else "–"),
+                     _fmt([_peak(r) for r in runs]), col("iid"), col("iid", "selected"), col("iid", "empty"),
+                     _fmt(long_k) if long_k else "–",
+                     col("combo", "selected"), col("both", "selected"), col("similar", "selected"),
+                     col("reorder"), col("swap"), col("flip"),
+                     f"{statistics.fmean(r['mean_prompt_bytes'] for r in runs):.0f}",
+                     _fmt([h["train_seconds"] for h in last], pct=False)])
+        curve.append((key, runs))
+    headers = ["arm", "positions", "init", "curriculum", "seeds", "trained to (median)",
+               "runs ≥90% iid (median items; range)", "median MB to 90%", "peak iid %", "final iid %",
+               "final iid selected %", "final iid empty %", "iid K=5–8 %", "combo selected %",
+               "both selected %", "similar selected %", "reorder %", "swap %", "flip %",
+               "prompt bytes", "train s (shared CPU)"]
+    table = _table(headers, rows)
+    steps = sorted({h["step"] for _, runs in curve for r in runs for h in r["history"]})
+    for (panel, field, pct), title in ((("iid", "exact", True), "iid exact"),
+                                        (("iid", "selected", True), "iid selected-only exact"),
+                                        (("combo", "selected", True), "combo selected-only exact")):
+        lines = []
+        for key, runs in curve:
+            by_step = {s: [h[panel][field] for r in runs for h in r["history"]
+                           if h["step"] == s and panel in h and h[panel].get(field) is not None] for s in steps}
+            lines.append([key[0], key[1], key[2], key[3], *(_fmt(by_step[s], pct) if by_step[s] else "–" for s in steps)])
+        table += f"\n\n{title} by update (early-stopped runs end sooner):\n\n" + _table(
+            ["arm", "positions", "init", "curriculum", *(str(s) for s in steps)], lines)
+    return table
+
+
 def main() -> None:
     root = Path(sys.argv[1] if len(sys.argv) > 1 else "results")
     sections = []
@@ -296,6 +359,10 @@ def main() -> None:
         path = root / f"{name}.jsonl"
         if path.exists():
             sections.append(f"## {name}\n\n{render(_load(path))}\n")
+    study_files = sorted(root.glob("language_study*.jsonl"))
+    if study_files:
+        merged = [r for f in study_files for r in _load(f)]
+        sections.append(f"## language_study (merged from {', '.join(f.name for f in study_files)})\n\n{study(merged)}\n")
     bench = root / "language_benchmark.json"
     if bench.exists():
         sections.append(f"## language_benchmark\n\n{language_benchmark(json.loads(bench.read_text()))}\n")
