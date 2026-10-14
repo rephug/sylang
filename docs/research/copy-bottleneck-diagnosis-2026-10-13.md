@@ -648,3 +648,27 @@ Written 2026-10-14 before any v2 run longer than the 20-update smoke test. Devia
 ### 9.2 Deviations
 
 (none yet)
+
+### 9.3 Results
+
+#### 9.3.1 Tokens under the deployment tokenizer [M-local]
+
+`tokens.py`, Qwen 3 tokenizer (`Qwen/Qwen3-0.6B`; Gemma 3 is gated and was not available), 64 fresh synthetic items per K, the same items in every arm, no special tokens. Prompt = header + records + the 68-byte instruction (17 tokens, identical everywhere). Raw numbers: `results/tokens_qwen3.json`.
+
+| Arm | Header | Per record | of which identifiers | K = 1 | K = 2 | K = 4 | K = 8 | Mix K = 1..8 | Bytes, mix | Cheaper than English from |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `english_natural` | 0 | 17.0 | 6.0 (35%) | 33.9 | 51.0 | 85.1 | 152.7 | **93.3** | 253 | – |
+| `words` | 15 | 11.1 | 6.0 (54%) | 43.1 | 54.2 | 76.4 | 121.0 | 82.0 | 259 | K = 3 |
+| `codes` (current) | 15 | 9.1 | 6.0 (66%) | 41.1 | 50.2 | 68.6 | 105.2 | **73.2** | 157 | K = 2 |
+| `compact` (tab) | 0 | 9.1 | 6.0 (66%) | 26.1 | 35.2 | 53.6 | 90.2 | **58.2** | 122 | K = 1 |
+| `compact` (space) | 0 | 8.9 | 6.0 (68%) | 25.9 | 34.8 | 52.6 | 88.3 | 57.1 | 122 | K = 1 |
+| `compact` + count line | 2 | 9.1 | 6.0 (66%) | 28.1 | 37.2 | 55.6 | 92.2 | 60.2 | 124 | K = 1 |
+
+Answers are identical in every arm: 20.3 tokens on average (`[["abc","def"]]` is 10 tokens; `[]` is 1). A leaner answer format (`abc def` per negative record) would cost 6.0 tokens per record instead of 9.1; it is not used anywhere here.
+
+Reading:
+
+- **The header is the cost that decides small batches.** It is 15 tokens, 1.6 records' worth of `codes`. With it, `codes` costs *more* than English at K = 1 (41 vs 34) and breaks even at K = 2. Without it, `compact` is cheaper than English at every K: 23% at K = 1, 41% at K = 8, 38% over the mix.
+- **Identifiers set the floor.** Three-character identifiers tokenize as three tokens each in Qwen 3, so 6 of the 9 tokens of a `codes` record are the identifiers, which no encoding of the relation can remove. The relation, tense, aspect and evidence cost 1–2 tokens in `codes` against 11 in English.
+- **Separator choice is a 2% effect** (space 57.1 vs tab 58.2 over the mix). The trained `compact` arm keeps tabs, so that its record lines are byte-identical to `codes` and the training comparison isolates the header.
+- **Byte and token savings differ.** Over the mix, `codes` saves 38% of the bytes but 22% of the tokens against English; `compact` saves 52% of the bytes and 38% of the tokens. The byte model's training cost follows bytes; a deployed model's cost follows tokens.
