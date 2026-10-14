@@ -672,3 +672,24 @@ Reading:
 - **Identifiers set the floor.** Three-character identifiers tokenize as three tokens each in Qwen 3, so 6 of the 9 tokens of a `codes` record are the identifiers, which no encoding of the relation can remove. The relation, tense, aspect and evidence cost 1–2 tokens in `codes` against 11 in English.
 - **Separator choice is a 2% effect** (space 57.1 vs tab 58.2 over the mix). The trained `compact` arm keeps tabs, so that its record lines are byte-identical to `codes` and the training comparison isolates the header.
 - **Byte and token savings differ.** Over the mix, `codes` saves 38% of the bytes but 22% of the tokens against English; `compact` saves 52% of the bytes and 38% of the tokens. The byte model's training cost follows bytes; a deployed model's cost follows tokens.
+
+#### 9.3.2 Why unseen combinations were weak under learned positions [M-local]
+
+`combo_analysis.py` on the K = 1 checkpoints of §8.3 and §8.5: 9 (relation, tense) combinations × 2 polarities × 64 fresh items each, test-split identifiers; the byte offset of each identifier in the rendered prompt is compared with the offsets that occur in 4,000 training-distribution renderings of the same arm; wrong answers are classified by their first wrong byte. Raw numbers: `results/combo_analysis.json`.
+
+| Model (K = 1) | Positions | Trained combinations | Held-out combination | Held-out negatives at a **novel** answer offset | … at a **seen** offset | Held-out errors: polarity / copy / structure |
+|---|---|---|---|---|---|---|
+| `english_natural`, COPY-96 start, 3 seeds | learned | 93–99% | 52–59% (sel 41–56, empty 61–70) | **0%** (9 of 64 items) | 47–65% | 20–27 / 19–26 / 8–9 |
+| `english_natural`, fresh, seed 2 | learned | 95% | 48% (sel 33, empty 64) | **0%** | 38% | 29 / 30 / 7 |
+| `english` (filler), COPY-96, 3 seeds | learned | 80–99% | 69–75% (sel 38–50, empty 100) | **0%** | 44–58% | 7–9 / 23–31 / 0–2 |
+| `codes`, `codes_jitter`, fresh | learned | 100% | 100% | (none novel) | 100% | 0 |
+| `codes_eqlen`, fresh | learned | 100% | 92% (sel 84) | (none novel) | 84% | 0 / 8 / 2 |
+| `english_natural`, fresh, 2 seeds | **ALiBi** | 100% | **100%** | **100%** | 100% | 0 |
+| `codes`, fresh, 2 seeds | **ALiBi** | 100% | 99–100% | (none novel) | 98–100% | 0–1 |
+
+Reading:
+
+- **Novel positions are never right under learned positions.** A held-out English phrase ("will not be containing") puts the answer at byte positions the model has never answered from; every learned-position English model scores 0 on those items. That is the §8.3.1 mechanism again.
+- **It is not the whole story.** At positions seen in training, held-out negatives still score 38–65% against 87–98% for trained combinations. Those errors split about evenly between **polarity** (the unseen wording is not recognised as a negation, and 30–40% of held-out *positives* are answered as if negative) and **copying**. The filler-English models make almost no polarity errors (the filler decides polarity) and fail only on copying.
+- **Codes compose.** For `codes` the unseen combination is one new letter pair at a fixed offset; learned-position `codes` and `codes_jitter` score 100% on it. `codes_eqlen` loses 8% to copy errors, because its padding width changes with the unseen code.
+- **Relative positions remove the weakness at K = 1.** Both ALiBi English models score 100% on the held-out combination, at novel and seen offsets alike. Whether that holds for K up to 8 and for the second hold-out is what §9.3.3 measures.
