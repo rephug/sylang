@@ -25,7 +25,7 @@ No project checkpoint was read or replaced, no model was downloaded and no API w
    - Natural English: 3 of 3 seeds, 96% held-out; fresh manages 1 of 3.
    - Filler English: 85% held-out; fresh and memoriser initialisations stay at 0%.
    - This is a learning benefit, not zero-shot transfer.
-   - Two limits: held-out relation/tense combinations stay at 35–65% under learned positions, against 100% under ALiBi; and the benefit did not carry over to K = 1–4 at LR 1e-3 (one seed).
+   - Two limits: held-out relation/tense combinations stay at 44–65% under learned positions, against 91–100% for ALiBi English; and the benefit did not carry over to K = 1–4 at LR 1e-3 (one seed).
 3. **COPY (§0.2).** Breadth × initialisation interaction: only a memorising initialisation with a narrow identifier set fails. 24 or more balanced identifiers fix it from any initialisation, consistent with the native 432/432.
 4. **No implementation defect (§1, §2.1).** All 11 runtime probes pass on the real code. The original binding collapse is a plateau: a 339-byte constant prompt at 192 × 4 updates.
 5. **Next (§5.2).**
@@ -589,7 +589,7 @@ All three COPY-96 runs escaped the plateau between updates 3,072 and 6,144. The 
 
 - **The effect does not depend on the filler.** COPY-96 makes learning reliable: 3 of 3 seeds, against 1 of 3 from fresh. Fresh can learn this, but not reliably within 6,144 updates.
 - **One caveat.** With learned absolute positions, a natural-English model could read polarity from prompt length, since the SEP position reveals it. The flip panel cannot separate that from reading "not".
-- **Every English model under learned positions is weak on the held-out (relation, tense) combination**: 35–65%, whichever initialisation. Every ALiBi model scores 100% on it (§8.3.2). The unseen phrasing (`will be containing` and similar) moves the identifiers to offsets these models have not learned to read. That is the same absolute-position limitation, seen from another side.
+- **Every English model that learned under learned positions is weak on the held-out (relation, tense) combination**: 44–65%, whichever initialisation. The ALiBi English models score 91–100% on it (§8.3.2). The unseen phrasing (`will be containing` and similar) moves the identifiers to offsets these models have not learned to read. That is the same absolute-position limitation, seen from another side.
 
 **Reading:**
 
