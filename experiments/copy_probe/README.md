@@ -12,7 +12,7 @@ This directory holds no checkpoints and downloads no model weights. It needs CPU
 |---|---|
 | `real_pipeline.py` | Runs the probes and one-factor training variants on the **project's own** `tiny.py`, `decode.py` and `binding.py` and its own data, read from an unpacked results packet passed with `--source` |
 | `followup.py` | COPY initialisation × identifier breadth × exposure matrix and the surrogate memorisation warm start, on the packet's model (`--source`) |
-| `language.py` | English-vs-Sylang comparison: `english` / `english_natural` / `words` / `codes` / `codes_eqlen` / `codes_jitter` arms rendered by the packet's codecs, filler in the negation slot, held-out identifiers and combinations, swap/flip/cue-conflict panels, leakage `audit`, byte-role `probe`, an ALiBi position option (`--suite position`), COPY-96/surrogate starts (`--init`, `--suite selection-init`), inference `benchmark` |
+| `language.py` | English-vs-Sylang comparison: `english` / `english_natural` / `words` / `codes` / `codes_eqlen` / `codes_jitter` arms rendered by the packet's codecs, filler in the negation slot, held-out identifiers and combinations, swap/flip/cue-conflict panels, leakage `audit`, byte-role `probe`, an ALiBi position option (`--suite position`), COPY-96/surrogate starts (`--init`, `--suite selection-init`), the design-v2 `study` suite (K ≤ 8, `compact` header-free arm, two held-out combinations, combo/both/reorder/similar panels, `staged`/`k1mix` curricula), a worked `example`, inference `benchmark` |
 | `probes.py` | Model-agnostic checks: causality, visibility, gradient reach, parameter gradients, oracle labels, checkpoint round trip, decoder consistency, padding invariance, prompt dependence, counterfactual swap/replace |
 | `check_pipeline.py` | Runs every mechanical probe on a model and prints PASS/FAIL; a template for other trainers |
 | `model.py` | Independent reference: a 2-layer causal byte transformer, with three injectable defects used only to test the probes |
@@ -41,7 +41,9 @@ SYLANG_COPY_CURRICULUM=<packet>/copy/source/CURRICULUM.json ../../.venv/bin/pyth
 ../../.venv/bin/python language.py suite --source <packet> --suite position --k 1234 --arms english_natural,codes --seeds 2 --updates 12000 --out results/language_alibi_main.jsonl
 ../../.venv/bin/python language.py suite --source <packet> --suite selection-init --copy-init <ckpt-dir>/copy96.pt --surrogate <ckpt-dir>/surrogate.pt --updates 6144 --out results/selection_init.jsonl
 ../../.venv/bin/python language.py suite --source <packet> --suite main --init copy96 --copy-init <ckpt-dir>/copy96.pt --arms english_natural,codes --seeds 1 --updates 12000 --out results/language_copy96.jsonl
+../../.venv/bin/python language.py suite --source <packet> --suite study --k 12345678 --arms english_natural,codes,compact --position alibi --curriculum mixed --updates 10000 --seeds 3 --save-dir <ckpt-dir>/study --out results/language_study.jsonl
 ../../.venv/bin/python language.py probe --source <packet> <ckpt-dir>/language/*.pt   # needs --save-dir on the suites
+../../.venv/bin/python language.py example --source <packet> --checkpoint <ckpt-dir>/study/compact-fresh-k12345678-u10000-b8-lr0.001-s0-alibi-v2.pt --k 4
 ../../.venv/bin/python language.py benchmark --source <packet> --out results/language_benchmark.json   # on an idle CPU
 ../../.venv/bin/python summarize.py results > results/SUMMARY.md
 ```

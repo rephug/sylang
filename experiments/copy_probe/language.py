@@ -659,7 +659,7 @@ def probe(args) -> None:
     out = []
     for path in sorted(args.checkpoints):
         name = Path(path).name
-        arm = name.split('-fresh-')[0].split('-copy96-')[0].split('-surrogate-')[0]
+        arm = _arm_from_name(name)
         k_values = [int(c) for c in name.split('-k')[1].split('-')[0]]
         model = rt.load(rt.build(0), path).eval()
         if '-alibi' in name:
@@ -675,6 +675,54 @@ def probe(args) -> None:
         print(json.dumps(record), flush=True)
     if args.out:
         Path(args.out).write_text(''.join(json.dumps(r) + '\n' for r in out))
+
+
+def _arm_from_name(name: str) -> str:
+    for init in ('-fresh-', '-copy96-', '-surrogate-'):
+        if init in name:
+            return name.split(init)[0]
+    raise ValueError(name)
+
+
+def example(args) -> None:
+    """A worked example from a saved checkpoint: the English input, the arm's rendering,
+    the expected answer and the model's greedy answer from the packet's decoder, on fresh
+    test-split items; plus the reordered and swapped counterfactuals of the same item."""
+    import torch
+
+    torch.set_num_threads(1)
+    rt = Runtime(args.source)
+    renderer = Renderer(rt)
+    name = Path(args.checkpoint).name
+    arm = _arm_from_name(name)
+    model = rt.load(rt.build(0), args.checkpoint).eval()
+    if '-alibi' in name:
+        use_alibi(model, rt.recipe['heads'], rt.tiny.PAD)
+    design = 'v2' if '-v2' in name else 'v1'
+    stream = ItemStream('test', args.seed, k_values=(args.k,), design=design)
+    rng = random.Random(args.seed)
+    for n in range(args.items):
+        item = stream.item(args.k)
+        variants = [('original', item)]
+        if args.k >= 2:
+            variants.append(('reordered', reorder(item, rng)))
+        variants.append(('swapped', swap_roles(item)))
+        print(f'=== item {n + 1} ({arm}, K={args.k})')
+        for label, statements in variants:
+            prompt = renderer.prompt(arm, statements)
+            target = renderer.target(statements)
+            answer = rt.generate(model, prompt, len(target) + 2)
+            if label == 'original':
+                print('--- English input')
+                print(renderer.natural_prompt('english_natural', statements), end='')
+                print(f'--- {arm} input ({len(prompt)} bytes)')
+                print(prompt, end='')
+            else:
+                print(f'--- {label} ({arm} input)')
+                print(prompt.split(INSTRUCTION)[0], end='')
+            print(f'expected: {target}')
+            print(f'model:    {answer}  [{"correct" if answer == target else "WRONG"}]')
+        print()
 
 
 # ---------------------------------------------------------------------------
@@ -865,13 +913,20 @@ def main() -> None:
     pr.add_argument('--out')
     pr.add_argument('--samples', type=int, default=4)
     pr.add_argument('checkpoints', nargs='+')
+    e = sub.add_parser('example')
+    e.add_argument('--source', required=True)
+    e.add_argument('--checkpoint', required=True)
+    e.add_argument('--k', type=int, default=4)
+    e.add_argument('--items', type=int, default=2)
+    e.add_argument('--seed', type=int, default=2026)
     b = sub.add_parser('benchmark')
     b.add_argument('--source', required=True)
     b.add_argument('--out', required=True)
     b.add_argument('--items-per-k', type=int, default=16)
     b.add_argument('--repeats', type=int, default=5)
     args = p.parse_args()
-    {'audit': audit, 'suite': suite, 'choose-lr': choose_lr, 'probe': probe, 'benchmark': benchmark}[args.command](args)
+    {'audit': audit, 'suite': suite, 'choose-lr': choose_lr, 'probe': probe, 'example': example,
+     'benchmark': benchmark}[args.command](args)
 
 
 if __name__ == '__main__':
