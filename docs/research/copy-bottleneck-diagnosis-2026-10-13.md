@@ -359,7 +359,9 @@ The binding builder already renders the same ASTs in two arms, `english` and `co
 - From-scratch runs use 1 thread here against 4 natively. With deterministic algorithms, float differences of order 1e-5 between thread counts can change individual greedy bytes, though not the plateau.
 - Two seeds per binding arm. Arms that differ by 0% vs 100% are robust to that; the 768-update fresh-identifier rung is not (1/2).
 - The reference-model replica approximates a written description. Where it and the real-pipeline runs differ, the real runs take precedence.
-- The language comparison (§8) uses one learning rate for every arm, and few seeds: 3 at K = 1, fewer at K = 1–4. Differences of a few points are not resolvable.
+- **The language comparison (§8) uses one learning rate (1e-3) for every arm, and few seeds.** Learned positions: 1 seed per arm (K = 1 and K = 1–4). ALiBi: 2 seeds per arm. The COPY-96-start comparison: 1 seed. Selection (§8.5): 3 seeds. Seeds of the same arm differ by up to 4× in updates to 90%, so only effects larger than that are claimed: learned vs ALiBi, fixed vs variable offsets, and COPY-96 vs fresh. The English-vs-`codes` per-item difference under ALiBi at K = 1–4 is not resolved.
+- **ALiBi is one relative scheme**, applied to a model trained from scratch. Other schemes (RoPE, relative biases) and pretrained models may behave differently.
+- **Cost of the learned-position K = 1 English arms.** Their seeds 1–2 were not run: each costs about an hour, and seed 0 already showed no escape. The ALiBi arms got both seeds instead.
 - Training seconds in §8 were measured with more worker processes than cores. Use bytes processed and benchmark FLOPs as the cost measures; only the serial benchmark's timings are clean.
 - The filler in English and `words` is a synthetic device. A result on those arms holds only if their cue-conflict accuracy stays close to iid; `english_natural` is the unpadded reference.
 
