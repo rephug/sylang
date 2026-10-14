@@ -19,9 +19,13 @@ No project checkpoint was read or replaced, no model was downloaded and no API w
    - **With relative positions (ALiBi, one change)**, offsets stop mattering. Natural English then learns as fast as `codes` or faster:
      - K = 1: 16,000 items to 90%, against 40,000 (2 seeds each);
      - K = 1–4: tied per item (56,000 against 48,000, median of 2 seeds; seeds vary 2×), with `codes` using fewer bytes because its items are shorter.
-   - **What survives for `codes` is compression:** 22% fewer prompt bytes at K = 1–4, none at K = 1 because of the batch header.
+   - **What survives for `codes` is compression:** 22% fewer prompt bytes and 0.74× prefill FLOPs at K = 1–4 (§8.4). At K = 1 it saves nothing: the batch header makes it 9 bytes longer.
    - **The padded-English and `words` arms are not usable.** Their models read polarity from the filler (cue-conflict 0%), so natural English is the English arm.
-2. **Selection fine-tuning (§8.5).** Under the packet's recipe (learned positions), a COPY-96 initialisation learns fresh-identifier selection (85% held-out, 3 seeds). Fresh and memoriser initialisations stay at 0%. This is a learning benefit, not zero-shot transfer.
+2. **Selection fine-tuning (§8.5).** Under the packet's recipe (learned positions, K = 1), a COPY-96 initialisation makes fresh-identifier selection learnable and reliable.
+   - Natural English: 3 of 3 seeds, 96% held-out; fresh manages 1 of 3.
+   - Filler English: 85% held-out; fresh and memoriser initialisations stay at 0%.
+   - This is a learning benefit, not zero-shot transfer.
+   - Two limits: held-out relation/tense combinations stay at 35–65% under learned positions, against 100% under ALiBi; and the benefit did not carry over to K = 1–4 at LR 1e-3 (one seed).
 3. **COPY (§0.2).** Breadth × initialisation interaction: only a memorising initialisation with a narrow identifier set fails. 24 or more balanced identifiers fix it from any initialisation, consistent with the native 432/432.
 4. **No implementation defect (§1, §2.1).** All 11 runtime probes pass on the real code. The original binding collapse is a plateau: a 339-byte constant prompt at 192 × 4 updates.
 5. **Next (§5.2).**
@@ -576,9 +580,20 @@ This asks the native team's question locally: does COPY pre-training help a mode
 
 All three COPY-96 runs escaped the plateau between updates 3,072 and 6,144. The fresh and surrogate runs show the digit-only failure of §8.3.1.
 
+**The same with natural English** (no filler; `--arms english_natural`), 3 seeds each:
+
+| Initialisation | Seeds reaching ≥ 90% | Held-out selected exact | Held-out combination | Swap / flip |
+|---|---|---|---|---|
+| **COPY-96** | **3 of 3** | **96% (90–100)** | 55% (50–65) | 94% / 97% |
+| fresh | 1 of 3 | 28% (0, 0, 85) | 35% (27–44) | 31% / 60% |
+
+- **The effect does not depend on the filler.** COPY-96 makes learning reliable: 3 of 3 seeds, against 1 of 3 from fresh. Fresh can learn this, but not reliably within 6,144 updates.
+- **One caveat.** With learned absolute positions, a natural-English model could read polarity from prompt length, since the SEP position reveals it. The flip panel cannot separate that from reading "not".
+- **Every English model under learned positions is weak on the held-out (relation, tense) combination**: 35–65%, whichever initialisation. Every ALiBi model scores 100% on it (§8.3.2). The unseen phrasing (`will be containing` and similar) moves the identifiers to offsets these models have not learned to read. That is the same absolute-position limitation, seen from another side.
+
 **Reading:**
 
-- **COPY pre-training on broad identifiers does help the model learn selection.** That holds even though the COPY prompts share no format with this task (`a–f` identifiers, 8-byte prompts). It is the only one of the three initialisations that copies letters at variable offsets under learned positions within this budget. A memorising initialisation is no better than fresh.
+- **COPY pre-training on broad identifiers helps the model learn selection,** with filler English and natural English alike. That holds even though the COPY prompts share no format with this task (`a–f` identifiers, 8-byte prompts). A memorising initialisation is no better than fresh.
 - **Two limits:**
   - The held-out (relation, tense) combination lags at 59%: what it learned about the record wording transfers less well than the copying.
   - Like every filler-arm model, it reads polarity from the filler (cue-conflict 0%).
@@ -591,5 +606,5 @@ All three COPY-96 runs escaped the plateau between updates 3,072 and 6,144. The 
 | `codes` | 60% at update 6,000; 90% at 12,000 | **94% at update 6,000**, then 84–92% |
 | `english_natural` | 30% selected at 12,000 | **0% selected** at 12,000; swap margin only +11 nats; letters 12%, digits 33% |
 
-The COPY-96 benefit is not general. It halves the time `codes` needs at K = 1–4. It does not help natural English at K = 1–4 with LR 1e-3 and batch 8: that run is slower than fresh. Yet at K = 1 under the packet's own recipe (LR 3e-4, batch 4) it does help English. One seed cannot say which difference matters: the learning rate (which may overwrite the pre-trained copying early), or the task mix. A natural-English selection run under the packet recipe tests the first part.
+The COPY-96 benefit is not general. It halves the time `codes` needs at K = 1–4. It does not help natural English at K = 1–4 with LR 1e-3 and batch 8: that run is slower than fresh. Yet at K = 1 under the packet's own recipe (LR 3e-4, batch 4) it does help English. One seed cannot say which difference matters: the learning rate (which may overwrite the pre-trained copying early), or the task mix. Under the packet recipe at K = 1, COPY-96 does help natural English (above), so the learning rate and task mix are the open variables.
 

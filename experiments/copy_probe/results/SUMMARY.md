@@ -431,7 +431,9 @@ Swap margin, mean nats (> 0: the answer follows the roles) by update (runs that 
 | arm | init | K | batch | lr | updates | trained to (median) | seeds | held-out ids % | selected % | always-[] baseline % | dev % | held-out combo % | swap % | flip % | cue-conflict % | swap margin > 0 % | runs ≥90% (median items) | median MB to 90% | prompt bytes (trained) | train s (shared CPU) |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | english | copy96 | 1 | 4 | 0.0003 | 6144 | 6,144 | 3 | 94 (86–100) | 85 (67–100) | 59 | 95 (88–99) | 59 (52–65) | 88 (74–97) | 93 (81–100) | 0 | 100 | 2/3 (24,576) | 3.03 | 112 | 619.19 (539.97–765.59) |
+| english_natural | copy96 | 1 | 4 | 0.0003 | 6144 | 6,144 | 3 | 98 (96–100) | 96 (90–100) | 59 | 97 (95–99) | 55 (50–65) | 94 (90–97) | 97 (94–99) | 98 (96–100) | 100 | 3/3 (24,576) | 2.97 | 109 | 306.74 (302.64–309.36) |
 | english | fresh | 1 | 4 | 0.0003 | 6144 | 6,144 | 3 | 59 | 0 | 59 | 52 | 44 | 0 | 41 | 0 | 93 (92–95) | 0/3 | – | 112 | 621.08 (536.81–781.13) |
+| english_natural | fresh | 1 | 4 | 0.0003 | 6144 | 6,144 | 3 | 71 (59–94) | 28 (0–85) | 59 | 65 (52–92) | 35 (27–44) | 31 (0–92) | 60 (41–98) | 71 (59–94) | 99 (97–100) | 1/3 (24,576) | 2.97 | 109 | 307.17 (303.20–310.21) |
 | english | surrogate | 1 | 4 | 0.0003 | 6144 | 6,144 | 3 | 59 (58–59) | 0 | 59 | 52 | 44 | 0 | 41 | 0 | 91 (87–95) | 0/3 | – | 112 | 614.76 (531.58–765.35) |
 
 Held-out-identifier exact accuracy by update (runs that stopped early at the ceiling end sooner):
@@ -439,7 +441,9 @@ Held-out-identifier exact accuracy by update (runs that stopped early at the cei
 | arm | init | K | lr | 384 | 768 | 1536 | 3072 | 6144 |
 |---|---|---|---|---|---|---|---|---|
 | english | copy96 | 1 | 0.0003 | 59 | 59 | 59 | 59 | 94 (86–100) |
+| english_natural | copy96 | 1 | 0.0003 | 39 (29–45) | 58 (56–59) | 59 | 59 | 98 (96–100) |
 | english | fresh | 1 | 0.0003 | 59 | 59 | 59 | 59 | 59 |
+| english_natural | fresh | 1 | 0.0003 | 44 (38–50) | 56 (51–59) | 59 | 59 (58–59) | 71 (59–94) |
 | english | surrogate | 1 | 0.0003 | 59 | 59 | 59 | 59 | 59 (58–59) |
 
 Held-out-identifier exact accuracy on selected (non-empty) answers by update (runs that stopped early at the ceiling end sooner):
@@ -447,7 +451,9 @@ Held-out-identifier exact accuracy on selected (non-empty) answers by update (ru
 | arm | init | K | lr | 384 | 768 | 1536 | 3072 | 6144 |
 |---|---|---|---|---|---|---|---|---|
 | english | copy96 | 1 | 0.0003 | 0 | 0 | 0 | 0 | 85 (67–100) |
+| english_natural | copy96 | 1 | 0.0003 | 0 | 0 | 0 | 0 | 96 (90–100) |
 | english | fresh | 1 | 0.0003 | 0 | 0 | 0 | 0 | 0 |
+| english_natural | fresh | 1 | 0.0003 | 0 | 0 | 0 | 0 | 28 (0–85) |
 | english | surrogate | 1 | 0.0003 | 0 | 0 | 0 | 0 | 0 |
 
 Swap margin, mean nats (> 0: the answer follows the roles) by update (runs that stopped early at the ceiling end sooner):
@@ -455,7 +461,9 @@ Swap margin, mean nats (> 0: the answer follows the roles) by update (runs that 
 | arm | init | K | lr | 384 | 768 | 1536 | 3072 | 6144 |
 |---|---|---|---|---|---|---|---|---|
 | english | copy96 | 1 | 0.0003 | -0.07 (-0.11–-0.02) | -0.03 (-0.06–-0.01) | -0.06 (-0.12–-0.00) | 6.63 (4.99–8.48) | 46.39 (43.21–50.88) |
+| english_natural | copy96 | 1 | 0.0003 | -0.06 (-0.11–0.02) | -0.03 (-0.14–0.09) | -0.04 (-0.09–-0.01) | 0.90 (0.32–1.67) | 47.56 (43.43–49.89) |
 | english | fresh | 1 | 0.0003 | -0.07 (-0.14–-0.02) | -0.09 (-0.21–0.02) | -0.04 (-0.05–-0.04) | 0.05 (-0.00–0.15) | 10.50 (7.01–12.57) |
+| english_natural | fresh | 1 | 0.0003 | -0.08 (-0.13–-0.00) | -0.02 (-0.08–0.09) | -0.06 (-0.09–0.00) | 0.43 (-0.10–0.93) | 20.24 (6.33–42.57) |
 | english | surrogate | 1 | 0.0003 | -0.01 (-0.09–0.04) | -0.02 (-0.08–0.04) | 0.01 (-0.11–0.12) | 0.21 (0.12–0.26) | 11.72 (11.08–12.85) |
 
 ## language_benchmark
