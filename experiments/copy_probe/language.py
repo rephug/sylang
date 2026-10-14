@@ -651,11 +651,12 @@ def suite_configs(name: str, args) -> list[dict]:
                 for seed, arm in itertools.product(range(args.first_seed, args.seeds), arms)]
     if name == 'selection-init':
         inits = ['fresh'] + (['copy96'] if args.copy_init else []) + (['surrogate'] if args.surrogate else [])
-        return [dict(base, arm='english', init=init, init_sha256=shas.get(init), k=[1], batch=4, lr=3e-4, seed=seed,
+        selection_arms = args.arms.split(',') if args.arms else ['english']
+        return [dict(base, arm=arm, init=init, init_sha256=shas.get(init), k=[1], batch=4, lr=3e-4, seed=seed,
                      updates=args.updates,
                      eval_at=[args.updates // 16, args.updates // 8, args.updates // 4, args.updates // 2,
                               args.updates])
-                for seed, init in itertools.product(range(args.seeds), inits)]
+                for seed, arm, init in itertools.product(range(args.seeds), selection_arms, inits)]
     raise ValueError(name)
 
 

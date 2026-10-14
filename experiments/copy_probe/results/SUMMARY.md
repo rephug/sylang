@@ -398,6 +398,34 @@ Swap margin, mean nats (> 0: the answer follows the roles) by update (runs that 
 | english_natural (alibi) | fresh | 1234 | 0.001 | 0.01 (-0.00–0.03) | 0.00 | 0.03 (-0.01–0.06) | 0.00 (-0.02–0.02) | 0.02 (-0.01–0.05) | 0.48 (0.01–0.96) | 11.39 (11.36–11.43) | 20.40 (16.76–24.03) | 103.81 (103.53–104.09) | 123.82 (120.04–127.60) | 131.39 (130.59–132.19) | 126.28 (119.44–133.13) |
 | codes (alibi) | fresh | 1234 | 0.001 | 0.02 | -0.02 (-0.03–0.00) | 0.01 (-0.01–0.04) | 0.03 | 0.76 (0.37–1.15) | 12.99 (12.92–13.06) | 44.80 (22.15–67.45) | 64.59 (24.65–104.53) | 92.28 (69.32–115.25) | 119.47 (114.49–124.44) | 136.48 (129.29–143.67) | 134.84 (128.65–141.04) |
 
+## language_copy96
+
+| arm | init | K | batch | lr | updates | trained to (median) | seeds | held-out ids % | selected % | always-[] baseline % | dev % | held-out combo % | swap % | flip % | cue-conflict % | swap margin > 0 % | runs ≥90% (median items) | median MB to 90% | prompt bytes (trained) | train s (shared CPU) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| english_natural | copy96 | 1234 | 8 | 0.001 | 12000 | 12,000 | 1 | 28 | 0 | 28 | 25 | 16 | 0 | 20 | 28 | 87 | 0/1 | – | 171 | 2830.62 |
+| codes | copy96 | 1234 | 8 | 0.001 | 12000 | 12,000 | 1 | 84 | 80 | 28 | 84 | 88 | 77 | 79 | 84 | 100 | 1/1 (48,000) | 7.44 | 133 | 1795.96 |
+
+Held-out-identifier exact accuracy by update (runs that stopped early at the ceiling end sooner):
+
+| arm | init | K | lr | 250 | 500 | 750 | 1000 | 1500 | 2000 | 3000 | 4000 | 6000 | 8000 | 10000 | 12000 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| english_natural | copy96 | 1234 | 0.001 | 6 | 11 | 15 | 16 | 20 | 23 | 23 | 23 | 28 | 27 | 28 | 28 |
+| codes | copy96 | 1234 | 0.001 | 0 | 9 | 14 | 28 | 28 | 30 | 59 | 81 | 94 | 91 | 92 | 84 |
+
+Held-out-identifier exact accuracy on selected (non-empty) answers by update (runs that stopped early at the ceiling end sooner):
+
+| arm | init | K | lr | 250 | 500 | 750 | 1000 | 1500 | 2000 | 3000 | 4000 | 6000 | 8000 | 10000 | 12000 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| english_natural | copy96 | 1234 | 0.001 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+| codes | copy96 | 1234 | 0.001 | 0 | 0 | 0 | 0 | 0 | 4 | 42 | 74 | 91 | 88 | 89 | 80 |
+
+Swap margin, mean nats (> 0: the answer follows the roles) by update (runs that stopped early at the ceiling end sooner):
+
+| arm | init | K | lr | 250 | 500 | 750 | 1000 | 1500 | 2000 | 3000 | 4000 | 6000 | 8000 | 10000 | 12000 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| english_natural | copy96 | 1234 | 0.001 | -0.03 | 0.03 | -0.07 | 0.04 | 0.08 | 0.02 | -0.04 | 0.00 | 0.00 | 0.12 | 4.42 | 11.40 |
+| codes | copy96 | 1234 | 0.001 | 0.13 | 0.12 | 0.11 | 0.04 | 5.80 | 16.42 | 50.50 | 74.63 | 92.71 | 97.74 | 103.16 | 100.73 |
+
 ## selection_init
 
 | arm | init | K | batch | lr | updates | trained to (median) | seeds | held-out ids % | selected % | always-[] baseline % | dev % | held-out combo % | swap % | flip % | cue-conflict % | swap margin > 0 % | runs ≥90% (median items) | median MB to 90% | prompt bytes (trained) | train s (shared CPU) |
@@ -429,4 +457,15 @@ Swap margin, mean nats (> 0: the answer follows the roles) by update (runs that 
 | english | copy96 | 1 | 0.0003 | -0.07 (-0.11–-0.02) | -0.03 (-0.06–-0.01) | -0.06 (-0.12–-0.00) | 6.63 (4.99–8.48) | 46.39 (43.21–50.88) |
 | english | fresh | 1 | 0.0003 | -0.07 (-0.14–-0.02) | -0.09 (-0.21–0.02) | -0.04 (-0.05–-0.04) | 0.05 (-0.00–0.15) | 10.50 (7.01–12.57) |
 | english | surrogate | 1 | 0.0003 | -0.01 (-0.09–0.04) | -0.02 (-0.08–0.04) | 0.01 (-0.11–0.12) | 0.21 (0.12–0.26) | 11.72 (11.08–12.85) |
+
+## language_benchmark
+
+| arm | prompt bytes (natural) | by K = 1 / 2 / 3 / 4 | answer bytes | prefill ms (median) | decode ms (mean) | prefill GFLOPs | decode GFLOPs | prefill FLOPs vs english |
+|---|---|---|---|---|---|---|---|---|
+| english | 171.1 | 106 / 152 / 193 / 233 | 17.9 | 8.040 | 192.41 | 0.3502 | 8.2552 | 1.00 |
+| english_natural | 171.1 | 106 / 152 / 193 / 233 | 17.9 | 7.456 | 188.88 | 0.3502 | 8.2552 | 1.00 |
+| words | 190.4 | 132 / 174 / 212 / 244 | 17.9 | 8.093 | 208.74 | 0.3952 | 9.1628 | 1.13 |
+| codes | 133.1 | 115 / 127 / 140 / 151 | 17.9 | 5.424 | 122.82 | 0.2593 | 5.7217 | 0.74 |
+| codes_eqlen | 133.1 | 115 / 127 / 140 / 151 | 17.9 | 5.415 | 123.71 | 0.2593 | 5.7217 | 0.74 |
+| codes_jitter | 133.1 | 115 / 127 / 140 / 151 | 17.9 | 5.500 | 124.09 | 0.2593 | 5.7217 | 0.74 |
 
