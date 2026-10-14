@@ -236,24 +236,25 @@ def use_alibi(model, heads: int, pad: int):
     slopes = torch.tensor([2.0 ** (-8.0 * (h + 1) / heads) for h in range(heads)])
 
     def forward(ids):
-        batch, length = ids.shape
-        index = torch.arange(length, device=ids.device)
+        batch, size = ids.shape
+        index = torch.arange(size, device=ids.device)
         distance = (index[:, None] - index[None, :]).clamp(min=0).float()
         bias = -slopes.to(ids.device)[:, None, None] * distance
-        bias = bias.masked_fill(torch.ones(length, length, dtype=torch.bool, device=ids.device).triu(1),
-                                float('-inf'))
+        future = torch.triu(torch.ones(size, size, dtype=torch.bool, device=ids.device), diagonal=1)
+        bias = bias.masked_fill(future, float('-inf'))
         mask = bias.repeat(batch, 1, 1)  # (batch * heads, L, L), index = n * heads + h
-        x = model.tokens(ids)
+        padding = ids == pad
+        hidden = model.tokens(ids)
         # The fused inference fast path mishandles per-head float masks (NaN with padding);
         # use the standard path for this model only and restore the global flag.
         fast = torch.backends.mha.get_fastpath_enabled()
         torch.backends.mha.set_fastpath_enabled(False)
         try:
-            for block in model.blocks:
-                x = block(x, src_mask=mask, src_key_padding_mask=ids.eq(pad))
+            for layer in model.blocks:
+                hidden = layer(hidden, src_mask=mask, src_key_padding_mask=padding)
         finally:
             torch.backends.mha.set_fastpath_enabled(fast)
-        return model.output(model.norm(x))
+        return model.output(model.norm(hidden))
 
     model.forward = forward
     return model
@@ -614,8 +615,9 @@ def benchmark(args) -> dict:
 # Suites
 
 
-# A fixed evaluation grid, so runs of different lengths share their early checkpoints. Runs
-# with early_stop end once two checkpoints from that update on reach 97% on every panel.
+# A fixed evaluation grid, so runs of different lengths share their early checkpoints. A run
+# with early_stop ends at a checkpoint from that update on when it and the previous checkpoint
+# reach 97% on iid, dev, held_out_combo, swap and flip (cue_conflict is not part of the rule).
 GRID = [250, 500, 750, 1000, 1500, 2000, 3000, 4000, 6000, 8000, 10000, 12000, 16000]
 
 

@@ -1,1 +1,43 @@
-{"cohorts":{"heldout":{"byte_correct":[12,12,12],"copy_exact":12,"copy_expected":12,"distinct_copy_outputs":12,"expected":24,"most_frequent_copy_output_count":1,"none_exact":12,"none_expected":12},"train":{"byte_correct":[12,12,12],"copy_exact":12,"copy_expected":12,"distinct_copy_outputs":12,"expected":24,"most_frequent_copy_output_count":1,"none_exact":12,"none_expected":12}},"contrasts":[{"changed_position_0based":1,"heldout_copy_case":"heldout-acf-copy","heldout_exact":true,"heldout_generated_ids":[97,99,102,258],"heldout_identifier":"acf","passed":true,"train_copy_case":"train-abf-copy","train_exact":true,"train_generated_ids":[97,98,102,258],"train_identifier":"abf","unchanged_positions":[0,2]},{"changed_position_0based":0,"heldout_copy_case":"heldout-eea-copy","heldout_exact":true,"heldout_generated_ids":[101,101,97,258],"heldout_identifier":"eea","passed":true,"train_copy_case":"train-aea-copy","train_exact":true,"train_generated_ids":[97,101,97,258],"train_identifier":"aea","unchanged_positions":[1,2]},{"changed_position_0based":2,"heldout_copy_case":"heldout-bab-copy","heldout_exact":true,"heldout_generated_ids":[98,97,98,258],"heldout_identifier":"bab","passed":true,"train_copy_case":"train-bac-copy","train_exact":true,"train_generated_ids":[98,97,99,258],"train_identifier":"bac","unchanged_positions":[0,1]},{"changed_position_0based":1,"heldout_copy_case":"heldout-bfc-copy","heldout_exact":true,"heldout_generated_ids":[98,102,99,258],"heldout_identifier":"bfc","passed":true,"train_copy_case":"train-bac-copy","train_exact":true,"train_generated_ids":[98,97,99,258],"train_identifier":"bac","unchanged_positions":[0,2]},{"changed_position_0based":2,"heldout_copy_case":"heldout-cda-copy","heldout_exact":true,"heldout_generated_ids":[99,100,97,258],"heldout_identifier":"cda","passed":true,"train_copy_case":"train-cdf-copy","train_exact":true,"train_generated_ids":[99,100,102,258],"train_identifier":"cdf","unchanged_positions":[0,1]},{"changed_position_0based":1,"heldout_copy_case":"heldout-dae-copy","heldout_exact":true,"heldout_generated_ids":[100,97,101,258],"heldout_identifier":"dae","passed":true,"train_copy_case":"train-dce-copy","train_exact":true,"train_generated_ids":[100,99,101,258],"train_identifier":"dce","unchanged_positions":[0,2]},{"changed_position_0based":1,"heldout_copy_case":"heldout-dbd-copy","heldout_exact":true,"heldout_generated_ids":[100,98,100,258],"heldout_identifier":"dbd","passed":true,"train_copy_case":"train-dfd-copy","train_exact":true,"train_generated_ids":[100,102,100,258],"train_identifier":"dfd","unchanged_positions":[0,2]},{"changed_position_0based":0,"heldout_copy_case":"heldout-bab-copy","heldout_exact":true,"heldout_generated_ids":[98,97,98,258],"heldout_identifier":"bab","passed":true,"train_copy_case":"train-eab-copy","train_exact":true,"train_generated_ids":[101,97,98,258],"train_identifier":"eab","unchanged_positions":[1,2]},{"changed_position_0based":2,"heldout_copy_case":"heldout-eea-copy","heldout_exact":true,"heldout_generated_ids":[101,101,97,258],"heldout_identifier":"eea","passed":true,"train_copy_case":"train-eec-copy","train_exact":true,"train_generated_ids":[101,101,99,258],"train_identifier":"eec","unchanged_positions":[0,1]},{"changed_position_0based":0,"heldout_copy_case":"heldout-cfe-copy","heldout_exact":true,"heldout_generated_ids":[99,102,101,258],"heldout_identifier":"cfe","passed":true,"train_copy_case":"train-ffe-copy","train_exact":true,"train_generated_ids":[102,102,101,258],"train_identifier":"ffe","unchanged_positions":[1,2]}],"expected_answers":48,"heldout_copying":true,"seen_mastery":true,"status_counts":{"complete":48},"strict_success":true,"training_complete":true}
+{
+  "cohorts": {
+    "heldout": {
+      "byte_correct": [
+        12,
+        12,
+        12
+      ],
+      "copy_exact": 12,
+      "copy_expected": 12,
+      "distinct_copy_outputs": 12,
+      "expected": 24,
+      "most_frequent_copy_output_count": 1,
+      "none_exact": 12,
+      "none_expected": 12
+    },
+    "train": {
+      "byte_correct": [
+        12,
+        12,
+        12
+      ],
+      "copy_exact": 12,
+      "copy_expected": 12,
+      "distinct_copy_outputs": 12,
+      "expected": 24,
+      "most_frequent_copy_output_count": 1,
+      "none_exact": 12,
+      "none_expected": 12
+    }
+  },
+  "expected_answers": 48,
+  "heldout_copying": true,
+  "seen_mastery": true,
+  "status_counts": {
+    "complete": 48
+  },
+  "strict_success": true,
+  "training_complete": true,
+  "contrasts_passed": 10,
+  "contrasts_total": 10,
+  "note": "Aggregates only. Identifiers, case names and per-contrast rows of the packet scorer are omitted because they are packet data."
+}

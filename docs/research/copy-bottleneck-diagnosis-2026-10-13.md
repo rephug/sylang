@@ -76,7 +76,7 @@ Fresh initialisation helped my small-data runs but is not required: **breadth ma
 The COPY training distribution has nothing in common with the selection task:
 
 - 8-byte prompts against 359/367-byte prompts;
-- `a–f` letters against `a0r…h7y` identifiers;
+- `a–f` letters against letter-digit-letter identifiers;
 - no JSON, polarity or roles.
 
 The 0/48 says nothing about whether COPY pre-training helps *learning* selection. That is the native team's proposed next question.
@@ -143,7 +143,7 @@ The static review's one open item, train/eval kernel parity, is now measured.
 
 **2. The binding failure is a plateau caused by a long constant prompt at a small budget. [M-real] [R]**
 
-- **The collapse reproduces from a fresh initialisation.** With the real data and the original 192 updates × 4 rows, the collapse appears in 3/3 seeds: one constant answer `[["b1s","b1s"]]`, 0.00 bits of prompt dependence, swap TV 0.00, and 100% empty answers.
+- **The collapse reproduces from a fresh initialisation.** With the real data and the original 192 updates × 4 rows, the collapse appears in 3/3 seeds: one constant answer (a single training identifier in both roles), 0.00 bits of prompt dependence, swap TV 0.00, and 100% empty answers.
 - **The journals show the same plateau.** In the 8× weighted run, first-identifier loss sits at **2.26 nats** from update 80 to update 191, with 8.5% accuracy. ln 8 = 2.08 is the loss of a guess spread over the eight possible initials. The model learned *which initials exist*, not *which one is in the prompt*.
 - **Any one of three changes escapes the plateau** (2/2 seeds each):
   - more updates on the same data;
@@ -162,11 +162,11 @@ The static review's one open item, train/eval kernel parity, is now measured.
 - **Fresh initialisation copies.** The exact COPY packet (same 24 rows, schedule, optimiser and 192 updates), started from a fresh initialisation, copies held-out identifiers **12/12, 12/12 and 10/12** in three seeds. The warm-started run copied **2/12**.
 - **A patched run of your own trainer confirms it.** Running `copy_train.worker` itself with the one-line initialisation change (admission stubbed) meets the packet's own strict gate: held-out COPY **12/12** with all 36 held-out bytes correct, NONE 12/12, all 10 predeclared contrasts passed, and `strict_success: true`. Training took 192 updates in 2.7 s ([`results/patched_copy_worker_scores.json`](../../experiments/copy_probe/results/patched_copy_worker_scores.json)).
 - **The warm start is a memoriser.** According to the static review, it is the final state of a phase that memorised 16 long English examples.
-- **Its failure pattern matches.** It emitted training spellings for 6 of the 12 held-out identifiers, e.g. `cfe → cdf` and `fbb → fdd`: a lookup prior, not a copy rule.
+- **Its failure pattern matches.** It emitted training spellings for 6 of the 12 held-out identifiers, each a training identifier with the same first letter: a lookup prior, not a copy rule.
 
 **4. Neither task, as built, can show copying of *new* identifiers. [M-real]**
 
-- **The binding data has no new identifiers to test.** It uses 8 identifiers (`a0r b1s … h7y`), each fully determined by its first character. Train and test differ only in which identifiers are paired. Every binding run trained on them scores **0% on fresh identifiers**, even when it scores 100% on the eight.
+- **The binding data has no new identifiers to test.** It uses 8 identifiers, each fully determined by its first character. Train and test differ only in which identifiers are paired. Every binding run trained on them scores **0% on fresh identifiers**, even when it scores 100% on the eight.
 - **Prompt length gives the class away.** Every positive (empty-answer) prompt is 359 bytes and every negative one is 367, so the empty-answer score carries no information.
 - **Fresh training identifiers do produce copying.** Training on fresh identifiers with the short instruction gives **100% on held-out fresh identifiers** at 1,536 updates (2/2 seeds); at 768 updates 1 of 2 seeds succeeds, and at 192, 0/2.
 - **The long prompt needs more.** With fresh identifiers it fails at 1,536 updates × 4 (0/2). At batch 16 / LR 1e-3 they reach 34% (6–62%) at 768 updates and **100% at 1,536 updates** (2/2).
@@ -199,13 +199,13 @@ The baseline run averages subject/object byte accuracy of **0.70** from update 6
 
 In the weighted run, the suffix loss keeps falling (0.10 nats at the end) while the first-identifier loss stays flat at 2.26 nats. Both runs end with 24 × `[]` and 24 × `[["a0r","a0r"]]`.
 
-In the frozen diagnostic, P(a) = 17.3% at the first identifier byte, although every initial is exactly 12.5% of the training targets. The from-scratch runs here collapse to `b1s` instead. **[I]** So the specific `a0r` is inherited from the warm start, while the collapse itself is not.
+In the frozen diagnostic, P(a) = 17.3% at the first identifier byte, although every initial is exactly 12.5% of the training targets. The from-scratch runs here collapse to a different identifier instead. **[I]** So the specific `a0r` is inherited from the warm start, while the collapse itself is not.
 
 ### 2.3 One-factor runs on the real model and data [M-real]
 
 Mean over seeds (min–max). Batch is rows per update, in quartets; all runs are from fresh initialisation. Full table: `results/SUMMARY.md` → `real_pipeline`.
 
-**COPY packet** (`COPY:abf` → `abf`; 12 balanced training identifiers, 12 held out):
+**COPY packet** (`COPY:<id>` → `<id>`, three letters `a–f`; 12 balanced training identifiers, 12 held out):
 
 | Data | Updates | Seeds | Seen COPY | Held-out COPY | Held-out NONE |
 |---|---|---|---|---|---|
@@ -291,7 +291,7 @@ The builder's caps would block the budget-based fixes. `binding.schedule` limits
 | Proposal | Status |
 |---|---|
 | **E1**: initialisation × the unchanged COPY packet | **Answered.** Natively: warm start + 96 identifiers gives 432/432 (§0.1). Locally: the breadth × initialisation matrix (§0.2). Breadth matters more than initialisation; fresh initialisation is sufficient, but not necessary. |
-| **E2**: copy *new* identifiers in selection, with no length cue | **Answered, with a twist.** With the packet's learned absolute positions, fresh-initialised English selection does not learn within 12,000 × 8 updates: it copies digits, not letters (§8.3.1). It does learn with either of two single changes: a COPY-96 initialisation (§8.5), or relative positions (ALiBi, §8.3.2). Length matching uses slot filler, audited in §0.5. The filler itself became a shortcut (cue-conflict 0%), so the next runs use natural English. |
+| **E2**: copy *new* identifiers in selection, with no length cue | **Answered, with a twist.** With the packet's learned absolute positions, fresh-initialised English selection does not learn within 12,000 × 8 updates: it copies digits, not letters (§8.3.1). It does learn with relative positions (ALiBi) at the same settings (§8.3.2). Under the packet's own recipe (batch 4, LR 3e-4, 6,144 updates), a COPY-96 initialisation makes it learn reliably: 3 of 3 seeds for natural English, against 1 of 3 fresh (§8.5). Length matching uses slot filler, audited in §0.5. The filler itself became a shortcut (cue-conflict 0%), so the next runs use natural English. |
 
 ### 5.2 Next two experiments (revised after §8)
 
@@ -307,7 +307,11 @@ Both are native runs: they need the real warm start, more seeds, or the target m
 - **Success**, decided before running:
   - every arm reaches ≥ 90% held-out exact in ≥ 2 of 3 seeds;
   - `codes` is worth pursuing only if it is within 2 points of the best readable arm on every panel at equal FLOPs, **and** at least 10% cheaper per query in prefill FLOPs.
-- **Expected from the local single-seed result:** `codes` passes the cost criterion at K = 1–4 (22% fewer bytes) and is roughly tied on accuracy per byte. If that holds over seeds, the honest claim is "a compression gain at equal accuracy", not "easier to learn".
+- **Expected from the local two-seed result (§8.3.2):**
+  - `codes` passes the cost criterion at K = 1–4: 22% fewer bytes and 0.74× prefill FLOPs.
+  - It is tied with natural English per item: a median of 48,000 vs 56,000 items to 90%.
+  - Because each item is shorter, it needs fewer bytes to get there: a median of 7.4 vs 10.8 MB.
+  - If that holds over seeds, the honest claim is "a compression gain at equal accuracy", not "easier to learn".
 
 **N2: COPY-96 initialisation for the 64-example selection task.**
 
@@ -375,7 +379,7 @@ The binding builder already renders the same ASTs in two arms, `english` and `co
 
 **Task.** Each item holds K predicate records. The answer is the JSON list of `[subject, object]` for every negative record, in record order, or `[]`. These are the packet's binding target bytes, identical in every arm. Two sizes:
 
-- **K = 1** (`--suite single`): the selection task itself. Planned as 4,000 updates × 8 items, then extended to 12,000 (§8.3). A run stops early once two checkpoints from update 4,000 on reach ≥ 97% on every panel.
+- **K = 1** (`--suite single`): the selection task itself. Planned as 4,000 updates × 8 items, then extended to 12,000 (§8.3). A run stops at a checkpoint from update 4,000 on when that checkpoint and the previous one are both ≥ 97% on iid, dev, the held-out combination, swap and flip. Cue-conflict is not part of the rule.
 - **K uniform in 1–4** (`--suite main`): multi-record selection in order. 12,000 updates × 8 items.
 
 **Arms.** The records are rendered by the packet's own codecs:
@@ -412,7 +416,7 @@ The binding builder already renders the same ASTs in two arms, `english` and `co
 
 - **Exact match.** Teacher-forced exact is greedy exact. At the end of each run it is checked against the packet's decoder on 32 items.
 - **Selected-only exact.**
-- **The always-`[]` baseline.** 50% at K = 1; 28% at K = 1–4.
+- **The always-`[]` baseline.** 59% at K = 1 on the fixed iid panel (57 of 96 items are empty; the training stream is balanced); 28% at K = 1–4.
 - **Swap margin.** log p(swapped answer) − log p(original answer), given the swapped prompt.
 - **Cost per run:** items, bytes and training seconds at each checkpoint.
 - **Serial benchmark** (`language.py benchmark`): per-query prefill and decode time and FLOPs, single thread.
@@ -484,13 +488,13 @@ The `words` row is the clearest single observation. Its subject always sits at t
 - **same symbols, variable offsets** (`codes` → `codes_jitter`): about 5× more updates at K = 1, and failure at K = 1–4;
 - **same offsets, longer prompt** (`codes` → `codes_eqlen`): about 3× more updates.
 
-English has variable offsets and letter-dense surroundings, and does not learn at either K.
+English has variable offsets and letter-dense surroundings. It does not learn at K = 1 (0% selected), and at K = 1–4 only partly: natural English reaches 30% selected, filler English 0%.
 
 #### 8.3.2 One change to the model: ALiBi instead of learned positions
 
 `use_alibi` keeps the packet's embedding, blocks, norm and output layer, drops the position table from the forward pass, and adds per-head ALiBi distance biases to the causal mask. Checks: causality; padding and batch invariance (8e-7); train/eval parity (0.0); and the packet's decoder produces the forward pass's argmax.
 
-**K = 1**, 12,000 updates × 8 items, stopping once two checkpoints are at ≥ 97% on every panel:
+**K = 1**, 12,000 updates × 8 items, with the early stop of §8.1:
 
 | Arm | First update with ≥ 90% held-out exact (seed 0, seed 1) | Median items (MB) to 90% | Final selected exact | Cue-conflict |
 |---|---|---|---|---|
@@ -508,7 +512,7 @@ English has variable offsets and letter-dense surroundings, and does not learn a
 | `codes` | 133 | 8,000, 4,000 | 48,000 | 9.9, 5.0 | 97.7%, 98.4% | 96% (95–98) / 95% (92–98) |
 
 - **Accuracy:** both arms reach the same peak. English seed 0 ends below its peak (97.7% → 86.7% between the last two checkpoints), which is constant-LR noise.
-- **Generalisation:** swap, flip and the held-out combination stay within 4 points of iid in every run.
+- **Generalisation:** at the peak and final checkpoints, swap, flip and the held-out combination are within 4 points of iid in every run. While accuracy is still rising they trail iid by up to 10 points.
 
 **Reading.**
 
@@ -522,7 +526,7 @@ English has variable offsets and letter-dense surroundings, and does not learn a
 1. **Validity.**
    - Learned positions: only the `codes` variants are valid at K = 1, and no arm at K = 1–4 (`codes` 89.8%).
    - ALiBi: every arm is valid at K = 1 (2 of 2 seeds). Both arms are valid at K = 1–4 (2 of 2 seeds).
-2. **Compression.** In natural prompts, `codes` is no shorter than English at K = 1 (115 vs 112 bytes; the batch header costs 35). At K = 1–4 it is 22% shorter (133 vs 172 bytes on average). Per-query FLOPs: §8.4.
+2. **Compression.** In natural prompts, `codes` is no shorter than English at K = 1 (115 vs 106 bytes; the batch header costs 35). At K = 1–4 it is 22% shorter (133 vs 172 bytes on average). Per-query FLOPs: §8.4.
 3. **Learning gain.** Its sign depends on the position scheme. It is positive for `codes` under learned positions and negative under ALiBi. It is not a property of the language.
 4. **Contrasts.** `codes` vs `codes_eqlen` shows that length costs about 3× under learned positions. `codes` vs `codes_jitter` shows that position variability costs about 5× under learned positions and nothing under ALiBi.
 5. **Reading the words.** The English and `words` filler arms fail this rule. Their results are reported with that caveat, and `english_natural` replaces English in the conclusions.
@@ -531,14 +535,14 @@ English has variable offsets and letter-dense surroundings, and does not learn a
    - At K = 1–4 (2 seeds), peak accuracy is equal: 97.7–100% for English and 97.7–98.4% for `codes`. On final accuracy `codes` is within 2 points of English or better (96% vs 93% mean). That makes it non-inferior at equal items and cheaper per item.
 7. **Generalisation** (swap, flip and the held-out combination within 10 points of iid).
    - Every model at ceiling passes.
-   - Learned-position `codes` at K = 1–4 is 83–93% against 90% iid, so it passes.
+   - Learned-position `codes` at K = 1–4 is 83–91% against 90% iid, so it passes.
    - Learned-position `codes_eqlen` fails on the held-out combination (85% vs 100%).
    - ALiBi `words` had not finished learning (73% vs 92%).
 
 #### 8.3.4 What this means for the Sylang question
 
 - **The packet model's preference for `codes` is real but is not about the language.** It comes from fixed-width fields meeting a learned absolute position table. The same symbols at English-like offsets lose most of the advantage. A relative position scheme, used by most current language models, removes it and lets controlled English learn faster.
-- **The compression gain survives, and it is modest at small K.** The batch header is fixed overhead, so the byte saving grows with K. It counts only where accuracy is non-inferior; at K = 1 under ALiBi that costs `codes` twice the training items.
+- **The compression gain survives, and it is modest at small K.** The batch header is fixed overhead, so the byte saving grows with K. It counts only where accuracy is non-inferior; at K = 1 under ALiBi that costs `codes` 2.5× the training items.
 - **For future runs:**
   - use a relative position scheme, or report both;
   - use natural English, not padded English, as the English arm, and control length through the item mix (equal records per K) instead of through filler;
