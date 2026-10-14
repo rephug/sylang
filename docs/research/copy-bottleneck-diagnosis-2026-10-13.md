@@ -12,6 +12,22 @@ Evidence labels:
 
 No project checkpoint was read or replaced, no model was downloaded and no API was called. CPU PyTorch 2.6.0 and 2.14 were installed into scratch virtual environments. **[M-local]** below marks runs on the packet's own model and code, done locally with synthetic data (`followup.py`, `language.py`).
 
+## Current answer (latest first)
+
+1. **English vs Sylang (§8.3).**
+   - **With the packet's learned absolute position table**, `codes` learns selection and English does not. The cause is that `codes` puts its fields at fixed byte offsets. The same symbols at English-like offsets (`codes_jitter`) lose most of the advantage. The failing models copy the identifier's digit but not its letters.
+   - **With relative positions (ALiBi, one change)**, offsets stop mattering. Natural English then learns as fast as `codes` or faster:
+     - K = 1: 16,000 items to 90%, against 40,000 (2 seeds each);
+     - K = 1–4: 48,000 against 64,000 items, about equal in bytes processed (one seed; more running).
+   - **What survives for `codes` is compression:** 22% fewer prompt bytes at K = 1–4, none at K = 1 because of the batch header.
+   - **The padded-English and `words` arms are not usable.** Their models read polarity from the filler (cue-conflict 0%), so natural English is the English arm.
+2. **Selection fine-tuning (§8.5).** Under the packet's recipe (learned positions), a COPY-96 initialisation learns fresh-identifier selection (85% held-out, 3 seeds). Fresh and memoriser initialisations stay at 0%. This is a learning benefit, not zero-shot transfer.
+3. **COPY (§0.2).** Breadth × initialisation interaction: only a memorising initialisation with a narrow identifier set fails. 24 or more balanced identifiers fix it from any initialisation, consistent with the native 432/432.
+4. **No implementation defect (§1, §2.1).** All 11 runtime probes pass on the real code. The original binding collapse is a plateau: a 339-byte constant prompt at 192 × 4 updates.
+5. **Next (§5.2).**
+   - **N1:** the comparison natively, with relative positions, natural English, K up to 8, 3 seeds and a pre-set cost/accuracy rule. A token-count check under the target tokenizer comes first.
+   - **N2:** COPY-96 initialisation for the 64-example selection task, scored on fresh identifiers.
+
 ---
 
 ## 0. Update after the native follow-up (same day)
