@@ -18,7 +18,7 @@ No project checkpoint was read or replaced, no model was downloaded and no API w
    - **With the packet's learned absolute position table**, `codes` learns selection and English does not. The cause is that `codes` puts its fields at fixed byte offsets. The same symbols at English-like offsets (`codes_jitter`) lose most of the advantage. The failing models copy the identifier's digit but not its letters.
    - **With relative positions (ALiBi, one change)**, offsets stop mattering. Natural English then learns as fast as `codes` or faster:
      - K = 1: 16,000 items to 90%, against 40,000 (2 seeds each);
-     - K = 1–4: 48,000 against 64,000 items, about equal in bytes processed (one seed; more running).
+     - K = 1–4: tied per item (56,000 against 48,000, median of 2 seeds; seeds vary 2×), with `codes` using fewer bytes because its items are shorter.
    - **What survives for `codes` is compression:** 22% fewer prompt bytes at K = 1–4, none at K = 1 because of the batch header.
    - **The padded-English and `words` arms are not usable.** Their models read polarity from the filler (cue-conflict 0%), so natural English is the English arm.
 2. **Selection fine-tuning (§8.5).** Under the packet's recipe (learned positions), a COPY-96 initialisation learns fresh-identifier selection (85% held-out, 3 seeds). Fresh and memoriser initialisations stay at 0%. This is a learning benefit, not zero-shot transfer.
@@ -494,34 +494,35 @@ English has variable offsets and letter-dense surroundings, and does not learn a
 | `codes_jitter` | 4,000, 6,000 | 40,000 (5.7 MB) | 99% | 99% |
 | `words` | 12,000, 3,000 | 60,000 (9.3 MB) | 90% (79–100) | **0%** |
 
-**K = 1–4**, 12,000 updates × 8 items, seed 0 (seed 1 running):
+**K = 1–4**, 12,000 updates × 8 items, 2 seeds:
 
-| Arm | Prompt bytes | First update with ≥ 90% held-out exact | Items (MB) to 90% | Peak held-out exact | Final held-out / selected exact |
-|---|---|---|---|---|---|
-| `english_natural` | 171 | 6,000 | 48,000 (9.3 MB) | 97.7% (update 10,000) | 87% / 82% |
-| `codes` | 133 | 8,000 | 64,000 (9.9 MB) | 97.7% (update 10,000) | 95% / 92% |
+| Arm | Prompt bytes | First update with ≥ 90% held-out exact (seed 0, seed 1) | Items to 90% (median) | MB to 90% (seed 0, seed 1) | Peak held-out exact | Final held-out / selected exact |
+|---|---|---|---|---|---|---|
+| `english_natural` | 171 | 6,000, 8,000 | 56,000 | 9.3, 12.4 | 97.7%, 100% | 93% (87–100) / 91% (82–100) |
+| `codes` | 133 | 8,000, 4,000 | 48,000 | 9.9, 5.0 | 97.7%, 98.4% | 96% (95–98) / 95% (92–98) |
 
-Both runs peak at the same accuracy at the same update. Their final checkpoints differ by a constant-LR fluctuation: English drops from 97.7% to 86.7% between the last two checkpoints. Swap, flip and the held-out combination are all within 4 points of iid.
+- **Accuracy:** both arms reach the same peak. English seed 0 ends below its peak (97.7% → 86.7% between the last two checkpoints), which is constant-LR noise.
+- **Generalisation:** swap, flip and the held-out combination stay within 4 points of iid in every run.
 
 **Reading.**
 
 - **Offsets stop mattering.** `codes` and `codes_jitter` learn at the same update.
 - **The ranking reverses at K = 1.** Natural English needs 40% of `codes`' items and bytes, and is the most consistent arm across seeds.
-- **At K = 1–4 they are close** (one seed). English needs 25% fewer items. Bytes processed are about equal, because each English item is longer. Peak accuracy is the same.
+- **At K = 1–4 they are tied per item within seed variation:** English 48k–64k items to 90%, `codes` 32k–64k, with the same peak accuracy. Each `codes` item is 22% shorter, so `codes` needs fewer bytes to get there: 5.0–9.9 MB against 9.3–12.4 MB. That is a compression gain at equal accuracy, not a learning gain.
 - **The filler is a shortcut.** Every filler-arm model (`english` and `words`, both position schemes) scores 0% on the cue-conflict panel. These models read polarity from `~`, not from "not" or `negative`, so those arms say nothing about the languages. `english_natural` is the valid English arm. Under ALiBi it has no absolute positions from which to read prompt length, and its flip panel is 100%.
 
 #### 8.3.3 Against the pre-registered reading (§8.2)
 
 1. **Validity.**
    - Learned positions: only the `codes` variants are valid at K = 1, and no arm at K = 1–4 (`codes` 89.8%).
-   - ALiBi: every arm is valid at K = 1 (2 of 2 seeds). Both arms run so far are valid at K = 1–4 (seed 0).
+   - ALiBi: every arm is valid at K = 1 (2 of 2 seeds). Both arms are valid at K = 1–4 (2 of 2 seeds).
 2. **Compression.** In natural prompts, `codes` is no shorter than English at K = 1 (115 vs 112 bytes; the batch header costs 35). At K = 1–4 it is 22% shorter (133 vs 172 bytes on average). Per-query FLOPs: §8.4.
 3. **Learning gain.** Its sign depends on the position scheme. It is positive for `codes` under learned positions and negative under ALiBi. It is not a property of the language.
 4. **Contrasts.** `codes` vs `codes_eqlen` shows that length costs about 3× under learned positions. `codes` vs `codes_jitter` shows that position variability costs about 5× under learned positions and nothing under ALiBi.
 5. **Reading the words.** The English and `words` filler arms fail this rule. Their results are reported with that caveat, and `english_natural` replaces English in the conclusions.
 6. **Non-inferiority** (under ALiBi).
    - At K = 1, `codes` matches `english_natural` on final accuracy (100% on every panel) but needs 2.5× the items.
-   - At K = 1–4 (seed 0), peak accuracy is equal. Final accuracy favours `codes` (95% vs 87%), but the gap is within the end-of-run fluctuation; seed 1 will tell.
+   - At K = 1–4 (2 seeds), peak accuracy is equal: 97.7–100% for English and 97.7–98.4% for `codes`. On final accuracy `codes` is within 2 points of English or better (96% vs 93% mean). That makes it non-inferior at equal items and cheaper per item.
 7. **Generalisation** (swap, flip and the held-out combination within 10 points of iid).
    - Every model at ceiling passes.
    - Learned-position `codes` at K = 1–4 is 83–93% against 90% iid, so it passes.
