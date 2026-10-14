@@ -648,6 +648,7 @@ v2 was written on 2026-10-14 before any run longer than a 20-update smoke test, 
 ### 9.2 Deviations
 
 1. **2026-10-14, after 45 minutes of wave 1, no run completed.** Stopped and restarted under v2.1 after an adversarial review of v2. Changes: early stopping and checkpoint selection moved from test panels to dev panels; combo and both raised from 16 to 32 items per K; the `seen` cell added; `similar` partners restricted to test-split identifiers and the paired `similar_control` added; the iid fine curve, per-item flags, the context check and dev-best checkpoints added; criterion 4 rewritten (pairing by seed, a 2× rule, and the composition terms) and criterion 5 renamed; the COPY-96 initialisation re-based on an ALiBi pre-trained COPY-96 and piloted on `compact` as well; the memoriser pilot and the learned-position English reference dropped. The aborted runs' partial logs are not used.
+2. **2026-10-14, after the first `compact` run completed.** A fourth learning candidate, `decay` (mixed K, cosine learning-rate decay from 1e-3 to 1e-4 over the run), was added because every learned run so far fluctuates by 10–25 points between grid checkpoints after its escape under the constant LR (`compact` seed 0: 95% at 4,000, 71% at 4,750, 91% at 10,000). It is piloted on `compact` seed 0 under the same rules as the other candidates; its primary criterion is still items-to-90% (criterion 4), and its effect on the dev-selected and final accuracy is reported as a secondary observation.
 
 ### 9.3 Results
 

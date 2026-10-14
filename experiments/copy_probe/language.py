@@ -51,6 +51,7 @@ import argparse
 import hashlib
 import itertools
 import json
+import math
 import random
 import statistics
 import sys
@@ -83,7 +84,7 @@ HELD_OUT = {
     'v1': ((('relation', 'tense'), ('contain', 'future')),),
     'v2': ((('relation', 'tense'), ('contain', 'future')), (('relation', 'aspect'), ('help', 'completed'))),
 }
-CURRICULA = ('mixed', 'staged', 'k1mix')
+CURRICULA = ('mixed', 'staged', 'k1mix', 'decay')  # decay: mixed K, cosine LR decay to 10% over the run
 FINE_EVERY, FINE_FROM = 250, 1000  # design v2: iid-only evaluations between grid checkpoints
 STAGE_CAP = 3000  # staged: K=1 only until the dev K=1 panel reaches 97%, or this many updates
 
@@ -573,6 +574,10 @@ def run(config: dict) -> dict:
     stage_switch = None  # staged curriculum: the update at which K=1-only training ended
     best_dev, best_state, best_step = -1.0, None, None
     for step in range(1, config['updates'] + 1):
+        if curriculum == 'decay':
+            lr = config['lr'] * (0.1 + 0.9 * 0.5 * (1 + math.cos(math.pi * (step - 1) / config['updates'])))
+            for group in optimizer.param_groups:
+                group['lr'] = lr
         if curriculum == 'staged' and stage_switch is None:
             items = [stream.item(1) for _ in range(config['batch'])]
         elif curriculum == 'k1mix':
