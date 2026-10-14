@@ -614,3 +614,37 @@ All three COPY-96 runs escaped the plateau between updates 3,072 and 6,144. The 
 
 The COPY-96 benefit is not general. It halves the time `codes` needs at K = 1–4. It does not help natural English at K = 1–4 with LR 1e-3 and batch 8: that run is slower than fresh. Yet at K = 1 under the packet's own recipe (LR 3e-4, batch 4) it does help English. One seed cannot say which difference matters: the learning rate (which may overwrite the pre-trained copying early), or the task mix. Under the packet recipe at K = 1, COPY-96 does help natural English (above), so the learning rate and task mix are the open variables.
 
+
+---
+
+## 9. Study v2: encoding, generalisation and learning at K ≤ 8 [M-local]
+
+### 9.1 Pre-registration
+
+Written 2026-10-14 before any v2 run longer than the 20-update smoke test. Deviations made after the runs started are logged in §9.2. Code: `language.py --suite study` at commit `12f0985`.
+
+**Task.** Items of K records, K uniform in 1..8 in training. Answer: the JSON list of `[subject, object]` of each negative record in record order, or `[]`. Identifiers are letter-digit-letter from disjoint train (5,362), dev (715) and test (683) splits. Features: relation {see, help, contain}, tense {past, present, future}, aspect {simple, progressive, completed}, evidence {unspecified, direct, reported, inferred}; polarity 50/50 per record. **Held-out combinations**, never in training: (relation = contain, tense = future) and (relation = help, aspect = completed).
+
+**Arms (encodings).** Main comparison with ALiBi in place of the learned position table (§8.3.2): `english_natural` (controlled English, no filler), `codes` (the current batch codes, with the 35-byte header), `compact` (`codes` without the header line; record lines byte-identical). Reference runs with the packet's learned positions: `english_natural` and `codes`, 1 seed. The filler arms are excluded: their models read the filler (§8.3.2).
+
+**Learning methods.** Baseline: fresh initialisation, mixed K from the start. Candidates, piloted at 1 seed on `english_natural`: `copy96` initialisation (the COPY-96 checkpoint; under ALiBi its position table is unused), `surrogate` (memoriser) initialisation, `staged` (K = 1 only until the dev K = 1 panel reaches 97% or 3,000 updates, then mixed), `k1mix` (25% of items K = 1 throughout). The best candidate by criterion 4 is then run at 3 seeds on every encoding.
+
+**Recipe.** AdamW, LR 1e-3, batch 8, up to 10,000 updates (80,000 items), evaluation at the fixed grid (250 … 8,000), early stop when two consecutive checkpoints from update 4,000 on are ≥ 97% on iid, dev, swap, flip and reorder. One thread per run; four runs share four cores.
+
+**Panels** (fixed items, fixed seed; 32 items per K for iid/dev/flip, 16 per K for combo/both): `iid` = unseen identifiers, trained combinations; `combo` = training-split identifiers, at least one held-out combination; `both` = unseen identifiers and a held-out combination; `reorder` = iid items with the record order permuted (K ≥ 2, paired); `similar` = every negative record has a positive partner whose subject or object differs in one character (K ≥ 2); `swap` = subject and object exchanged in every record (paired); `flip` = one record's polarity inverted (paired); `dev` for monitoring and early stop only. Every panel reports exact, selected-only (non-empty answers), empty-only and by K; K = 5–8 is the "long" view.
+
+**Costs.** Items, bytes and Qwen 3 tokens seen to first reach 90% iid exact; train seconds (caveat: shared CPU); COPY-96 pre-training cost added to its arm; the serial inference benchmark per encoding; token counts of header, records, instruction and answer under the Qwen 3 tokenizer (Gemma 3's is gated and unavailable here).
+
+**Frozen criteria.**
+
+1. An arm or method *learns* if iid exact ≥ 90% in ≥ 2 of 3 seeds at some checkpoint.
+2. Efficiency: primary, the median over seeds of items to first reach 90% iid exact; secondary, peak iid exact; tertiary, final iid exact.
+3. `compact` is *non-inferior* to `codes` if its mean peak iid exact and its mean selected-only exact on combo, both, similar and reorder (final checkpoint) are each within 2 points of `codes`'; it is *worthwhile* if its Qwen 3 prompt tokens are ≥ 10% below `codes`' over the K = 1..8 mix.
+4. A learning method is an *improvement* if its median items-to-90% is ≥ 25% below the baseline's in the same encoding, with peak iid exact within 1 point.
+5. A model *composes* if selected-only exact on both combo and both is ≥ 85%.
+6. Pilot runs are reused as seed 0 of the decisive runs when their configuration is unchanged.
+7. Three seeds resolve only large effects; differences under 2× in items-to-90% between arms are reported as ties.
+
+### 9.2 Deviations
+
+(none yet)
