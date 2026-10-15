@@ -696,6 +696,18 @@ Reading:
 - **Codes compose.** For `codes` the unseen combination is one new letter pair at a fixed offset; learned-position `codes` and `codes_jitter` score 100% on it. `codes_eqlen` loses 8% to copy errors, because its padding width changes with the unseen code.
 - **Relative positions remove the weakness at K = 1.** Both ALiBi English models score 100% on the held-out combination, at novel and seen offsets alike. Whether that holds for K up to 8 and for the second hold-out is what §9.3.3 measures.
 
+**Eval-time shift probe** (`language.py probe`, `results/shift_probe.jsonl`): the same K = 1 iid prompts with 0, 1, 2 or 3 newline bytes prepended, no retraining. A model that reads positions relative to the content is unaffected; one that reads absolute positions is not.
+
+| Model (K = 1) | Positions | Shift 0 | 1 byte | 2 bytes | 3 bytes |
+|---|---|---|---|---|---|
+| `english_natural`, fresh | ALiBi | 100% | **100%** | **100%** | **100%** |
+| `codes`, fresh | ALiBi | 100% | 53% | 1% | 1% |
+| `codes`, fresh | learned | 100% | 34% | 14% | 6% |
+| `codes_jitter`, fresh | learned | 100% | 63% | 51% | 52% |
+| `english_natural`, COPY-96 start (2 seeds) | learned | 98–99% | 39–44% | 35–40% | 32–35% |
+
+Two readings. Every learned-position model collapses with a one-byte shift, which is the position dependence directly observed. The ALiBi `codes` model also collapses, although the ALiBi English model does not: under ALiBi the distance to the BOS token still encodes absolute position, and the fixed-offset `codes` layout invites a solution that uses it, while English's variable offsets force a content-relative one. Fixed layouts are a position shortcut whatever the position scheme; `codes_jitter`, trained on variable offsets, is the most shift-tolerant of the learned-position models.
+
 #### 9.3.3 Learning-method pilots at K ≤ 8, seed 0 [M-local]
 
 All ALiBi, 10,000 updates × 8 items at most, dev-selected checkpoint, panels of §9.1. Items-to-90% is read from the fine iid curve; "censored" means 90% was never reached within 80,000 items. One seed each except where stated; these pilots chose the method for the 3-seed runs (§9.2, deviation 3) and are reported as they are.
