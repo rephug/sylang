@@ -428,6 +428,8 @@ def study3(results: list[dict]) -> str:
         o = r["overrides"]
         groups[(o["arm"], o.get("corpus", "all"), o.get("position", "learned"), o["init"],
                 o.get("curriculum", "mixed"), o["updates"], o["lr"], o["batch"])].append(r)
+    # The §10.1 table reads the final checkpoint for the pilot's fixed-shape corpora (deviation 2); here every
+    # group is read at the dev-selected checkpoint, which for those corpora is on out-of-distribution panels.
     order = {"english": 0, "sylang2": 1, "sylang1": 2, "json": 3, "csv": 4}
     rows, curve = [], []
     for key in sorted(groups, key=lambda k: (k[1], k[2], k[4], k[3], order.get(k[0], 9), k[0])):
@@ -451,7 +453,7 @@ def study3(results: list[dict]) -> str:
                      _median_censored([_items_to_90(r) for r in runs]),
                      col("iid"), col("iid", "selected"), col("wording"), col("wording", "selected"),
                      col("combo", "selected"), col("long"), col("long", "selected"),
-                     col("full"), col("full", "selected"),
+                     col("full"), col("full", "selected"), col("longer"),
                      col("reorder"), col("swap"), col("flip"),
                      by_len("iid", 2), by_len("iid", 5),
                      f"{statistics.fmean(r['mean_prompt_bytes'] for r in runs):.0f}",
@@ -460,7 +462,7 @@ def study3(results: list[dict]) -> str:
     headers = ["arm", "corpus", "positions", "curriculum", "seeds", "dev-selected update (median)",
                "trained to (median)", "items to 90% iid (median; range)",
                "iid %", "iid selected %", "wording %", "wording selected %", "combo selected %",
-               "long %", "long selected %", "full %", "full selected %", "reorder %", "swap %", "flip %",
+               "long %", "long selected %", "full %", "full selected %", "longer (K 17–20) %", "reorder %", "swap %", "flip %",
                "iid longest-id 2 %", "iid longest-id 5 %", "prompt bytes", "train s (shared CPU)"]
     table = ("At the dev-selected checkpoint unless stated. Mean over seeds (min–max). Panels: iid = trained "
              "wording/combinations, K 1..12; wording = held-out wording; combo = a held-out combination; long = "

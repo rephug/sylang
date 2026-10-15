@@ -562,7 +562,10 @@ def run(config: dict) -> dict:
         stream = study3.ItemStream3('train', seed, k_values=corpus['k'], lengths=corpus['lengths'],
                                     wordings=corpus['wordings'])
         per_k = 16
-        raw_panels = study3.panels(study3.K_TRAIN, per_k)
+        if config['corpus'] == 'all16':  # targeted expansion: K 13..16 trained, 17..20 the new extrapolation panel
+            raw_panels = study3.panels(corpus['k'], per_k, k_longer=study3.K_LONGER)
+        else:
+            raw_panels = study3.panels(study3.K_TRAIN, per_k)
         stop_panels = study3.STOP_PANELS
 
         def render(arm, it, conflict=False):
@@ -1024,7 +1027,7 @@ def suite_configs(name: str, args) -> list[dict]:
     if name == 'study3':  # design v3: larger K, variable identifiers, varied wording, machine formats
         import study3
         arms3 = [a for a in study3.ARMS3 if not args.arms or a in args.arms.split(',')]
-        return [dict(base, arm=arm, seed=seed, k=list(study3.K_TRAIN), design='v3', corpus=args.corpus,
+        return [dict(base, arm=arm, seed=seed, k=list(study3.CORPORA[args.corpus]['k']), design='v3', corpus=args.corpus,
                      position=args.position, curriculum=args.curriculum, lr=args.lr, updates=args.updates,
                      early_stop=4000, eval_at=[u for u in GRID if u < args.updates])
                 for seed, arm in itertools.product(range(args.first_seed, args.seeds), arms3)]
@@ -1104,7 +1107,7 @@ def main() -> None:
                    help='initial weights for the lr/main/single/position suites')
     s.add_argument('--k', default='1', help="record counts for --suite position/study, e.g. 1, 1234 or 12345678")
     s.add_argument('--position', default='alibi', choices=POSITIONS, help='--suite study/study3: position scheme')
-    s.add_argument('--corpus', default='all', choices=('v2', 'k12', 'ids', 'wording', 'all'),
+    s.add_argument('--corpus', default='all', choices=('v2', 'k12', 'ids', 'wording', 'all', 'all16'),
                    help='--suite study3: training corpus variant (see study3.CORPORA)')
     s.add_argument('--curriculum', default='mixed', choices=CURRICULA, help='--suite study: training curriculum')
     s.add_argument('--save-dir', help='write each final model here (outside the repository)')

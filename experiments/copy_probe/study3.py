@@ -54,6 +54,7 @@ LETTERS = ALPHABET[:26]
 ID_LENGTHS = (2, 3, 4, 5)
 K_TRAIN = tuple(range(1, 13))
 K_LONG = (13, 14, 15, 16)
+K_LONGER = (17, 18, 19, 20)  # extrapolation panel for the all16 corpus (targeted expansion, §10.4)
 
 WORDINGS = {
     'train': (
@@ -77,6 +78,7 @@ CORPORA = {
     'ids': dict(k=tuple(range(1, 9)), lengths=ID_LENGTHS, wordings=(L.INSTRUCTION,)),
     'wording': dict(k=tuple(range(1, 9)), lengths=None, wordings=WORDINGS['train']),
     'all': dict(k=K_TRAIN, lengths=ID_LENGTHS, wordings=WORDINGS['train']),
+    'all16': dict(k=tuple(range(1, 17)), lengths=ID_LENGTHS, wordings=WORDINGS['train']),  # targeted expansion: K 1..16
 }
 
 
@@ -193,26 +195,30 @@ def _wrap(statements, item) -> Item:
     return Item(statements, item.instruction)
 
 
-def panels(k_values, per_k: int, lengths=ID_LENGTHS, seed: int = 7) -> dict:
-    """Design-v3 panels on test-split identifiers (dev for the dev panels)."""
+def panels(k_values, per_k: int, lengths=ID_LENGTHS, seed: int = 7, k_long=K_LONG, k_longer=None) -> dict:
+    """Design-v3 panels on test-split identifiers (dev for the dev panels). ``k_long`` is the
+    held-out record-count range of ``long`` and ``full``; ``k_longer`` adds a ``longer`` panel."""
     def stream(split, offset, **kw):
         return ItemStream3(split, seed + offset, lengths=lengths, **kw)
 
     test = stream('test', 0, k_values=k_values)
     wording = stream('test', 1, k_values=k_values, wordings=WORDINGS['heldout'])
     combo = stream('test', 2, k_values=k_values, combos='held_out')
-    long = stream('test', 3, k_values=K_LONG)
-    full = stream('test', 4, k_values=K_LONG, wordings=WORDINGS['heldout'], combos='held_out')
+    long = stream('test', 3, k_values=k_long)
+    full = stream('test', 4, k_values=k_long, wordings=WORDINGS['heldout'], combos='held_out')
     dev = stream('dev', 5, k_values=k_values)
     half = max(8, per_k // 2)
     out = {
         'iid': [test.item(k) for k in k_values for _ in range(per_k)],
         'wording': [wording.item(k) for k in k_values for _ in range(half)],
         'combo': [combo.item(k) for k in k_values for _ in range(half)],
-        'long': [long.item(k) for k in K_LONG for _ in range(per_k)],
-        'full': [full.item(k) for k in K_LONG for _ in range(per_k)],
+        'long': [long.item(k) for k in k_long for _ in range(per_k)],
+        'full': [full.item(k) for k in k_long for _ in range(per_k)],
         'dev': [dev.item(k) for k in k_values for _ in range(per_k)],
     }
+    if k_longer:
+        longer = stream('test', 6, k_values=k_longer)
+        out['longer'] = [longer.item(k) for k in k_longer for _ in range(per_k)]
     rng = random.Random(seed + 8)
     out['reorder'] = [_wrap(L.reorder(it, rng), it) for it in out['iid'] if len(it) >= 2]
     out['swap'] = [_wrap(L.swap_roles(it), it) for it in out['iid'] if any(s['polarity'] == 'negative' for s in it)]

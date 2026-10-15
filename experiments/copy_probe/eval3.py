@@ -37,6 +37,9 @@ def main() -> None:
     parser.add_argument('--arm', help='rendering arm; default: parsed from the checkpoint name')
     parser.add_argument('--lengths', default='v2', choices=('v2', 'v3'))
     parser.add_argument('--per-k', type=int, default=16)
+    parser.add_argument('--k-train', default='1-12', help='K range of the iid/wording/combo panels, e.g. 1-12 or 1-16')
+    parser.add_argument('--k-long', default='13-16', help='K range of the long/full panels')
+    parser.add_argument('--longer', help='optional extra extrapolation panel K range, e.g. 17-20')
     parser.add_argument('--out', required=True)
     args = parser.parse_args()
     torch.set_num_threads(1)
@@ -48,7 +51,9 @@ def main() -> None:
     if '-alibi' in name:
         L.use_alibi(model, rt.recipe['heads'], rt.tiny.PAD)
     lengths = None if args.lengths == 'v2' else study3.ID_LENGTHS
-    raw = study3.panels(study3.K_TRAIN, args.per_k, lengths=lengths)
+    span = lambda text: tuple(range(int(text.split('-')[0]), int(text.split('-')[1]) + 1))
+    raw = study3.panels(span(args.k_train), args.per_k, lengths=lengths, k_long=span(args.k_long),
+                        k_longer=span(args.longer) if args.longer else None)
     raw = {k: v for k, v in raw.items() if not k.startswith('dev')}
     panels = {panel: [dict(prompt=study3.render(renderer, arm, it), target=renderer.target(list(it)), statements=list(it))
                       for it in items] for panel, items in raw.items()}
@@ -57,7 +62,9 @@ def main() -> None:
               'panels': {p: {k: v for k, v in s.items() if k != 'flags'} for p, s in scores.items()}}
     Path(args.out).parent.mkdir(parents=True, exist_ok=True)
     Path(args.out).write_text(json.dumps(report, indent=1, sort_keys=True) + '\n')
-    for p in ('iid', 'wording', 'combo', 'long', 'full', 'reorder', 'swap', 'flip'):
+    for p in ('iid', 'wording', 'combo', 'long', 'full', 'longer', 'reorder', 'swap', 'flip'):
+        if p not in scores:
+            continue
         s = scores[p]
         print(f"{p:8s} exact {100 * s['exact']:5.1f}  selected {100 * (s['selected'] or 0):5.1f}  n {s['n']}  "
               f"by_k {s['by_k']}")
