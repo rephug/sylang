@@ -467,6 +467,28 @@ def study3(results: list[dict]) -> str:
     table = ("At the dev-selected checkpoint unless stated. Mean over seeds (min–max). Panels: iid = trained "
              "wording/combinations, K 1..12; wording = held-out wording; combo = a held-out combination; long = "
              "K 13..16; full = held-out wording + held-out combination + K 13..16.\n\n" + _table(headers, rows))
+    # Secondary reading (pre-registered as a labelled extra after the escape rate turned out seed-dependent):
+    # the learned seeds only, i.e. seeds whose fine iid curve reached 90%.
+    learned_rows = []
+    for key, runs in curve:
+        learned = [r for r in runs if _items_to_90(r) is not None]
+        if not learned:
+            learned_rows.append([key[0], key[1], f"0/{len(runs)}", *(["–"] * 9)])
+            continue
+        sel_l = [_selected_checkpoint(r) for r in learned]
+
+        def lcol(panel, field="exact"):
+            vals = [h[panel][field] for h in sel_l if panel in h and h[panel].get(field) is not None]
+            return _fmt(vals) if vals else "–"
+
+        learned_rows.append([key[0], key[1], f"{len(learned)}/{len(runs)}",
+                             _median_censored([_items_to_90(r) for r in learned]),
+                             lcol("iid"), lcol("wording"), lcol("combo", "selected"), lcol("long"), lcol("full"),
+                             lcol("longer"), lcol("reorder"), lcol("swap")])
+    table += ("\n\nLearned seeds only (fine iid curve reached 90%), dev-selected checkpoint, mean (min–max); "
+              "the escape rate is learned/seeds:\n\n"
+              + _table(["arm", "corpus", "learned/seeds", "items to 90% iid", "iid %", "wording %", "combo selected %",
+                        "long %", "full %", "longer %", "reorder %", "swap %"], learned_rows))
     # Paired per-item bootstrap: every arm minus english, on the shared panels, averaged over shared seeds.
     boot_rows = []
     for key, runs in curve:
