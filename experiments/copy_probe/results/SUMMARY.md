@@ -575,3 +575,12 @@ both selected-only exact by grid update (early-stopped runs end sooner):
 | codes_eqlen | 133.1 | 115 / 127 / 140 / 151 | 17.9 | 5.415 | 123.71 | 0.2593 | 5.7217 | – | 0.74 |
 | codes_jitter | 133.1 | 115 / 127 / 140 / 151 | 17.9 | 5.500 | 124.09 | 0.2593 | 5.7217 | – | 0.74 |
 
+## language_benchmark_k8
+
+| arm | prompt bytes (natural) | by K | answer bytes | prefill ms (median) | decode ms (reference decoder, mean) | prefill GFLOPs | decode GFLOPs (reference decoder) | decode GFLOPs (KV-cached, analytic) | prefill FLOPs vs english |
+|---|---|---|---|---|---|---|---|---|---|
+| english_natural | 254.2 | 107 / 150 / 192 / 235 / 277 / 306 / 356 / 411 | 33.5 | 14.377 | 797.29 | 0.5742 | 26.9720 | 0.07985 | – |
+| words | 260.8 | 135 / 173 / 205 / 244 / 278 / 310 / 350 / 391 | 33.5 | 14.121 | 784.08 | 0.5869 | 26.9986 | 0.07998 | – |
+| codes | 157.1 | 115 / 127 / 139 / 151 / 163 / 175 / 187 / 200 | 33.5 | 7.636 | 346.51 | 0.3142 | 13.9647 | 0.07047 | – |
+| compact | 122.1 | 80 / 92 / 104 / 116 / 128 / 140 / 152 / 165 | 33.5 | 5.623 | 270.09 | 0.2365 | 11.0979 | 0.06800 | – |
+
