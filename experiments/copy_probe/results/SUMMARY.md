@@ -709,7 +709,7 @@ At the dev-selected checkpoint unless stated. Mean over seeds (min–max). Panel
 | sylang1 | all | alibi | decay | 0,1,2 | 10,000 | 10,000 | 68,000 (56,000–68,000) [1 censored] | 67 (9–99) | 64 (0–99) | 65 (12–94) | 60 (0–93) | 64 (0–100) | 42 (0–83) | 42 (0–83) | 23 (0–61) | 23 (0–61) | – | 67 (5–100) | 65 (0–100) | 68 (7–100) | 100 | 65 (5–99) | 214 | 4486.12 (4338.05–4706.74) |
 | json | all | alibi | decay | 0,1 | 10,000 | 10,000 | ∞ (2/2 censored) | 45 (9–80) | 39 (1–78) | 48 (12–83) | 40 (0–81) | 40 (0–79) | 6 (0–12) | 6 (0–12) | 3 (0–6) | 3 (0–6) | – | 41 (5–77) | 40 (0–79) | 46 (9–83) | 100 | 41 (5–77) | 539 | 22864.99 (22541.83–23188.14) |
 | csv | all | alibi | decay | 0,1 | 5,375 | 10,000 | ∞ (2/2 censored) | 8 (8–9) | 0 | 7 (3–10) | 0 | 0 | 0 | 0 | 0 | 0 | – | 3 (3–4) | 0 | 7 (6–8) | 100 | 4 | 412 | 14172.89 (13821.31–14524.47) |
-| sylang2c | all | alibi | decay | 0 | 8,000 | 10,000 | 54,000 | 99 | 99 | 88 | 86 | 100 | 50 | 50 | 41 | 41 | – | 99 | 99 | 99 | 100 | 99 | 181 | 3851.11 |
+| sylang2c | all | alibi | decay | 0,1 | 4,250 | 10,000 | ∞ [1 censored] | 54 (9–99) | 50 (0–99) | 50 (12–88) | 43 (0–86) | 50 (0–100) | 25 (0–50) | 25 (0–50) | 20 (0–41) | 20 (0–41) | – | 52 (5–99) | 50 (0–99) | 53 (7–99) | 100 | 52 (5–99) | 181 | 3851.25 (3851.11–3851.39) |
 | english | all16 | alibi | decay | 0 | 10,000 | 10,000 | 74,000 | 96 | 95 | 88 | 86 | 92 | 81 | 81 | 56 | 56 | 58 | 95 | 95 | 96 | 100 | 96 | 454 | 16707.65 |
 | sylang2 | all16 | alibi | decay | 0 | 10,000 | 10,000 | 52,000 | 99 | 99 | 95 | 94 | 99 | 95 | 95 | 89 | 89 | 44 | 98 | 98 | 99 | 100 | 99 | 205 | 5353.13 |
 | sylang2 | ids | alibi | decay | 0 | 10,000 | 10,000 | ∞ (1/1 censored) | 66 | 64 | 71 | 69 | 56 | 2 | 2 | 3 | 3 | – | 60 | 66 | 66 | 50 | 65 | 178 | 3095.65 |
@@ -726,7 +726,7 @@ Learned seeds only (fine iid curve reached 90%), dev-selected checkpoint, mean (
 | sylang1 | all | 2/3 | 62,000 (56,000–68,000) | 96 (93–99) | 91 (89–94) | 97 (93–100) | 62 (42–83) | 35 (9–61) | – | 98 (97–100) | 97 (94–100) |
 | json | all | 0/2 | – | – | – | – | – | – | – | – | – |
 | csv | all | 0/2 | – | – | – | – | – | – | – | – | – |
-| sylang2c | all | 1/1 | 54,000 | 99 | 88 | 100 | 50 | 41 | – | 99 | 99 |
+| sylang2c | all | 1/2 | 54,000 | 99 | 88 | 100 | 50 | 41 | – | 99 | 99 |
 | english | all16 | 1/1 | 74,000 | 96 | 88 | 92 | 81 | 56 | 58 | 95 | 95 |
 | sylang2 | all16 | 1/1 | 52,000 | 99 | 95 | 99 | 95 | 89 | 44 | 98 | 98 |
 | sylang2 | ids | 0/1 | – | – | – | – | – | – | – | – | – |
@@ -762,12 +762,12 @@ arm − english, paired per item at the dev-selected checkpoint, points (90% boo
 | csv | all | decay | long | 2 | -20.3 | [-25.0, -15.6] | no | worse |
 | csv | all | decay | full | 2 | -14.8 | [-19.5, -10.2] | no | worse |
 | csv | all | decay | reorder | 2 | -47.4 | [-48.9, -46.0] | no | worse |
-| sylang2c | all | decay | iid | 1 | +90.6 | [+87.0, +93.8] | yes | better |
-| sylang2c | all | decay | wording | 1 | +75.0 | [+67.7, +82.3] | yes | better |
-| sylang2c | all | decay | combo | 1 | +91.7 | [+86.5, +95.8] | yes | better |
-| sylang2c | all | decay | long | 1 | +50.0 | [+39.1, +60.9] | yes | better |
-| sylang2c | all | decay | full | 1 | +40.6 | [+31.2, +51.6] | yes | better |
-| sylang2c | all | decay | reorder | 1 | +94.9 | [+92.0, +97.7] | yes | better |
+| sylang2c | all | decay | iid | 2 | +1.8 | [+0.8, +2.9] | yes | tied |
+| sylang2c | all | decay | wording | 2 | -3.1 | [-6.8, +0.5] | no | tied |
+| sylang2c | all | decay | combo | 2 | +4.7 | [+2.6, +7.3] | yes | tied |
+| sylang2c | all | decay | long | 2 | +4.7 | [+0.0, +9.4] | yes | tied |
+| sylang2c | all | decay | full | 2 | +5.5 | [+0.0, +11.7] | yes | tied |
+| sylang2c | all | decay | reorder | 2 | +1.1 | [+0.0, +2.3] | yes | tied |
 | sylang2 | all16 | decay | iid | 1 | +3.5 | [+1.2, +5.9] | yes | tied |
 | sylang2 | all16 | decay | wording | 1 | +7.0 | [+2.3, +12.5] | yes | tied |
 | sylang2 | all16 | decay | combo | 1 | +6.2 | [+3.1, +10.2] | yes | better |
@@ -801,7 +801,7 @@ iid exact by grid update (early-stopped runs end sooner):
 | sylang1 | all | decay | 0 | 3 (0–7) | 9 | 9 | 9 | 9 | 9 | 9 | 37 (9–76) | 62 (9–96) | 67 (9–99) |
 | json | all | decay | 0 | 2 (0–4) | 7 (6–8) | 9 | 9 | 9 | 9 | 9 | 9 | 27 (9–45) | 45 (9–80) |
 | csv | all | decay | 0 | 3 (0–7) | 7 (6–8) | 7 (6–9) | 7 (6–9) | 9 | 9 | 9 | 9 | 9 | 9 |
-| sylang2c | all | decay | 0 | 9 | 9 | 9 | 9 | 9 | 9 | 14 | 85 | 99 | 99 |
+| sylang2c | all | decay | 0 | 9 | 9 | 9 | 9 | 9 | 9 | 11 (9–14) | 47 (9–85) | 54 (9–99) | 54 (9–99) |
 | english | all16 | decay | 0 | 0 | 0 | 1 | 5 | 3 | 7 | 7 | 50 | 87 | 96 |
 | sylang2 | all16 | decay | 2 | 7 | 7 | 7 | 7 | 7 | 7 | 28 | 89 | 94 | 99 |
 | sylang2 | ids | decay | 9 | 9 | 7 | 7 | 7 | 7 | 7 | 7 | 35 | 59 | 66 |
@@ -818,7 +818,7 @@ full (held-out) exact by grid update (early-stopped runs end sooner):
 | sylang1 | all | decay | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 4 (0–11) | 17 (0–48) | 23 (0–61) |
 | json | all | decay | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 (0–2) | 3 (0–6) |
 | csv | all | decay | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| sylang2c | all | decay | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 5 | 41 | 38 |
+| sylang2c | all | decay | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 2 (0–5) | 20 (0–41) | 19 (0–38) |
 | english | all16 | decay | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 5 | 50 | 56 |
 | sylang2 | all16 | decay | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 62 | 83 | 89 |
 | sylang2 | ids | decay | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 3 | 3 |
@@ -835,7 +835,7 @@ long (K 13..16) exact by grid update (early-stopped runs end sooner):
 | sylang1 | all | decay | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 5 (0–12) | 18 (0–39) | 42 (0–83) |
 | json | all | decay | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 1 (0–2) | 6 (0–12) |
 | csv | all | decay | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
-| sylang2c | all | decay | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 17 | 50 | 78 |
+| sylang2c | all | decay | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 9 (0–17) | 25 (0–50) | 39 (0–78) |
 | english | all16 | decay | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 9 | 66 | 81 |
 | sylang2 | all16 | decay | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 64 | 80 | 95 |
 | sylang2 | ids | decay | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 3 | 2 |

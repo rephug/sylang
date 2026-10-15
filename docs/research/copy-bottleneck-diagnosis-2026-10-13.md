@@ -1027,18 +1027,18 @@ Not pre-registered; `results/language_study3_extra.jsonl`, rendered as the "exte
 | english | 0–4 | 2 / 5 | 2 / 5 | 60,000; 62,000 | 0, 3, 4 |
 | sylang2 | 0–4 | 2 / 5 | 3 / 5 | 54,000; 54,000 (seed 4 escaped late and ended at 85% iid) | 1, 3 |
 | sylang1 | 0–2 | 2 / 3 | 2 / 3 | 56,000; 68,000 | 1 |
-| sylang2c (count line) | 0–1 | 1 / 1 so far | 1 / 1 | 54,000 | – |
+| sylang2c (count line) | 0–1 | 1 / 2 | 1 / 2 | 54,000 | 1 |
 | json | 0–1 | 0 / 2 | 1 / 2 | – (seed 0 ended at 80%) | 1 |
 | csv | 0–1 | 0 / 2 | 0 / 2 | – | 0, 1 |
 
-With five seeds the escape rate is about the same for English and header-free Sylang (two or three in five) and the learned seeds' speed ordering is unchanged (Sylang 54,000, English 60,000–62,000). The rate is the property of this corpus and budget for the packet's tiny model, not of an encoding: a production run needs a dev-panel check at update 6,000 and a restart rule, whichever format is used.
+With five seeds the escape rate is about the same for English and header-free Sylang (two or three in five; the count-line arm 1 in 2, the header format 2 in 3) and the learned seeds' speed ordering is unchanged (Sylang 54,000, English 60,000–62,000). The rate is the property of this corpus and budget for the packet's tiny model, not of an encoding: a production run needs a dev-panel check at update 6,000 and a restart rule, whichever format is used.
 
 **The count cue (deviations 5–6), exploratory.** Dev-selected checkpoint, learned seeds, K 13–16 (`long`) and the fully held-out set (`full`):
 
 | arm | count cue | long % by learned seed | full % by learned seed |
 |---|---|---|---|
 | sylang2 | none | 30, 38 | 30, 44 |
-| sylang2c | one-line count | 50 (seed 0; seed 1 pending) | 41 |
+| sylang2c | one-line count | 50 (seed 0; seed 1 never left the floor) | 41 |
 | sylang1 | header with the count | 83, 42 | 61, 9 |
 | english | numbered records | 41, 64 | 30, 52 |
 
