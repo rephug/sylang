@@ -1,0 +1,65 @@
+=== handoff 1 (K=1); expected answer: [["nxx","9m3sn"]]
+--- english message (110 bytes, 35 Qwen 3 tokens)
+1. By report, "nxx" did not help "9m3sn".
+List [subject,object] of each negative record in order; [] if none.
+consumer answer: [["nxx","9m3sn"]]  [correct]
+--- sylang2 message (82 bytes, 27 Qwen 3 tokens)
+nxx	Hpr	9m3sn
+List [subject,object] of each negative record in order; [] if none.
+consumer answer: [["nxx","9m3sn"]]  [correct]
+--- sylang1 message (117 bytes, 42 Qwen 3 tokens)
+SYLANG-BATCH	1	codes	selective	0	1
+nxx	Hpr	9m3sn
+List [subject,object] of each negative record in order; [] if none.
+consumer answer: [["nxx","9m3sn"]]  [correct]
+--- json message (142 bytes, 48 Qwen 3 tokens)
+[{"s":"nxx","r":"help","neg":true,"t":"past","e":"reported","o":"9m3sn"}]
+List [subject,object] of each negative record in order; [] if none.
+consumer answer: [["nxx","9m3sn"]]  [correct]
+--- csv message (113 bytes, 35 Qwen 3 tokens)
+nxx,help,negative,past,simple,reported,9m3sn
+List [subject,object] of each negative record in order; [] if none.
+
+=== handoff 2 (K=1); expected answer: []
+--- english message (124 bytes, 37 Qwen 3 tokens)
+1. By direct observation, "bl2" had seen "hp4c".
+Return the [subject,object] pairs of the negated records, in order, or [].
+consumer answer: []  [correct]
+--- sylang2 message (89 bytes, 30 Qwen 3 tokens)
+bl2	spcd	hp4c
+Return the [subject,object] pairs of the negated records, in order, or [].
+consumer answer: []  [correct]
+--- sylang1 message (124 bytes, 45 Qwen 3 tokens)
+SYLANG-BATCH	1	codes	selective	0	1
+bl2	spcd	hp4c
+Return the [subject,object] pairs of the negated records, in order, or [].
+consumer answer: []  [correct]
+--- json message (150 bytes, 50 Qwen 3 tokens)
+[{"s":"bl2","r":"see","t":"past","a":"completed","e":"direct","o":"hp4c"}]
+Return the [subject,object] pairs of the negated records, in order, or [].
+consumer answer: []  [correct]
+--- csv message (119 bytes, 37 Qwen 3 tokens)
+bl2,see,positive,past,completed,direct,hp4c
+Return the [subject,object] pairs of the negated records, in order, or [].
+
+=== handoff 3 (K=1); expected answer: [["fl6","h61"]]
+--- english message (156 bytes, 42 Qwen 3 tokens)
+1. By direct observation, "fl6" was not helping "h61".
+Which records are negative? Answer with a JSON list of [subject,object] in record order, [] if none.
+consumer answer: [["fl6","h61"]]  [correct]
+--- sylang2 message (114 bytes, 33 Qwen 3 tokens)
+fl6	Hpgd	h61
+Which records are negative? Answer with a JSON list of [subject,object] in record order, [] if none.
+consumer answer: [["fl6","h61"]]  [correct]
+--- sylang1 message (149 bytes, 48 Qwen 3 tokens)
+SYLANG-BATCH	1	codes	selective	0	1
+fl6	Hpgd	h61
+Which records are negative? Answer with a JSON list of [subject,object] in record order, [] if none.
+consumer answer: [["fl6","h61"]]  [correct]
+--- json message (189 bytes, 59 Qwen 3 tokens)
+[{"s":"fl6","r":"help","neg":true,"t":"past","a":"progressive","e":"direct","o":"h61"}]
+Which records are negative? Answer with a JSON list of [subject,object] in record order, [] if none.
+consumer answer: [["fl6","h61"]]  [correct]
+--- csv message (147 bytes, 41 Qwen 3 tokens)
+fl6,help,negative,past,progressive,direct,h61
+Which records are negative? Answer with a JSON list of [subject,object] in record order, [] if none.

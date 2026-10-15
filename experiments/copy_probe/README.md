@@ -58,6 +58,9 @@ SYLANG_COPY_CURRICULUM=<packet>/copy/source/CURRICULUM.json ../../.venv/bin/pyth
 ../../.venv/bin/python language.py benchmark --source <packet> --design v3 --k 1,2,4,8,12,16 --out results/language_benchmark_v3.json   # on an idle CPU
 SYLANG_PACKET=<packet> ../../.venv/bin/python -c "import sys; sys.path.insert(0, '.'); import unittest; unittest.main(module='test_sylang_batch', argv=['t'])"   # codec tests incl. packet parity
 ../../.venv/bin/python demo_handoff.py --source <packet> --tokenizer <qwen3-tokenizer.json> --design v2 --k 12345678 --checkpoint sylang2=<ckpt-dir>/study/compact-fresh-k12345678-u10000-b8-lr0.001-s0-alibi-decay-v2-devbest.pt --checkpoint english=<ckpt-dir>/study/english_natural-fresh-k12345678-u10000-b8-lr0.001-s0-alibi-decay-v2-devbest.pt --out results/demo_handoff_v2.json --examples results/demo_handoff_v2_examples.txt
+../../.venv/bin/python language.py suite --source <packet> --suite study3 --corpus all --arms json,csv --position alibi --curriculum decay --updates 10000 --seeds 2 --save-dir <ckpt-dir>/study3 --out results/study3/decisive-machine.jsonl   # + sylang1 --seeds 1; targeted expansion: --corpus all16
+../../.venv/bin/python eval3.py --source <packet> --checkpoint <ckpt-dir>/study3/<run>.pt --lengths v2 --out results/study3_eval/<run>.json   # score a saved v3 model on fixed-shape identifiers (or --lengths v3, --k-long 13-16 --longer 17-20)
+../../.venv/bin/python demo_handoff.py --source <packet> --tokenizer <qwen3-tokenizer.json> --design v3 --k 1,2,3,4,5,6,7,8,9,10,11,12 --checkpoint sylang2=<ckpt-dir>/study3/sylang2-...-s2-alibi-decay-v3-all-devbest.pt --checkpoint english=<ckpt-dir>/study3/english-...-s2-alibi-decay-v3-all-devbest.pt --checkpoint json=... --checkpoint sylang1=... --out results/demo_handoff_v3.json --examples results/demo_handoff_v3_examples.txt
 ../../.venv/bin/python summarize.py results > results/SUMMARY.md
 ```
 
