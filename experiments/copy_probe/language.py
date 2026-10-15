@@ -641,7 +641,8 @@ def run(config: dict) -> dict:
         o = _overrides(config)
         name = (f"{o['arm']}-{o['init']}-k{''.join(map(str, o['k']))}-u{o['updates']}-b{o['batch']}"
                 f"-lr{o['lr']:g}-s{o['seed']}" + (f"-{o['position']}" if 'position' in o else '')
-                + (f"-{o['curriculum']}" if 'curriculum' in o else '') + (f"-{o['design']}" if 'design' in o else ''))
+                + (f"-{o['curriculum']}" if 'curriculum' in o else '') + (f"-{o['design']}" if 'design' in o else '')
+                + (f"-{o['corpus']}" if 'corpus' in o else ''))
         raw = rt.state_bytes(model)
         Path(config['save_dir']).mkdir(parents=True, exist_ok=True)
         (Path(config['save_dir']) / (name + '.pt')).write_bytes(raw)
