@@ -822,3 +822,64 @@ model:    [["j6e","a0z"],["e2p","v5w"]]  [correct]
 ```
 
 The same item with its records reordered and with every subject and object swapped is also answered correctly (the file shows both). With the instruction line, the English rendering of this item is 250 bytes and 97 Qwen 3 tokens; the `compact` rendering is 126 bytes and 61 tokens, of which 30 are the ten identifiers.
+
+## 10. Study v3: toward a usable pipeline — larger record sets, variable identifiers, varied wording, machine formats, a fully held-out set [M-local]
+
+### 10.1 Pre-registration (v3)
+
+Written on 2026-10-15 at the start of the corpus pilot, after the harness smoke test (20 updates, all arms 0%) and before any pilot result was read; the only training output seen was the first 250-update line of three pilot runs (≤ 9% iid). Code: `study3.py`, `language.py --suite study3`, `tokens3.py`, `sylang_batch.py` (the codec), `summarize.py` (the `language_study3` section).
+
+**Candidate recipe, carried over from §9.4:** the header-free encoding, relative positions (ALiBi) and the cosine learning-rate decay. v3 asks whether the candidate still holds when the data get harder and whether its benefit is more than brevity.
+
+**Task.** Unchanged: the JSON list of `[subject, object]` of each negative record in record order, or `[]`. The answer bytes are identical in every arm.
+
+**What changes in the data.**
+
+- *Identifiers*: 2–5 characters from `[a-z0-9]` with at least one letter, drawn from the whole space and split by a hash of the identifier into train/dev/test (about 80/10/10; `study3.split_of`). The 5,362 v2 training identifiers (letter-digit-letter) are excluded from the v3 dev and test splits, so a model trained on the v2 corpus is evaluated on identifiers it never saw. Accuracy is reported by the longest identifier in the item.
+- *Request wording*: each item carries one of six instruction phrasings that ask for the same answer. Four are used in training, two are held out (`study3.WORDINGS`). The byte model has to read the request, not just the records.
+- *Record counts*: K uniform in 1..12 in the full corpus; K = 13..16 is never trained (`long`).
+- *Held-out combinations*: as in v2, (contain, future) and (help, completed) never appear in training.
+
+**Arms** (one item stream per seed; every arm renders the same records, order and wording):
+
+- `english`: the packet's controlled English, **explicitly the readable comparison**, not a strawman: no filler, one sentence per record.
+- `sylang2`: the header-free format (Sylang batch v2; `sylang_batch.encode(..., version=2)`), record lines byte-identical to v1.
+- `sylang1`: the current format with its header line (reference, one seed).
+- `json`: compact JSON, one object per record with one-letter keys and default feature values omitted, no whitespace. This is what an engineer writes to minimise bytes without inventing a code.
+- `csv`: one comma-separated row per record with every field spelled out, no header: the cheapest line-oriented text format with explicit fields.
+
+JSON and CSV are in the study so that a Sylang win cannot be explained by English being verbose: if `sylang2` beats `json` and `csv` on cost or learning, the benefit is the code, not the shortening.
+
+**Corpus pilot** (one seed, `sylang2`, ALiBi + decay, the §9 recipe). Five corpora: `v2` (K 1..8, three-character identifiers, one wording: the §9 corpus), `k12` (+ K up to 12), `ids` (+ variable-length identifiers), `wording` (+ the four training phrasings), `all` (all three). Every run is scored on the same v3 panels, so each increase is judged on the panel that targets it and on the fully held-out panel. Rule for choosing the decisive corpus, fixed now: an increase is *useful* if, at the dev-selected checkpoint, it raises its target panel (`k12` → `long`; `ids` → the longest-identifier-4-and-5 rows of `iid`; `wording` → `wording`) by at least 10 points over `v2` without lowering `full` by more than 3 points. The decisive corpus is `all` unless `all` is more than 3 points below the best single-increase corpus on `full`, in which case the best single-increase corpus is used and the interaction is reported. Cost is reported beside every gain: items, bytes and train seconds to 90% iid and to the dev-selected checkpoint, and points on `full` per 10,000 extra items relative to `v2`. The pilot's seed-0 run on the chosen corpus is reused as seed 0 of the decisive runs (its configuration is unchanged), and the decisive direction must hold on seeds 1 and 2 alone, as in §9 criterion 6.
+
+**Decisive runs** on the chosen corpus, same recipe for every arm (AdamW, LR 1e-3, batch 8, up to 10,000 updates, early stop from 4,000 on the dev panels only, dev-selected checkpoint, one thread per run, three runs share the four cores): `english` × 3 seeds, `sylang2` × 3 seeds, `json` × 2 seeds, `csv` × 2 seeds, `sylang1` × 1 seed. Matched conditions: identical items per seed, model, initialisation, optimiser, batch, update budget and evaluation grid; the only arm-dependent quantity is the sequence length, which is part of what is measured.
+
+**Panels** (fixed items, seed 7, 16 per K): `iid` (test identifiers, trained wording and combinations, K 1..12); `wording` (held-out wording, 8 per K); `combo` (a held-out combination, 8 per K); `long` (K 13..16); `full` (held-out wording **and** a held-out combination **and** K 13..16: the fully held-out set); `reorder`, `swap`, `flip` (counterfactuals of `iid`); `dev` and its counterfactuals for stopping and selection only. Every panel reports exact, selected-only, empty-only, by K and by longest identifier, with per-item flags for paired analyses.
+
+**Costs and measurements, all under matched conditions.** (1) Accuracy as above. (2) Tokens of the intended deployment tokenizer (Qwen 3): `tokens3.py` on test-split items, K 1..16, six wordings, sections header/records/instruction/answer, by K, by identifier length and by wording; the ratio to `english` and the first K at which an arm is cheaper. (3) Latency: the serial benchmark of §9.3.5 (`language.py benchmark --design v3`), prefill time and FLOPs per arm at K 1..16 on an idle core. (4) Training cost: items, bytes, Qwen 3 tokens and train seconds to 90% iid and to the dev-selected checkpoint. (5) Inference cost per request: prompt + answer tokens and prefill FLOPs. (6) The end-to-end handoff demonstration (§10.5): conversion into the format, transport tokens, consumer answer, conversion out, with wall-clock for each stage.
+
+**Frozen criteria.**
+
+1. An arm *learns* if iid exact ≥ 90% on the fine curve in ≥ 2 of 3 seeds (both seeds for `json` and `csv`).
+2. *Benefit beyond brevity.* `sylang2` against each of `json` and `csv`, paired per item at the dev-selected checkpoint on `iid`, `wording`, `combo`, `long` and `full`, averaged over shared seeds, bootstrapped over items (1,000 resamples): `sylang2` is *better* on a panel if the 90% interval's lower bound is above +3 points; *tied* if the interval contains 0; *worse* if the upper bound is below −3. Speed: the median over seeds of items to 90% iid; a ratio ≤ 0.67 counts, anything under 2× is a tie. The token ratio is settled by accounting (criterion 5) and is not an experimental question. The verdict "Sylang's benefit goes beyond shortening English" requires `sylang2` to be better than or tied with both machine formats on every panel **and** cheaper in tokens than both.
+3. *Candidate holds under harder data.* `sylang2` is *robust* if selected-only exact on `wording`, `combo` and `long` is each within 5 points of `iid`, and `full` selected-only exact is ≥ 85%, at the dev-selected checkpoint, on ≥ 2 of 3 seeds. Length extrapolation (K 13..16) is reported separately: a fall there with `iid` at ceiling is a length-generalisation limit, not a format failure, and is read for every arm.
+4. *Against English.* The §9 reading carries over: items to 90% (ratio, 2× rule) and the paired per-item difference at the dev-selected checkpoint on every panel.
+5. *Tokens.* Reported from `results/tokens3_qwen3.json` (test-split items, 48 per K): the §9.3.1 identifier floor applies to every arm equally, so the comparison is on the non-identifier tokens per record and on the prompt ratio over the K 1..12 mix.
+6. *Targeted expansion.* After the decisive runs, the weakest cell of `sylang2` (lowest selected-only exact among `wording`, `combo`, `long`, `full` and the longest-identifier rows of `iid`, averaged over seeds) determines one targeted corpus addition, run at one seed on `sylang2` and `english`. It is *kept* if it raises that cell by ≥ 5 points without lowering `full` by more than 2 points. Blind scaling (more of the same) is not run.
+7. Three seeds resolve only large effects; two seeds resolve only very large ones. Everything below those thresholds is reported as a tie.
+
+**Compute and schedule** (4 shared cores, no paid calls; a 20-update smoke test gave 0.25–1.0 s per update depending on the arm's sequence length, and about 90 s per evaluation of the 14 panels): the pilot is five `sylang2` runs (about 1 h each, three in parallel); the decisive wave is eleven runs (about 20 core-hours, 7 h wall at three workers); the benchmark runs alone afterwards. Checkpoints and per-run logs stay in scratch; only the aggregate `.jsonl` results, the token report and the demo's aggregate measurements are committed.
+
+### 10.2 Run plan and checklist
+
+```
+# harness (done): study3.py, language.py --suite study3, tokens3.py, summarize.py study3 section, smoke test (20 updates, 5 arms)
+# tokens (done): tokens3.py --source <packet> --tokenizer <qwen3> --out results/tokens3_qwen3.json --example
+# pilot (running): for c in v2 k12 ids wording all: language.py suite --suite study3 --corpus $c --arms sylang2 --seeds 1 --position alibi --curriculum decay --updates 10000 --save-dir <ckpt>/study3 --out results/study3/pilot-sylang2-$c.jsonl
+# decide the corpus by the §10.1 rule; record the decision in §10.3 before launching
+# decisive: --arms english,sylang2 --seeds 3 ; --arms json,csv --seeds 2 ; --arms sylang1 --seeds 1 (same corpus, recipe, grid)
+# benchmark: language.py benchmark --design v3 --arms english,sylang2,sylang1,json,csv --k 1..16 --out results/language_benchmark_v3.json (idle core)
+# demo: demo_handoff.py --source <packet> --tokenizer <qwen3> --checkpoint <sylang2 dev-best> --english-checkpoint <english dev-best> --out results/demo_handoff.json
+# targeted expansion (criterion 6): one addition, one seed, sylang2 + english
+# summarize.py results > results/SUMMARY.md ; §10.3–10.6 ; README ; PR body (draft) ; claims and privacy verification
+```

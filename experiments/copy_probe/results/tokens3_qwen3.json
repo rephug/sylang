@@ -1,0 +1,2870 @@
+{
+ "against_english": {
+  "csv": {
+   "first_k_cheaper_than_english": null,
+   "linear_fit_tokens_per_record": {
+    "csv": 17.686,
+    "english": 16.922
+   },
+   "margin_by_k_english_minus_arm": {
+    "1": -1.417,
+    "10": -11.708,
+    "11": -10.125,
+    "12": -11.104,
+    "13": -12.687,
+    "14": -12.583,
+    "15": -12.417,
+    "16": -13.063,
+    "2": -2.584,
+    "3": -4.354,
+    "4": -4.896,
+    "5": -6.917,
+    "6": -7.667,
+    "7": -7.437,
+    "8": -9.479,
+    "9": -11.521
+   },
+   "ratio_mix_1_12": 1.0571,
+   "ratio_mix_1_16": 1.0532
+  },
+  "json": {
+   "first_k_cheaper_than_english": null,
+   "linear_fit_tokens_per_record": {
+    "english": 16.922,
+    "json": 26.006
+   },
+   "margin_by_k_english_minus_arm": {
+    "1": -12.771,
+    "10": -95.083,
+    "11": -105.562,
+    "12": -115.395,
+    "13": -122.521,
+    "14": -130.958,
+    "15": -137.042,
+    "16": -149.854,
+    "2": -21.313,
+    "3": -31.729,
+    "4": -38.834,
+    "5": -49.834,
+    "6": -60.563,
+    "7": -70.208,
+    "8": -76.709,
+    "9": -89.5
+   },
+   "ratio_mix_1_12": 1.4912,
+   "ratio_mix_1_16": 1.4973
+  },
+  "sylang1": {
+   "first_k_cheaper_than_english": 3,
+   "linear_fit_tokens_per_record": {
+    "english": 16.922,
+    "sylang1": 9.22
+   },
+   "margin_by_k_english_minus_arm": {
+    "1": -7.854,
+    "10": 58.187,
+    "11": 67.479,
+    "12": 75.355,
+    "13": 82.563,
+    "14": 91.229,
+    "15": 99.896,
+    "16": 108.146,
+    "2": -0.48,
+    "3": 6.562,
+    "4": 14.062,
+    "5": 20.958,
+    "6": 28.708,
+    "7": 37.063,
+    "8": 43.645,
+    "9": 50.396
+   },
+   "ratio_mix_1_12": 0.7478,
+   "ratio_mix_1_16": 0.7049
+  },
+  "sylang2": {
+   "first_k_cheaper_than_english": 1,
+   "linear_fit_tokens_per_record": {
+    "english": 16.922,
+    "sylang2": 9.127
+   },
+   "margin_by_k_english_minus_arm": {
+    "1": 7.146,
+    "10": 74.187,
+    "11": 83.479,
+    "12": 91.355,
+    "13": 98.563,
+    "14": 107.229,
+    "15": 115.896,
+    "16": 124.146,
+    "2": 14.52,
+    "3": 21.562,
+    "4": 29.062,
+    "5": 35.958,
+    "6": 43.708,
+    "7": 52.063,
+    "8": 58.645,
+    "9": 65.396
+   },
+   "ratio_mix_1_12": 0.6306,
+   "ratio_mix_1_16": 0.611
+  }
+ },
+ "arms": {
+  "csv": {
+   "by_k": {
+    "1": {
+     "answer_tokens_nonempty": 9.217,
+     "bytes": {
+      "answer": 8.75,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 145.083,
+      "records": 49.583
+     },
+     "bytes_per_record": 49.583,
+     "identifier_token_fraction_of_records": 0.292,
+     "identifier_tokens_per_record": 5.229,
+     "n_items": 48,
+     "tokens": {
+      "answer": 4.938,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 40.917,
+      "records": 17.583
+     },
+     "tokens_per_record": 17.583
+    },
+    "10": {
+     "answer_tokens_nonempty": 37.792,
+     "bytes": {
+      "answer": 75.312,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 584.312,
+      "records": 488.812
+     },
+     "bytes_per_record": 48.881,
+     "identifier_token_fraction_of_records": 0.301,
+     "identifier_tokens_per_record": 5.296,
+     "n_items": 48,
+     "tokens": {
+      "answer": 37.792,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 198.833,
+      "records": 175.5
+     },
+     "tokens_per_record": 17.55
+    },
+    "11": {
+     "answer_tokens_nonempty": 41.896,
+     "bytes": {
+      "answer": 83.479,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 634.708,
+      "records": 539.208
+     },
+     "bytes_per_record": 49.019,
+     "identifier_token_fraction_of_records": 0.301,
+     "identifier_tokens_per_record": 5.267,
+     "n_items": 48,
+     "tokens": {
+      "answer": 41.896,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 215.542,
+      "records": 192.208
+     },
+     "tokens_per_record": 17.473
+    },
+    "12": {
+     "answer_tokens_nonempty": 48.375,
+     "bytes": {
+      "answer": 95.896,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 686.625,
+      "records": 591.125
+     },
+     "bytes_per_record": 49.26,
+     "identifier_token_fraction_of_records": 0.308,
+     "identifier_tokens_per_record": 5.474,
+     "n_items": 48,
+     "tokens": {
+      "answer": 48.375,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 236.271,
+      "records": 212.938
+     },
+     "tokens_per_record": 17.745
+    },
+    "13": {
+     "answer_tokens_nonempty": 50.958,
+     "bytes": {
+      "answer": 101.375,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 735.875,
+      "records": 640.375
+     },
+     "bytes_per_record": 49.26,
+     "identifier_token_fraction_of_records": 0.304,
+     "identifier_tokens_per_record": 5.372,
+     "n_items": 48,
+     "tokens": {
+      "answer": 50.958,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 252.458,
+      "records": 229.125
+     },
+     "tokens_per_record": 17.625
+    },
+    "14": {
+     "answer_tokens_nonempty": 52.646,
+     "bytes": {
+      "answer": 104.854,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 785.292,
+      "records": 689.792
+     },
+     "bytes_per_record": 49.271,
+     "identifier_token_fraction_of_records": 0.307,
+     "identifier_tokens_per_record": 5.448,
+     "n_items": 48,
+     "tokens": {
+      "answer": 52.646,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 271.354,
+      "records": 248.021
+     },
+     "tokens_per_record": 17.716
+    },
+    "15": {
+     "answer_tokens_nonempty": 55.896,
+     "bytes": {
+      "answer": 112.333,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 833.438,
+      "records": 737.938
+     },
+     "bytes_per_record": 49.196,
+     "identifier_token_fraction_of_records": 0.306,
+     "identifier_tokens_per_record": 5.383,
+     "n_items": 48,
+     "tokens": {
+      "answer": 55.896,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 287.292,
+      "records": 263.958
+     },
+     "tokens_per_record": 17.597
+    },
+    "16": {
+     "answer_tokens_nonempty": 62.771,
+     "bytes": {
+      "answer": 125.375,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 883.229,
+      "records": 787.729
+     },
+     "bytes_per_record": 49.233,
+     "identifier_token_fraction_of_records": 0.307,
+     "identifier_tokens_per_record": 5.448,
+     "n_items": 48,
+     "tokens": {
+      "answer": 62.771,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 306.938,
+      "records": 283.604
+     },
+     "tokens_per_record": 17.725
+    },
+    "2": {
+     "answer_tokens_nonempty": 11.235,
+     "bytes": {
+      "answer": 14.979,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 194.104,
+      "records": 98.604
+     },
+     "bytes_per_record": 49.302,
+     "identifier_token_fraction_of_records": 0.305,
+     "identifier_tokens_per_record": 5.385,
+     "n_items": 48,
+     "tokens": {
+      "answer": 8.25,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 58.396,
+      "records": 35.062
+     },
+     "tokens_per_record": 17.531
+    },
+    "3": {
+     "answer_tokens_nonempty": 14.881,
+     "bytes": {
+      "answer": 24.104,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 244.438,
+      "records": 148.938
+     },
+     "bytes_per_record": 49.646,
+     "identifier_token_fraction_of_records": 0.304,
+     "identifier_tokens_per_record": 5.41,
+     "n_items": 48,
+     "tokens": {
+      "answer": 13.146,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 76.458,
+      "records": 53.125
+     },
+     "tokens_per_record": 17.708
+    },
+    "4": {
+     "answer_tokens_nonempty": 16.0,
+     "bytes": {
+      "answer": 28.417,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 291.75,
+      "records": 196.25
+     },
+     "bytes_per_record": 49.062,
+     "identifier_token_fraction_of_records": 0.306,
+     "identifier_tokens_per_record": 5.401,
+     "n_items": 48,
+     "tokens": {
+      "answer": 15.062,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 93.729,
+      "records": 70.396
+     },
+     "tokens_per_record": 17.599
+    },
+    "5": {
+     "answer_tokens_nonempty": 20.319,
+     "bytes": {
+      "answer": 39.479,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 340.146,
+      "records": 244.646
+     },
+     "bytes_per_record": 48.929,
+     "identifier_token_fraction_of_records": 0.297,
+     "identifier_tokens_per_record": 5.204,
+     "n_items": 48,
+     "tokens": {
+      "answer": 19.917,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 110.75,
+      "records": 87.417
+     },
+     "tokens_per_record": 17.483
+    },
+    "6": {
+     "answer_tokens_nonempty": 22.761,
+     "bytes": {
+      "answer": 41.854,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 390.896,
+      "records": 295.396
+     },
+     "bytes_per_record": 49.233,
+     "identifier_token_fraction_of_records": 0.303,
+     "identifier_tokens_per_record": 5.333,
+     "n_items": 48,
+     "tokens": {
+      "answer": 21.854,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 128.771,
+      "records": 105.438
+     },
+     "tokens_per_record": 17.573
+    },
+    "7": {
+     "answer_tokens_nonempty": 29.542,
+     "bytes": {
+      "answer": 57.958,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 440.271,
+      "records": 344.771
+     },
+     "bytes_per_record": 49.253,
+     "identifier_token_fraction_of_records": 0.303,
+     "identifier_tokens_per_record": 5.336,
+     "n_items": 48,
+     "tokens": {
+      "answer": 29.542,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 146.354,
+      "records": 123.021
+     },
+     "tokens_per_record": 17.574
+    },
+    "8": {
+     "answer_tokens_nonempty": 30.729,
+     "bytes": {
+      "answer": 59.75,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 487.438,
+      "records": 391.938
+     },
+     "bytes_per_record": 48.992,
+     "identifier_token_fraction_of_records": 0.306,
+     "identifier_tokens_per_record": 5.37,
+     "n_items": 48,
+     "tokens": {
+      "answer": 30.729,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 163.562,
+      "records": 140.229
+     },
+     "tokens_per_record": 17.529
+    },
+    "9": {
+     "answer_tokens_nonempty": 34.312,
+     "bytes": {
+      "answer": 67.792,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 539.542,
+      "records": 444.042
+     },
+     "bytes_per_record": 49.338,
+     "identifier_token_fraction_of_records": 0.305,
+     "identifier_tokens_per_record": 5.384,
+     "n_items": 48,
+     "tokens": {
+      "answer": 34.312,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 182.042,
+      "records": 158.708
+     },
+     "tokens_per_record": 17.634
+    }
+   },
+   "by_longest_id": {
+    "2": {
+     "answer_tokens_nonempty": 6.333,
+     "bytes": {
+      "answer": 8.6,
+      "header": 0.0,
+      "instruction": 101.0,
+      "prompt": 146.8,
+      "records": 45.8
+     },
+     "bytes_per_record": 45.8,
+     "identifier_token_fraction_of_records": 0.159,
+     "identifier_tokens_per_record": 2.4,
+     "n_items": 5,
+     "tokens": {
+      "answer": 4.2,
+      "header": 0.0,
+      "instruction": 24.4,
+      "prompt": 39.4,
+      "records": 15.0
+     },
+     "tokens_per_record": 15.0
+    },
+    "3": {
+     "answer_tokens_nonempty": 10.333,
+     "bytes": {
+      "answer": 8.5,
+      "header": 0.0,
+      "instruction": 76.75,
+      "prompt": 138.375,
+      "records": 61.625
+     },
+     "bytes_per_record": 49.312,
+     "identifier_token_fraction_of_records": 0.24,
+     "identifier_tokens_per_record": 4.0,
+     "n_items": 8,
+     "tokens": {
+      "answer": 4.5,
+      "header": 0.0,
+      "instruction": 19.5,
+      "prompt": 40.0,
+      "records": 20.5
+     },
+     "tokens_per_record": 16.5
+    },
+    "4": {
+     "answer_tokens_nonempty": 14.8,
+     "bytes": {
+      "answer": 18.974,
+      "header": 0.0,
+      "instruction": 94.974,
+      "prompt": 220.692,
+      "records": 125.718
+     },
+     "bytes_per_record": 48.86,
+     "identifier_token_fraction_of_records": 0.278,
+     "identifier_tokens_per_record": 4.789,
+     "n_items": 39,
+     "tokens": {
+      "answer": 9.846,
+      "header": 0.0,
+      "instruction": 23.282,
+      "prompt": 67.128,
+      "records": 43.846
+     },
+     "tokens_per_record": 17.099
+    },
+    "5": {
+     "answer_tokens_nonempty": 36.264,
+     "bytes": {
+      "answer": 68.647,
+      "header": 0.0,
+      "instruction": 95.7,
+      "prompt": 536.278,
+      "records": 440.578
+     },
+     "bytes_per_record": 49.258,
+     "identifier_token_fraction_of_records": 0.307,
+     "identifier_tokens_per_record": 5.426,
+     "n_items": 716,
+     "tokens": {
+      "answer": 34.786,
+      "header": 0.0,
+      "instruction": 23.372,
+      "prompt": 181.297,
+      "records": 157.926
+     },
+     "tokens_per_record": 17.661
+    }
+   },
+   "by_wording": {
+    "0": {
+     "held_out": false,
+     "instruction_bytes": 68.0,
+     "instruction_tokens": 17.0
+    },
+    "1": {
+     "held_out": false,
+     "instruction_bytes": 75.0,
+     "instruction_tokens": 20.0
+    },
+    "2": {
+     "held_out": false,
+     "instruction_bytes": 101.0,
+     "instruction_tokens": 24.0
+    },
+    "3": {
+     "held_out": false,
+     "instruction_bytes": 121.0,
+     "instruction_tokens": 28.0
+    },
+    "4": {
+     "held_out": true,
+     "instruction_bytes": 117.0,
+     "instruction_tokens": 27.0
+    },
+    "5": {
+     "held_out": true,
+     "instruction_bytes": 91.0,
+     "instruction_tokens": 24.0
+    }
+   },
+   "mix_13_16": {
+    "answer_tokens_nonempty": 55.568,
+    "bytes": {
+     "answer": 110.984,
+     "header": 0.0,
+     "instruction": 95.5,
+     "prompt": 809.458,
+     "records": 713.958
+    },
+    "bytes_per_record": 49.24,
+    "identifier_token_fraction_of_records": 0.306,
+    "identifier_tokens_per_record": 5.413,
+    "n_items": 192,
+    "tokens": {
+     "answer": 55.568,
+     "header": 0.0,
+     "instruction": 23.333,
+     "prompt": 279.51,
+     "records": 256.177
+    },
+    "tokens_per_record": 17.666
+   },
+   "mix_1_12": {
+    "answer_tokens_nonempty": 27.863,
+    "bytes": {
+     "answer": 49.814,
+     "header": 0.0,
+     "instruction": 95.5,
+     "prompt": 414.943,
+     "records": 319.443
+    },
+    "bytes_per_record": 49.208,
+    "identifier_token_fraction_of_records": 0.303,
+    "identifier_tokens_per_record": 5.341,
+    "n_items": 576,
+    "tokens": {
+     "answer": 25.484,
+     "header": 0.0,
+     "instruction": 23.333,
+     "prompt": 137.635,
+     "records": 114.302
+    },
+    "tokens_per_record": 17.582
+   },
+   "mix_1_16": {
+    "answer_tokens_nonempty": 35.282,
+    "bytes": {
+     "answer": 65.107,
+     "header": 0.0,
+     "instruction": 95.5,
+     "prompt": 513.572,
+     "records": 418.072
+    },
+    "bytes_per_record": 49.216,
+    "identifier_token_fraction_of_records": 0.304,
+    "identifier_tokens_per_record": 5.359,
+    "n_items": 768,
+    "tokens": {
+     "answer": 33.005,
+     "header": 0.0,
+     "instruction": 23.333,
+     "prompt": 173.104,
+     "records": 149.771
+    },
+    "tokens_per_record": 17.603
+   },
+   "section_mismatches": 0
+  },
+  "english": {
+   "by_k": {
+    "1": {
+     "answer_tokens_nonempty": 9.217,
+     "bytes": {
+      "answer": 8.75,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 138.188,
+      "records": 42.688
+     },
+     "bytes_per_record": 42.688,
+     "identifier_token_fraction_of_records": 0.32,
+     "identifier_tokens_per_record": 5.229,
+     "n_items": 48,
+     "tokens": {
+      "answer": 4.938,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 39.5,
+      "records": 16.167
+     },
+     "tokens_per_record": 16.167
+    },
+    "10": {
+     "answer_tokens_nonempty": 37.792,
+     "bytes": {
+      "answer": 75.312,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 519.375,
+      "records": 423.875
+     },
+     "bytes_per_record": 42.387,
+     "identifier_token_fraction_of_records": 0.323,
+     "identifier_tokens_per_record": 5.296,
+     "n_items": 48,
+     "tokens": {
+      "answer": 37.792,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 187.125,
+      "records": 163.792
+     },
+     "tokens_per_record": 16.379
+    },
+    "11": {
+     "answer_tokens_nonempty": 41.896,
+     "bytes": {
+      "answer": 83.479,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 568.396,
+      "records": 472.896
+     },
+     "bytes_per_record": 42.991,
+     "identifier_token_fraction_of_records": 0.318,
+     "identifier_tokens_per_record": 5.267,
+     "n_items": 48,
+     "tokens": {
+      "answer": 41.896,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 205.417,
+      "records": 182.083
+     },
+     "tokens_per_record": 16.553
+    },
+    "12": {
+     "answer_tokens_nonempty": 48.375,
+     "bytes": {
+      "answer": 95.896,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 614.875,
+      "records": 519.375
+     },
+     "bytes_per_record": 43.281,
+     "identifier_token_fraction_of_records": 0.326,
+     "identifier_tokens_per_record": 5.474,
+     "n_items": 48,
+     "tokens": {
+      "answer": 48.375,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 225.167,
+      "records": 201.833
+     },
+     "tokens_per_record": 16.819
+    },
+    "13": {
+     "answer_tokens_nonempty": 50.958,
+     "bytes": {
+      "answer": 101.375,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 650.438,
+      "records": 554.938
+     },
+     "bytes_per_record": 42.688,
+     "identifier_token_fraction_of_records": 0.322,
+     "identifier_tokens_per_record": 5.372,
+     "n_items": 48,
+     "tokens": {
+      "answer": 50.958,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 239.771,
+      "records": 216.438
+     },
+     "tokens_per_record": 16.649
+    },
+    "14": {
+     "answer_tokens_nonempty": 52.646,
+     "bytes": {
+      "answer": 104.854,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 698.25,
+      "records": 602.75
+     },
+     "bytes_per_record": 43.054,
+     "identifier_token_fraction_of_records": 0.324,
+     "identifier_tokens_per_record": 5.448,
+     "n_items": 48,
+     "tokens": {
+      "answer": 52.646,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 258.771,
+      "records": 235.438
+     },
+     "tokens_per_record": 16.817
+    },
+    "15": {
+     "answer_tokens_nonempty": 55.896,
+     "bytes": {
+      "answer": 112.333,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 740.188,
+      "records": 644.688
+     },
+     "bytes_per_record": 42.979,
+     "identifier_token_fraction_of_records": 0.321,
+     "identifier_tokens_per_record": 5.383,
+     "n_items": 48,
+     "tokens": {
+      "answer": 55.896,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 274.875,
+      "records": 251.542
+     },
+     "tokens_per_record": 16.769
+    },
+    "16": {
+     "answer_tokens_nonempty": 62.771,
+     "bytes": {
+      "answer": 125.375,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 784.604,
+      "records": 689.104
+     },
+     "bytes_per_record": 43.069,
+     "identifier_token_fraction_of_records": 0.322,
+     "identifier_tokens_per_record": 5.448,
+     "n_items": 48,
+     "tokens": {
+      "answer": 62.771,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 293.875,
+      "records": 270.542
+     },
+     "tokens_per_record": 16.909
+    },
+    "2": {
+     "answer_tokens_nonempty": 11.235,
+     "bytes": {
+      "answer": 14.979,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 179.229,
+      "records": 83.729
+     },
+     "bytes_per_record": 41.865,
+     "identifier_token_fraction_of_records": 0.33,
+     "identifier_tokens_per_record": 5.385,
+     "n_items": 48,
+     "tokens": {
+      "answer": 8.25,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 55.812,
+      "records": 32.479
+     },
+     "tokens_per_record": 16.24
+    },
+    "3": {
+     "answer_tokens_nonempty": 14.881,
+     "bytes": {
+      "answer": 24.104,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 219.958,
+      "records": 124.458
+     },
+     "bytes_per_record": 41.486,
+     "identifier_token_fraction_of_records": 0.333,
+     "identifier_tokens_per_record": 5.41,
+     "n_items": 48,
+     "tokens": {
+      "answer": 13.146,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 72.104,
+      "records": 48.771
+     },
+     "tokens_per_record": 16.257
+    },
+    "4": {
+     "answer_tokens_nonempty": 16.0,
+     "bytes": {
+      "answer": 28.417,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 265.792,
+      "records": 170.292
+     },
+     "bytes_per_record": 42.573,
+     "identifier_token_fraction_of_records": 0.33,
+     "identifier_tokens_per_record": 5.401,
+     "n_items": 48,
+     "tokens": {
+      "answer": 15.062,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 88.833,
+      "records": 65.5
+     },
+     "tokens_per_record": 16.375
+    },
+    "5": {
+     "answer_tokens_nonempty": 20.319,
+     "bytes": {
+      "answer": 39.479,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 302.938,
+      "records": 207.438
+     },
+     "bytes_per_record": 41.488,
+     "identifier_token_fraction_of_records": 0.323,
+     "identifier_tokens_per_record": 5.204,
+     "n_items": 48,
+     "tokens": {
+      "answer": 19.917,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 103.833,
+      "records": 80.5
+     },
+     "tokens_per_record": 16.1
+    },
+    "6": {
+     "answer_tokens_nonempty": 22.761,
+     "bytes": {
+      "answer": 41.854,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 350.979,
+      "records": 255.479
+     },
+     "bytes_per_record": 42.58,
+     "identifier_token_fraction_of_records": 0.327,
+     "identifier_tokens_per_record": 5.333,
+     "n_items": 48,
+     "tokens": {
+      "answer": 21.854,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 121.104,
+      "records": 97.771
+     },
+     "tokens_per_record": 16.295
+    },
+    "7": {
+     "answer_tokens_nonempty": 29.542,
+     "bytes": {
+      "answer": 57.958,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 400.646,
+      "records": 305.146
+     },
+     "bytes_per_record": 43.592,
+     "identifier_token_fraction_of_records": 0.323,
+     "identifier_tokens_per_record": 5.336,
+     "n_items": 48,
+     "tokens": {
+      "answer": 29.542,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 138.917,
+      "records": 115.583
+     },
+     "tokens_per_record": 16.512
+    },
+    "8": {
+     "answer_tokens_nonempty": 30.729,
+     "bytes": {
+      "answer": 59.75,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 434.75,
+      "records": 339.25
+     },
+     "bytes_per_record": 42.406,
+     "identifier_token_fraction_of_records": 0.328,
+     "identifier_tokens_per_record": 5.37,
+     "n_items": 48,
+     "tokens": {
+      "answer": 30.729,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 154.083,
+      "records": 130.75
+     },
+     "tokens_per_record": 16.344
+    },
+    "9": {
+     "answer_tokens_nonempty": 34.312,
+     "bytes": {
+      "answer": 67.792,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 474.438,
+      "records": 378.938
+     },
+     "bytes_per_record": 42.104,
+     "identifier_token_fraction_of_records": 0.329,
+     "identifier_tokens_per_record": 5.384,
+     "n_items": 48,
+     "tokens": {
+      "answer": 34.312,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 170.521,
+      "records": 147.188
+     },
+     "tokens_per_record": 16.354
+    }
+   },
+   "by_longest_id": {
+    "2": {
+     "answer_tokens_nonempty": 6.333,
+     "bytes": {
+      "answer": 8.6,
+      "header": 0.0,
+      "instruction": 101.0,
+      "prompt": 140.4,
+      "records": 39.4
+     },
+     "bytes_per_record": 39.4,
+     "identifier_token_fraction_of_records": 0.176,
+     "identifier_tokens_per_record": 2.4,
+     "n_items": 5,
+     "tokens": {
+      "answer": 4.2,
+      "header": 0.0,
+      "instruction": 24.4,
+      "prompt": 38.0,
+      "records": 13.6
+     },
+     "tokens_per_record": 13.6
+    },
+    "3": {
+     "answer_tokens_nonempty": 10.333,
+     "bytes": {
+      "answer": 8.5,
+      "header": 0.0,
+      "instruction": 76.75,
+      "prompt": 127.0,
+      "records": 50.25
+     },
+     "bytes_per_record": 40.625,
+     "identifier_token_fraction_of_records": 0.27,
+     "identifier_tokens_per_record": 4.0,
+     "n_items": 8,
+     "tokens": {
+      "answer": 4.5,
+      "header": 0.0,
+      "instruction": 19.5,
+      "prompt": 37.75,
+      "records": 18.25
+     },
+     "tokens_per_record": 14.812
+    },
+    "4": {
+     "answer_tokens_nonempty": 14.8,
+     "bytes": {
+      "answer": 18.974,
+      "header": 0.0,
+      "instruction": 94.974,
+      "prompt": 200.795,
+      "records": 105.821
+     },
+     "bytes_per_record": 41.961,
+     "identifier_token_fraction_of_records": 0.304,
+     "identifier_tokens_per_record": 4.789,
+     "n_items": 39,
+     "tokens": {
+      "answer": 9.846,
+      "header": 0.0,
+      "instruction": 23.282,
+      "prompt": 63.641,
+      "records": 40.359
+     },
+     "tokens_per_record": 15.739
+    },
+    "5": {
+     "answer_tokens_nonempty": 36.264,
+     "bytes": {
+      "answer": 68.647,
+      "header": 0.0,
+      "instruction": 95.7,
+      "prompt": 478.934,
+      "records": 383.235
+     },
+     "bytes_per_record": 42.654,
+     "identifier_token_fraction_of_records": 0.328,
+     "identifier_tokens_per_record": 5.426,
+     "n_items": 716,
+     "tokens": {
+      "answer": 34.786,
+      "header": 0.0,
+      "instruction": 23.372,
+      "prompt": 172.14,
+      "records": 148.768
+     },
+     "tokens_per_record": 16.55
+    }
+   },
+   "by_wording": {
+    "0": {
+     "held_out": false,
+     "instruction_bytes": 68.0,
+     "instruction_tokens": 17.0
+    },
+    "1": {
+     "held_out": false,
+     "instruction_bytes": 75.0,
+     "instruction_tokens": 20.0
+    },
+    "2": {
+     "held_out": false,
+     "instruction_bytes": 101.0,
+     "instruction_tokens": 24.0
+    },
+    "3": {
+     "held_out": false,
+     "instruction_bytes": 121.0,
+     "instruction_tokens": 28.0
+    },
+    "4": {
+     "held_out": true,
+     "instruction_bytes": 117.0,
+     "instruction_tokens": 27.0
+    },
+    "5": {
+     "held_out": true,
+     "instruction_bytes": 91.0,
+     "instruction_tokens": 24.0
+    }
+   },
+   "mix_13_16": {
+    "answer_tokens_nonempty": 55.568,
+    "bytes": {
+     "answer": 110.984,
+     "header": 0.0,
+     "instruction": 95.5,
+     "prompt": 718.37,
+     "records": 622.87
+    },
+    "bytes_per_record": 42.947,
+    "identifier_token_fraction_of_records": 0.322,
+    "identifier_tokens_per_record": 5.413,
+    "n_items": 192,
+    "tokens": {
+     "answer": 55.568,
+     "header": 0.0,
+     "instruction": 23.333,
+     "prompt": 266.823,
+     "records": 243.49
+    },
+    "tokens_per_record": 16.786
+   },
+   "mix_1_12": {
+    "answer_tokens_nonempty": 27.863,
+    "bytes": {
+     "answer": 49.814,
+     "header": 0.0,
+     "instruction": 95.5,
+     "prompt": 372.464,
+     "records": 276.964
+    },
+    "bytes_per_record": 42.453,
+    "identifier_token_fraction_of_records": 0.326,
+    "identifier_tokens_per_record": 5.341,
+    "n_items": 576,
+    "tokens": {
+     "answer": 25.484,
+     "header": 0.0,
+     "instruction": 23.333,
+     "prompt": 130.201,
+     "records": 106.868
+    },
+    "tokens_per_record": 16.366
+   },
+   "mix_1_16": {
+    "answer_tokens_nonempty": 35.282,
+    "bytes": {
+     "answer": 65.107,
+     "header": 0.0,
+     "instruction": 95.5,
+     "prompt": 458.94,
+     "records": 363.44
+    },
+    "bytes_per_record": 42.577,
+    "identifier_token_fraction_of_records": 0.325,
+    "identifier_tokens_per_record": 5.359,
+    "n_items": 768,
+    "tokens": {
+     "answer": 33.005,
+     "header": 0.0,
+     "instruction": 23.333,
+     "prompt": 164.357,
+     "records": 141.023
+    },
+    "tokens_per_record": 16.471
+   },
+   "section_mismatches": 0
+  },
+  "json": {
+   "by_k": {
+    "1": {
+     "answer_tokens_nonempty": 9.217,
+     "bytes": {
+      "answer": 8.75,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 167.062,
+      "records": 71.562
+     },
+     "bytes_per_record": 71.562,
+     "identifier_token_fraction_of_records": 0.183,
+     "identifier_tokens_per_record": 5.229,
+     "n_items": 48,
+     "tokens": {
+      "answer": 4.938,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 52.271,
+      "records": 28.938
+     },
+     "tokens_per_record": 28.938
+    },
+    "10": {
+     "answer_tokens_nonempty": 37.792,
+     "bytes": {
+      "answer": 75.312,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 774.917,
+      "records": 679.417
+     },
+     "bytes_per_record": 67.942,
+     "identifier_token_fraction_of_records": 0.205,
+     "identifier_tokens_per_record": 5.296,
+     "n_items": 48,
+     "tokens": {
+      "answer": 37.792,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 282.208,
+      "records": 258.875
+     },
+     "tokens_per_record": 25.887
+    },
+    "11": {
+     "answer_tokens_nonempty": 41.896,
+     "bytes": {
+      "answer": 83.479,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 855.542,
+      "records": 760.042
+     },
+     "bytes_per_record": 69.095,
+     "identifier_token_fraction_of_records": 0.202,
+     "identifier_tokens_per_record": 5.267,
+     "n_items": 48,
+     "tokens": {
+      "answer": 41.896,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 310.979,
+      "records": 287.646
+     },
+     "tokens_per_record": 26.15
+    },
+    "12": {
+     "answer_tokens_nonempty": 48.375,
+     "bytes": {
+      "answer": 95.896,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 930.646,
+      "records": 835.146
+     },
+     "bytes_per_record": 69.595,
+     "identifier_token_fraction_of_records": 0.207,
+     "identifier_tokens_per_record": 5.474,
+     "n_items": 48,
+     "tokens": {
+      "answer": 48.375,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 340.562,
+      "records": 317.229
+     },
+     "tokens_per_record": 26.436
+    },
+    "13": {
+     "answer_tokens_nonempty": 50.958,
+     "bytes": {
+      "answer": 101.375,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 988.729,
+      "records": 893.229
+     },
+     "bytes_per_record": 68.71,
+     "identifier_token_fraction_of_records": 0.206,
+     "identifier_tokens_per_record": 5.372,
+     "n_items": 48,
+     "tokens": {
+      "answer": 50.958,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 362.292,
+      "records": 338.958
+     },
+     "tokens_per_record": 26.074
+    },
+    "14": {
+     "answer_tokens_nonempty": 52.646,
+     "bytes": {
+      "answer": 104.854,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 1060.875,
+      "records": 965.375
+     },
+     "bytes_per_record": 68.955,
+     "identifier_token_fraction_of_records": 0.208,
+     "identifier_tokens_per_record": 5.448,
+     "n_items": 48,
+     "tokens": {
+      "answer": 52.646,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 389.729,
+      "records": 366.396
+     },
+     "tokens_per_record": 26.171
+    },
+    "15": {
+     "answer_tokens_nonempty": 55.896,
+     "bytes": {
+      "answer": 112.333,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 1120.396,
+      "records": 1024.896
+     },
+     "bytes_per_record": 68.326,
+     "identifier_token_fraction_of_records": 0.208,
+     "identifier_tokens_per_record": 5.383,
+     "n_items": 48,
+     "tokens": {
+      "answer": 55.896,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 411.917,
+      "records": 388.583
+     },
+     "tokens_per_record": 25.906
+    },
+    "16": {
+     "answer_tokens_nonempty": 62.771,
+     "bytes": {
+      "answer": 125.375,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 1203.542,
+      "records": 1108.042
+     },
+     "bytes_per_record": 69.253,
+     "identifier_token_fraction_of_records": 0.208,
+     "identifier_tokens_per_record": 5.448,
+     "n_items": 48,
+     "tokens": {
+      "answer": 62.771,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 443.729,
+      "records": 420.396
+     },
+     "tokens_per_record": 26.275
+    },
+    "2": {
+     "answer_tokens_nonempty": 11.235,
+     "bytes": {
+      "answer": 14.979,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 232.0,
+      "records": 136.5
+     },
+     "bytes_per_record": 68.25,
+     "identifier_token_fraction_of_records": 0.201,
+     "identifier_tokens_per_record": 5.385,
+     "n_items": 48,
+     "tokens": {
+      "answer": 8.25,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 77.125,
+      "records": 53.792
+     },
+     "tokens_per_record": 26.896
+    },
+    "3": {
+     "answer_tokens_nonempty": 14.881,
+     "bytes": {
+      "answer": 24.104,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 303.792,
+      "records": 208.292
+     },
+     "bytes_per_record": 69.431,
+     "identifier_token_fraction_of_records": 0.202,
+     "identifier_tokens_per_record": 5.41,
+     "n_items": 48,
+     "tokens": {
+      "answer": 13.146,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 103.833,
+      "records": 80.5
+     },
+     "tokens_per_record": 26.833
+    },
+    "4": {
+     "answer_tokens_nonempty": 16.0,
+     "bytes": {
+      "answer": 28.417,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 365.833,
+      "records": 270.333
+     },
+     "bytes_per_record": 67.583,
+     "identifier_token_fraction_of_records": 0.208,
+     "identifier_tokens_per_record": 5.401,
+     "n_items": 48,
+     "tokens": {
+      "answer": 15.062,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 127.667,
+      "records": 104.333
+     },
+     "tokens_per_record": 26.083
+    },
+    "5": {
+     "answer_tokens_nonempty": 20.319,
+     "bytes": {
+      "answer": 39.479,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 435.167,
+      "records": 339.667
+     },
+     "bytes_per_record": 67.933,
+     "identifier_token_fraction_of_records": 0.2,
+     "identifier_tokens_per_record": 5.204,
+     "n_items": 48,
+     "tokens": {
+      "answer": 19.917,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 153.667,
+      "records": 130.333
+     },
+     "tokens_per_record": 26.067
+    },
+    "6": {
+     "answer_tokens_nonempty": 22.761,
+     "bytes": {
+      "answer": 41.854,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 511.646,
+      "records": 416.146
+     },
+     "bytes_per_record": 69.358,
+     "identifier_token_fraction_of_records": 0.202,
+     "identifier_tokens_per_record": 5.333,
+     "n_items": 48,
+     "tokens": {
+      "answer": 21.854,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 181.667,
+      "records": 158.333
+     },
+     "tokens_per_record": 26.389
+    },
+    "7": {
+     "answer_tokens_nonempty": 29.542,
+     "bytes": {
+      "answer": 57.958,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 585.5,
+      "records": 490.0
+     },
+     "bytes_per_record": 70.0,
+     "identifier_token_fraction_of_records": 0.202,
+     "identifier_tokens_per_record": 5.336,
+     "n_items": 48,
+     "tokens": {
+      "answer": 29.542,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 209.125,
+      "records": 185.792
+     },
+     "tokens_per_record": 26.542
+    },
+    "8": {
+     "answer_tokens_nonempty": 30.729,
+     "bytes": {
+      "answer": 59.75,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 639.229,
+      "records": 543.729
+     },
+     "bytes_per_record": 67.966,
+     "identifier_token_fraction_of_records": 0.207,
+     "identifier_tokens_per_record": 5.37,
+     "n_items": 48,
+     "tokens": {
+      "answer": 30.729,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 230.792,
+      "records": 207.458
+     },
+     "tokens_per_record": 25.932
+    },
+    "9": {
+     "answer_tokens_nonempty": 34.312,
+     "bytes": {
+      "answer": 67.792,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 717.104,
+      "records": 621.604
+     },
+     "bytes_per_record": 69.067,
+     "identifier_token_fraction_of_records": 0.205,
+     "identifier_tokens_per_record": 5.384,
+     "n_items": 48,
+     "tokens": {
+      "answer": 34.312,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 260.021,
+      "records": 236.688
+     },
+     "tokens_per_record": 26.299
+    }
+   },
+   "by_longest_id": {
+    "2": {
+     "answer_tokens_nonempty": 6.333,
+     "bytes": {
+      "answer": 8.6,
+      "header": 0.0,
+      "instruction": 101.0,
+      "prompt": 172.6,
+      "records": 71.6
+     },
+     "bytes_per_record": 71.6,
+     "identifier_token_fraction_of_records": 0.089,
+     "identifier_tokens_per_record": 2.4,
+     "n_items": 5,
+     "tokens": {
+      "answer": 4.2,
+      "header": 0.0,
+      "instruction": 24.4,
+      "prompt": 51.8,
+      "records": 27.4
+     },
+     "tokens_per_record": 27.4
+    },
+    "3": {
+     "answer_tokens_nonempty": 10.333,
+     "bytes": {
+      "answer": 8.5,
+      "header": 0.0,
+      "instruction": 76.75,
+      "prompt": 160.0,
+      "records": 83.25
+     },
+     "bytes_per_record": 68.562,
+     "identifier_token_fraction_of_records": 0.154,
+     "identifier_tokens_per_record": 4.0,
+     "n_items": 8,
+     "tokens": {
+      "answer": 4.5,
+      "header": 0.0,
+      "instruction": 19.5,
+      "prompt": 51.875,
+      "records": 32.375
+     },
+     "tokens_per_record": 26.75
+    },
+    "4": {
+     "answer_tokens_nonempty": 14.8,
+     "bytes": {
+      "answer": 18.974,
+      "header": 0.0,
+      "instruction": 94.974,
+      "prompt": 271.103,
+      "records": 176.128
+     },
+     "bytes_per_record": 70.206,
+     "identifier_token_fraction_of_records": 0.177,
+     "identifier_tokens_per_record": 4.789,
+     "n_items": 39,
+     "tokens": {
+      "answer": 9.846,
+      "header": 0.0,
+      "instruction": 23.282,
+      "prompt": 90.821,
+      "records": 67.538
+     },
+     "tokens_per_record": 27.393
+    },
+    "5": {
+     "answer_tokens_nonempty": 36.264,
+     "bytes": {
+      "answer": 68.647,
+      "header": 0.0,
+      "instruction": 95.7,
+      "prompt": 712.429,
+      "records": 616.729
+     },
+     "bytes_per_record": 68.856,
+     "identifier_token_fraction_of_records": 0.206,
+     "identifier_tokens_per_record": 5.426,
+     "n_items": 716,
+     "tokens": {
+      "answer": 34.786,
+      "header": 0.0,
+      "instruction": 23.372,
+      "prompt": 258.084,
+      "records": 234.712
+     },
+     "tokens_per_record": 26.367
+    }
+   },
+   "by_wording": {
+    "0": {
+     "held_out": false,
+     "instruction_bytes": 68.0,
+     "instruction_tokens": 17.0
+    },
+    "1": {
+     "held_out": false,
+     "instruction_bytes": 75.0,
+     "instruction_tokens": 20.0
+    },
+    "2": {
+     "held_out": false,
+     "instruction_bytes": 101.0,
+     "instruction_tokens": 24.0
+    },
+    "3": {
+     "held_out": false,
+     "instruction_bytes": 121.0,
+     "instruction_tokens": 28.0
+    },
+    "4": {
+     "held_out": true,
+     "instruction_bytes": 117.0,
+     "instruction_tokens": 27.0
+    },
+    "5": {
+     "held_out": true,
+     "instruction_bytes": 91.0,
+     "instruction_tokens": 24.0
+    }
+   },
+   "mix_13_16": {
+    "answer_tokens_nonempty": 55.568,
+    "bytes": {
+     "answer": 110.984,
+     "header": 0.0,
+     "instruction": 95.5,
+     "prompt": 1093.385,
+     "records": 997.885
+    },
+    "bytes_per_record": 68.811,
+    "identifier_token_fraction_of_records": 0.208,
+    "identifier_tokens_per_record": 5.413,
+    "n_items": 192,
+    "tokens": {
+     "answer": 55.568,
+     "header": 0.0,
+     "instruction": 23.333,
+     "prompt": 401.917,
+     "records": 378.583
+    },
+    "tokens_per_record": 26.106
+   },
+   "mix_1_12": {
+    "answer_tokens_nonempty": 27.863,
+    "bytes": {
+     "answer": 49.814,
+     "header": 0.0,
+     "instruction": 95.5,
+     "prompt": 543.203,
+     "records": 447.703
+    },
+    "bytes_per_record": 68.982,
+    "identifier_token_fraction_of_records": 0.202,
+    "identifier_tokens_per_record": 5.341,
+    "n_items": 576,
+    "tokens": {
+     "answer": 25.484,
+     "header": 0.0,
+     "instruction": 23.333,
+     "prompt": 194.16,
+     "records": 170.826
+    },
+    "tokens_per_record": 26.538
+   },
+   "mix_1_16": {
+    "answer_tokens_nonempty": 35.282,
+    "bytes": {
+     "answer": 65.107,
+     "header": 0.0,
+     "instruction": 95.5,
+     "prompt": 680.749,
+     "records": 585.249
+    },
+    "bytes_per_record": 68.939,
+    "identifier_token_fraction_of_records": 0.203,
+    "identifier_tokens_per_record": 5.359,
+    "n_items": 768,
+    "tokens": {
+     "answer": 33.005,
+     "header": 0.0,
+     "instruction": 23.333,
+     "prompt": 246.099,
+     "records": 222.766
+    },
+    "tokens_per_record": 26.43
+   },
+   "section_mismatches": 0
+  },
+  "sylang1": {
+   "by_k": {
+    "1": {
+     "answer_tokens_nonempty": 9.217,
+     "bytes": {
+      "answer": 8.75,
+      "header": 35.0,
+      "instruction": 95.5,
+      "prompt": 143.625,
+      "records": 13.125
+     },
+     "bytes_per_record": 13.125,
+     "identifier_token_fraction_of_records": 0.568,
+     "identifier_tokens_per_record": 5.229,
+     "n_items": 48,
+     "tokens": {
+      "answer": 4.938,
+      "header": 15.0,
+      "instruction": 23.333,
+      "prompt": 47.354,
+      "records": 9.021
+     },
+     "tokens_per_record": 9.021
+    },
+    "10": {
+     "answer_tokens_nonempty": 37.792,
+     "bytes": {
+      "answer": 75.312,
+      "header": 36.0,
+      "instruction": 95.5,
+      "prompt": 263.229,
+      "records": 131.729
+     },
+     "bytes_per_record": 13.173,
+     "identifier_token_fraction_of_records": 0.59,
+     "identifier_tokens_per_record": 5.296,
+     "n_items": 48,
+     "tokens": {
+      "answer": 37.792,
+      "header": 16.0,
+      "instruction": 23.333,
+      "prompt": 128.938,
+      "records": 89.604
+     },
+     "tokens_per_record": 8.96
+    },
+    "11": {
+     "answer_tokens_nonempty": 41.896,
+     "bytes": {
+      "answer": 83.479,
+      "header": 36.0,
+      "instruction": 95.5,
+      "prompt": 276.25,
+      "records": 144.75
+     },
+     "bytes_per_record": 13.159,
+     "identifier_token_fraction_of_records": 0.587,
+     "identifier_tokens_per_record": 5.267,
+     "n_items": 48,
+     "tokens": {
+      "answer": 41.896,
+      "header": 16.0,
+      "instruction": 23.333,
+      "prompt": 137.938,
+      "records": 98.604
+     },
+     "tokens_per_record": 8.964
+    },
+    "12": {
+     "answer_tokens_nonempty": 48.375,
+     "bytes": {
+      "answer": 95.896,
+      "header": 36.0,
+      "instruction": 95.5,
+      "prompt": 292.188,
+      "records": 160.688
+     },
+     "bytes_per_record": 13.391,
+     "identifier_token_fraction_of_records": 0.594,
+     "identifier_tokens_per_record": 5.474,
+     "n_items": 48,
+     "tokens": {
+      "answer": 48.375,
+      "header": 16.0,
+      "instruction": 23.333,
+      "prompt": 149.812,
+      "records": 110.479
+     },
+     "tokens_per_record": 9.207
+    },
+    "13": {
+     "answer_tokens_nonempty": 50.958,
+     "bytes": {
+      "answer": 101.375,
+      "header": 36.0,
+      "instruction": 95.5,
+      "prompt": 302.771,
+      "records": 171.271
+     },
+     "bytes_per_record": 13.175,
+     "identifier_token_fraction_of_records": 0.592,
+     "identifier_tokens_per_record": 5.372,
+     "n_items": 48,
+     "tokens": {
+      "answer": 50.958,
+      "header": 16.0,
+      "instruction": 23.333,
+      "prompt": 157.208,
+      "records": 117.875
+     },
+     "tokens_per_record": 9.067
+    },
+    "14": {
+     "answer_tokens_nonempty": 52.646,
+     "bytes": {
+      "answer": 104.854,
+      "header": 36.0,
+      "instruction": 95.5,
+      "prompt": 318.25,
+      "records": 186.75
+     },
+     "bytes_per_record": 13.339,
+     "identifier_token_fraction_of_records": 0.595,
+     "identifier_tokens_per_record": 5.448,
+     "n_items": 48,
+     "tokens": {
+      "answer": 52.646,
+      "header": 16.0,
+      "instruction": 23.333,
+      "prompt": 167.542,
+      "records": 128.208
+     },
+     "tokens_per_record": 9.158
+    },
+    "15": {
+     "answer_tokens_nonempty": 55.896,
+     "bytes": {
+      "answer": 112.333,
+      "header": 36.0,
+      "instruction": 95.5,
+      "prompt": 329.792,
+      "records": 198.292
+     },
+     "bytes_per_record": 13.219,
+     "identifier_token_fraction_of_records": 0.595,
+     "identifier_tokens_per_record": 5.383,
+     "n_items": 48,
+     "tokens": {
+      "answer": 55.896,
+      "header": 16.0,
+      "instruction": 23.333,
+      "prompt": 174.979,
+      "records": 135.646
+     },
+     "tokens_per_record": 9.043
+    },
+    "16": {
+     "answer_tokens_nonempty": 62.771,
+     "bytes": {
+      "answer": 125.375,
+      "header": 36.0,
+      "instruction": 95.5,
+      "prompt": 344.292,
+      "records": 212.792
+     },
+     "bytes_per_record": 13.299,
+     "identifier_token_fraction_of_records": 0.595,
+     "identifier_tokens_per_record": 5.448,
+     "n_items": 48,
+     "tokens": {
+      "answer": 62.771,
+      "header": 16.0,
+      "instruction": 23.333,
+      "prompt": 185.729,
+      "records": 146.396
+     },
+     "tokens_per_record": 9.15
+    },
+    "2": {
+     "answer_tokens_nonempty": 11.235,
+     "bytes": {
+      "answer": 14.979,
+      "header": 35.0,
+      "instruction": 95.5,
+      "prompt": 156.771,
+      "records": 26.271
+     },
+     "bytes_per_record": 13.135,
+     "identifier_token_fraction_of_records": 0.595,
+     "identifier_tokens_per_record": 5.385,
+     "n_items": 48,
+     "tokens": {
+      "answer": 8.25,
+      "header": 15.0,
+      "instruction": 23.333,
+      "prompt": 56.292,
+      "records": 17.958
+     },
+     "tokens_per_record": 8.979
+    },
+    "3": {
+     "answer_tokens_nonempty": 14.881,
+     "bytes": {
+      "answer": 24.104,
+      "header": 35.0,
+      "instruction": 95.5,
+      "prompt": 170.396,
+      "records": 39.896
+     },
+     "bytes_per_record": 13.299,
+     "identifier_token_fraction_of_records": 0.595,
+     "identifier_tokens_per_record": 5.41,
+     "n_items": 48,
+     "tokens": {
+      "answer": 13.146,
+      "header": 15.0,
+      "instruction": 23.333,
+      "prompt": 65.542,
+      "records": 27.208
+     },
+     "tokens_per_record": 9.069
+    },
+    "4": {
+     "answer_tokens_nonempty": 16.0,
+     "bytes": {
+      "answer": 28.417,
+      "header": 35.0,
+      "instruction": 95.5,
+      "prompt": 183.271,
+      "records": 52.771
+     },
+     "bytes_per_record": 13.193,
+     "identifier_token_fraction_of_records": 0.592,
+     "identifier_tokens_per_record": 5.401,
+     "n_items": 48,
+     "tokens": {
+      "answer": 15.062,
+      "header": 15.0,
+      "instruction": 23.333,
+      "prompt": 74.771,
+      "records": 36.438
+     },
+     "tokens_per_record": 9.109
+    },
+    "5": {
+     "answer_tokens_nonempty": 20.319,
+     "bytes": {
+      "answer": 39.479,
+      "header": 35.0,
+      "instruction": 95.5,
+      "prompt": 195.229,
+      "records": 64.729
+     },
+     "bytes_per_record": 12.946,
+     "identifier_token_fraction_of_records": 0.583,
+     "identifier_tokens_per_record": 5.204,
+     "n_items": 48,
+     "tokens": {
+      "answer": 19.917,
+      "header": 15.0,
+      "instruction": 23.333,
+      "prompt": 82.875,
+      "records": 44.542
+     },
+     "tokens_per_record": 8.908
+    },
+    "6": {
+     "answer_tokens_nonempty": 22.761,
+     "bytes": {
+      "answer": 41.854,
+      "header": 35.0,
+      "instruction": 95.5,
+      "prompt": 210.25,
+      "records": 79.75
+     },
+     "bytes_per_record": 13.292,
+     "identifier_token_fraction_of_records": 0.591,
+     "identifier_tokens_per_record": 5.333,
+     "n_items": 48,
+     "tokens": {
+      "answer": 21.854,
+      "header": 15.0,
+      "instruction": 23.333,
+      "prompt": 92.396,
+      "records": 54.062
+     },
+     "tokens_per_record": 9.01
+    },
+    "7": {
+     "answer_tokens_nonempty": 29.542,
+     "bytes": {
+      "answer": 57.958,
+      "header": 35.0,
+      "instruction": 95.5,
+      "prompt": 223.104,
+      "records": 92.604
+     },
+     "bytes_per_record": 13.229,
+     "identifier_token_fraction_of_records": 0.587,
+     "identifier_tokens_per_record": 5.336,
+     "n_items": 48,
+     "tokens": {
+      "answer": 29.542,
+      "header": 15.0,
+      "instruction": 23.333,
+      "prompt": 101.854,
+      "records": 63.521
+     },
+     "tokens_per_record": 9.074
+    },
+    "8": {
+     "answer_tokens_nonempty": 30.729,
+     "bytes": {
+      "answer": 59.75,
+      "header": 35.0,
+      "instruction": 95.5,
+      "prompt": 235.333,
+      "records": 104.833
+     },
+     "bytes_per_record": 13.104,
+     "identifier_token_fraction_of_records": 0.595,
+     "identifier_tokens_per_record": 5.37,
+     "n_items": 48,
+     "tokens": {
+      "answer": 30.729,
+      "header": 15.0,
+      "instruction": 23.333,
+      "prompt": 110.438,
+      "records": 72.104
+     },
+     "tokens_per_record": 9.013
+    },
+    "9": {
+     "answer_tokens_nonempty": 34.312,
+     "bytes": {
+      "answer": 67.792,
+      "header": 35.0,
+      "instruction": 95.5,
+      "prompt": 249.083,
+      "records": 118.583
+     },
+     "bytes_per_record": 13.176,
+     "identifier_token_fraction_of_records": 0.592,
+     "identifier_tokens_per_record": 5.384,
+     "n_items": 48,
+     "tokens": {
+      "answer": 34.312,
+      "header": 15.0,
+      "instruction": 23.333,
+      "prompt": 120.125,
+      "records": 81.792
+     },
+     "tokens_per_record": 9.088
+    }
+   },
+   "by_longest_id": {
+    "2": {
+     "answer_tokens_nonempty": 6.333,
+     "bytes": {
+      "answer": 8.6,
+      "header": 35.0,
+      "instruction": 101.0,
+      "prompt": 146.2,
+      "records": 10.2
+     },
+     "bytes_per_record": 10.2,
+     "identifier_token_fraction_of_records": 0.362,
+     "identifier_tokens_per_record": 2.4,
+     "n_items": 5,
+     "tokens": {
+      "answer": 4.2,
+      "header": 15.0,
+      "instruction": 24.4,
+      "prompt": 46.0,
+      "records": 6.6
+     },
+     "tokens_per_record": 6.6
+    },
+    "3": {
+     "answer_tokens_nonempty": 10.333,
+     "bytes": {
+      "answer": 8.5,
+      "header": 35.0,
+      "instruction": 76.75,
+      "prompt": 125.75,
+      "records": 14.0
+     },
+     "bytes_per_record": 11.312,
+     "identifier_token_fraction_of_records": 0.51,
+     "identifier_tokens_per_record": 4.0,
+     "n_items": 8,
+     "tokens": {
+      "answer": 4.5,
+      "header": 15.0,
+      "instruction": 19.5,
+      "prompt": 44.125,
+      "records": 9.625
+     },
+     "tokens_per_record": 7.812
+    },
+    "4": {
+     "answer_tokens_nonempty": 14.8,
+     "bytes": {
+      "answer": 18.974,
+      "header": 35.026,
+      "instruction": 94.974,
+      "prompt": 161.744,
+      "records": 31.744
+     },
+     "bytes_per_record": 12.63,
+     "identifier_token_fraction_of_records": 0.559,
+     "identifier_tokens_per_record": 4.789,
+     "n_items": 39,
+     "tokens": {
+      "answer": 9.846,
+      "header": 15.026,
+      "instruction": 23.282,
+      "prompt": 59.949,
+      "records": 21.641
+     },
+     "tokens_per_record": 8.525
+    },
+    "5": {
+     "answer_tokens_nonempty": 36.264,
+     "bytes": {
+      "answer": 68.647,
+      "header": 35.468,
+      "instruction": 95.7,
+      "prompt": 249.803,
+      "records": 118.635
+     },
+     "bytes_per_record": 13.277,
+     "identifier_token_fraction_of_records": 0.595,
+     "identifier_tokens_per_record": 5.426,
+     "n_items": 716,
+     "tokens": {
+      "answer": 34.786,
+      "header": 15.468,
+      "instruction": 23.372,
+      "prompt": 120.197,
+      "records": 81.358
+     },
+     "tokens_per_record": 9.111
+    }
+   },
+   "by_wording": {
+    "0": {
+     "held_out": false,
+     "instruction_bytes": 68.0,
+     "instruction_tokens": 17.0
+    },
+    "1": {
+     "held_out": false,
+     "instruction_bytes": 75.0,
+     "instruction_tokens": 20.0
+    },
+    "2": {
+     "held_out": false,
+     "instruction_bytes": 101.0,
+     "instruction_tokens": 24.0
+    },
+    "3": {
+     "held_out": false,
+     "instruction_bytes": 121.0,
+     "instruction_tokens": 28.0
+    },
+    "4": {
+     "held_out": true,
+     "instruction_bytes": 117.0,
+     "instruction_tokens": 27.0
+    },
+    "5": {
+     "held_out": true,
+     "instruction_bytes": 91.0,
+     "instruction_tokens": 24.0
+    }
+   },
+   "mix_13_16": {
+    "answer_tokens_nonempty": 55.568,
+    "bytes": {
+     "answer": 110.984,
+     "header": 36.0,
+     "instruction": 95.5,
+     "prompt": 323.776,
+     "records": 192.276
+    },
+    "bytes_per_record": 13.258,
+    "identifier_token_fraction_of_records": 0.594,
+    "identifier_tokens_per_record": 5.413,
+    "n_items": 192,
+    "tokens": {
+     "answer": 55.568,
+     "header": 16.0,
+     "instruction": 23.333,
+     "prompt": 171.365,
+     "records": 132.031
+    },
+    "tokens_per_record": 9.104
+   },
+   "mix_1_12": {
+    "answer_tokens_nonempty": 27.863,
+    "bytes": {
+     "answer": 49.814,
+     "header": 35.25,
+     "instruction": 95.5,
+     "prompt": 216.561,
+     "records": 85.811
+    },
+    "bytes_per_record": 13.185,
+    "identifier_token_fraction_of_records": 0.589,
+    "identifier_tokens_per_record": 5.341,
+    "n_items": 576,
+    "tokens": {
+     "answer": 25.484,
+     "header": 15.25,
+     "instruction": 23.333,
+     "prompt": 97.361,
+     "records": 58.778
+    },
+    "tokens_per_record": 9.034
+   },
+   "mix_1_16": {
+    "answer_tokens_nonempty": 35.282,
+    "bytes": {
+     "answer": 65.107,
+     "header": 35.438,
+     "instruction": 95.5,
+     "prompt": 243.365,
+     "records": 112.427
+    },
+    "bytes_per_record": 13.203,
+    "identifier_token_fraction_of_records": 0.59,
+    "identifier_tokens_per_record": 5.359,
+    "n_items": 768,
+    "tokens": {
+     "answer": 33.005,
+     "header": 15.438,
+     "instruction": 23.333,
+     "prompt": 115.862,
+     "records": 77.091
+    },
+    "tokens_per_record": 9.051
+   },
+   "section_mismatches": 0
+  },
+  "sylang2": {
+   "by_k": {
+    "1": {
+     "answer_tokens_nonempty": 9.217,
+     "bytes": {
+      "answer": 8.75,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 108.625,
+      "records": 13.125
+     },
+     "bytes_per_record": 13.125,
+     "identifier_token_fraction_of_records": 0.568,
+     "identifier_tokens_per_record": 5.229,
+     "n_items": 48,
+     "tokens": {
+      "answer": 4.938,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 32.354,
+      "records": 9.021
+     },
+     "tokens_per_record": 9.021
+    },
+    "10": {
+     "answer_tokens_nonempty": 37.792,
+     "bytes": {
+      "answer": 75.312,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 227.229,
+      "records": 131.729
+     },
+     "bytes_per_record": 13.173,
+     "identifier_token_fraction_of_records": 0.59,
+     "identifier_tokens_per_record": 5.296,
+     "n_items": 48,
+     "tokens": {
+      "answer": 37.792,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 112.938,
+      "records": 89.604
+     },
+     "tokens_per_record": 8.96
+    },
+    "11": {
+     "answer_tokens_nonempty": 41.896,
+     "bytes": {
+      "answer": 83.479,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 240.25,
+      "records": 144.75
+     },
+     "bytes_per_record": 13.159,
+     "identifier_token_fraction_of_records": 0.587,
+     "identifier_tokens_per_record": 5.267,
+     "n_items": 48,
+     "tokens": {
+      "answer": 41.896,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 121.938,
+      "records": 98.604
+     },
+     "tokens_per_record": 8.964
+    },
+    "12": {
+     "answer_tokens_nonempty": 48.375,
+     "bytes": {
+      "answer": 95.896,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 256.188,
+      "records": 160.688
+     },
+     "bytes_per_record": 13.391,
+     "identifier_token_fraction_of_records": 0.594,
+     "identifier_tokens_per_record": 5.474,
+     "n_items": 48,
+     "tokens": {
+      "answer": 48.375,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 133.812,
+      "records": 110.479
+     },
+     "tokens_per_record": 9.207
+    },
+    "13": {
+     "answer_tokens_nonempty": 50.958,
+     "bytes": {
+      "answer": 101.375,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 266.771,
+      "records": 171.271
+     },
+     "bytes_per_record": 13.175,
+     "identifier_token_fraction_of_records": 0.592,
+     "identifier_tokens_per_record": 5.372,
+     "n_items": 48,
+     "tokens": {
+      "answer": 50.958,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 141.208,
+      "records": 117.875
+     },
+     "tokens_per_record": 9.067
+    },
+    "14": {
+     "answer_tokens_nonempty": 52.646,
+     "bytes": {
+      "answer": 104.854,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 282.25,
+      "records": 186.75
+     },
+     "bytes_per_record": 13.339,
+     "identifier_token_fraction_of_records": 0.595,
+     "identifier_tokens_per_record": 5.448,
+     "n_items": 48,
+     "tokens": {
+      "answer": 52.646,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 151.542,
+      "records": 128.208
+     },
+     "tokens_per_record": 9.158
+    },
+    "15": {
+     "answer_tokens_nonempty": 55.896,
+     "bytes": {
+      "answer": 112.333,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 293.792,
+      "records": 198.292
+     },
+     "bytes_per_record": 13.219,
+     "identifier_token_fraction_of_records": 0.595,
+     "identifier_tokens_per_record": 5.383,
+     "n_items": 48,
+     "tokens": {
+      "answer": 55.896,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 158.979,
+      "records": 135.646
+     },
+     "tokens_per_record": 9.043
+    },
+    "16": {
+     "answer_tokens_nonempty": 62.771,
+     "bytes": {
+      "answer": 125.375,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 308.292,
+      "records": 212.792
+     },
+     "bytes_per_record": 13.299,
+     "identifier_token_fraction_of_records": 0.595,
+     "identifier_tokens_per_record": 5.448,
+     "n_items": 48,
+     "tokens": {
+      "answer": 62.771,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 169.729,
+      "records": 146.396
+     },
+     "tokens_per_record": 9.15
+    },
+    "2": {
+     "answer_tokens_nonempty": 11.235,
+     "bytes": {
+      "answer": 14.979,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 121.771,
+      "records": 26.271
+     },
+     "bytes_per_record": 13.135,
+     "identifier_token_fraction_of_records": 0.595,
+     "identifier_tokens_per_record": 5.385,
+     "n_items": 48,
+     "tokens": {
+      "answer": 8.25,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 41.292,
+      "records": 17.958
+     },
+     "tokens_per_record": 8.979
+    },
+    "3": {
+     "answer_tokens_nonempty": 14.881,
+     "bytes": {
+      "answer": 24.104,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 135.396,
+      "records": 39.896
+     },
+     "bytes_per_record": 13.299,
+     "identifier_token_fraction_of_records": 0.595,
+     "identifier_tokens_per_record": 5.41,
+     "n_items": 48,
+     "tokens": {
+      "answer": 13.146,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 50.542,
+      "records": 27.208
+     },
+     "tokens_per_record": 9.069
+    },
+    "4": {
+     "answer_tokens_nonempty": 16.0,
+     "bytes": {
+      "answer": 28.417,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 148.271,
+      "records": 52.771
+     },
+     "bytes_per_record": 13.193,
+     "identifier_token_fraction_of_records": 0.592,
+     "identifier_tokens_per_record": 5.401,
+     "n_items": 48,
+     "tokens": {
+      "answer": 15.062,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 59.771,
+      "records": 36.438
+     },
+     "tokens_per_record": 9.109
+    },
+    "5": {
+     "answer_tokens_nonempty": 20.319,
+     "bytes": {
+      "answer": 39.479,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 160.229,
+      "records": 64.729
+     },
+     "bytes_per_record": 12.946,
+     "identifier_token_fraction_of_records": 0.583,
+     "identifier_tokens_per_record": 5.204,
+     "n_items": 48,
+     "tokens": {
+      "answer": 19.917,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 67.875,
+      "records": 44.542
+     },
+     "tokens_per_record": 8.908
+    },
+    "6": {
+     "answer_tokens_nonempty": 22.761,
+     "bytes": {
+      "answer": 41.854,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 175.25,
+      "records": 79.75
+     },
+     "bytes_per_record": 13.292,
+     "identifier_token_fraction_of_records": 0.591,
+     "identifier_tokens_per_record": 5.333,
+     "n_items": 48,
+     "tokens": {
+      "answer": 21.854,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 77.396,
+      "records": 54.062
+     },
+     "tokens_per_record": 9.01
+    },
+    "7": {
+     "answer_tokens_nonempty": 29.542,
+     "bytes": {
+      "answer": 57.958,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 188.104,
+      "records": 92.604
+     },
+     "bytes_per_record": 13.229,
+     "identifier_token_fraction_of_records": 0.587,
+     "identifier_tokens_per_record": 5.336,
+     "n_items": 48,
+     "tokens": {
+      "answer": 29.542,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 86.854,
+      "records": 63.521
+     },
+     "tokens_per_record": 9.074
+    },
+    "8": {
+     "answer_tokens_nonempty": 30.729,
+     "bytes": {
+      "answer": 59.75,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 200.333,
+      "records": 104.833
+     },
+     "bytes_per_record": 13.104,
+     "identifier_token_fraction_of_records": 0.595,
+     "identifier_tokens_per_record": 5.37,
+     "n_items": 48,
+     "tokens": {
+      "answer": 30.729,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 95.438,
+      "records": 72.104
+     },
+     "tokens_per_record": 9.013
+    },
+    "9": {
+     "answer_tokens_nonempty": 34.312,
+     "bytes": {
+      "answer": 67.792,
+      "header": 0.0,
+      "instruction": 95.5,
+      "prompt": 214.083,
+      "records": 118.583
+     },
+     "bytes_per_record": 13.176,
+     "identifier_token_fraction_of_records": 0.592,
+     "identifier_tokens_per_record": 5.384,
+     "n_items": 48,
+     "tokens": {
+      "answer": 34.312,
+      "header": 0.0,
+      "instruction": 23.333,
+      "prompt": 105.125,
+      "records": 81.792
+     },
+     "tokens_per_record": 9.088
+    }
+   },
+   "by_longest_id": {
+    "2": {
+     "answer_tokens_nonempty": 6.333,
+     "bytes": {
+      "answer": 8.6,
+      "header": 0.0,
+      "instruction": 101.0,
+      "prompt": 111.2,
+      "records": 10.2
+     },
+     "bytes_per_record": 10.2,
+     "identifier_token_fraction_of_records": 0.362,
+     "identifier_tokens_per_record": 2.4,
+     "n_items": 5,
+     "tokens": {
+      "answer": 4.2,
+      "header": 0.0,
+      "instruction": 24.4,
+      "prompt": 31.0,
+      "records": 6.6
+     },
+     "tokens_per_record": 6.6
+    },
+    "3": {
+     "answer_tokens_nonempty": 10.333,
+     "bytes": {
+      "answer": 8.5,
+      "header": 0.0,
+      "instruction": 76.75,
+      "prompt": 90.75,
+      "records": 14.0
+     },
+     "bytes_per_record": 11.312,
+     "identifier_token_fraction_of_records": 0.51,
+     "identifier_tokens_per_record": 4.0,
+     "n_items": 8,
+     "tokens": {
+      "answer": 4.5,
+      "header": 0.0,
+      "instruction": 19.5,
+      "prompt": 29.125,
+      "records": 9.625
+     },
+     "tokens_per_record": 7.812
+    },
+    "4": {
+     "answer_tokens_nonempty": 14.8,
+     "bytes": {
+      "answer": 18.974,
+      "header": 0.0,
+      "instruction": 94.974,
+      "prompt": 126.718,
+      "records": 31.744
+     },
+     "bytes_per_record": 12.63,
+     "identifier_token_fraction_of_records": 0.559,
+     "identifier_tokens_per_record": 4.789,
+     "n_items": 39,
+     "tokens": {
+      "answer": 9.846,
+      "header": 0.0,
+      "instruction": 23.282,
+      "prompt": 44.923,
+      "records": 21.641
+     },
+     "tokens_per_record": 8.525
+    },
+    "5": {
+     "answer_tokens_nonempty": 36.264,
+     "bytes": {
+      "answer": 68.647,
+      "header": 0.0,
+      "instruction": 95.7,
+      "prompt": 214.335,
+      "records": 118.635
+     },
+     "bytes_per_record": 13.277,
+     "identifier_token_fraction_of_records": 0.595,
+     "identifier_tokens_per_record": 5.426,
+     "n_items": 716,
+     "tokens": {
+      "answer": 34.786,
+      "header": 0.0,
+      "instruction": 23.372,
+      "prompt": 104.729,
+      "records": 81.358
+     },
+     "tokens_per_record": 9.111
+    }
+   },
+   "by_wording": {
+    "0": {
+     "held_out": false,
+     "instruction_bytes": 68.0,
+     "instruction_tokens": 17.0
+    },
+    "1": {
+     "held_out": false,
+     "instruction_bytes": 75.0,
+     "instruction_tokens": 20.0
+    },
+    "2": {
+     "held_out": false,
+     "instruction_bytes": 101.0,
+     "instruction_tokens": 24.0
+    },
+    "3": {
+     "held_out": false,
+     "instruction_bytes": 121.0,
+     "instruction_tokens": 28.0
+    },
+    "4": {
+     "held_out": true,
+     "instruction_bytes": 117.0,
+     "instruction_tokens": 27.0
+    },
+    "5": {
+     "held_out": true,
+     "instruction_bytes": 91.0,
+     "instruction_tokens": 24.0
+    }
+   },
+   "mix_13_16": {
+    "answer_tokens_nonempty": 55.568,
+    "bytes": {
+     "answer": 110.984,
+     "header": 0.0,
+     "instruction": 95.5,
+     "prompt": 287.776,
+     "records": 192.276
+    },
+    "bytes_per_record": 13.258,
+    "identifier_token_fraction_of_records": 0.594,
+    "identifier_tokens_per_record": 5.413,
+    "n_items": 192,
+    "tokens": {
+     "answer": 55.568,
+     "header": 0.0,
+     "instruction": 23.333,
+     "prompt": 155.365,
+     "records": 132.031
+    },
+    "tokens_per_record": 9.104
+   },
+   "mix_1_12": {
+    "answer_tokens_nonempty": 27.863,
+    "bytes": {
+     "answer": 49.814,
+     "header": 0.0,
+     "instruction": 95.5,
+     "prompt": 181.311,
+     "records": 85.811
+    },
+    "bytes_per_record": 13.185,
+    "identifier_token_fraction_of_records": 0.589,
+    "identifier_tokens_per_record": 5.341,
+    "n_items": 576,
+    "tokens": {
+     "answer": 25.484,
+     "header": 0.0,
+     "instruction": 23.333,
+     "prompt": 82.111,
+     "records": 58.778
+    },
+    "tokens_per_record": 9.034
+   },
+   "mix_1_16": {
+    "answer_tokens_nonempty": 35.282,
+    "bytes": {
+     "answer": 65.107,
+     "header": 0.0,
+     "instruction": 95.5,
+     "prompt": 207.927,
+     "records": 112.427
+    },
+    "bytes_per_record": 13.203,
+    "identifier_token_fraction_of_records": 0.59,
+    "identifier_tokens_per_record": 5.359,
+    "n_items": 768,
+    "tokens": {
+     "answer": 33.005,
+     "header": 0.0,
+     "instruction": 23.333,
+     "prompt": 100.424,
+     "records": 77.091
+    },
+    "tokens_per_record": 9.051
+   },
+   "section_mismatches": 0
+  }
+ },
+ "config": {
+  "identifier_lengths": [
+   2,
+   3,
+   4,
+   5
+  ],
+  "items_per_k": 48,
+  "k_values": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11,
+   12,
+   13,
+   14,
+   15,
+   16
+  ],
+  "seed": 11,
+  "tokenizer_sha256_prefix": "aeb13307a71acd8f",
+  "vocab_size": 151669,
+  "wordings": 6
+ }
+}

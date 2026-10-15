@@ -249,6 +249,8 @@ def _overrides(config: dict) -> dict:
         out['design'] = config['design']
     if config.get('curriculum', 'mixed') != 'mixed':
         out['curriculum'] = config['curriculum']
+    if config.get('corpus'):
+        out['corpus'] = config['corpus']
     return out
 
 
@@ -554,15 +556,28 @@ def run(config: dict) -> dict:
     curriculum = config.get('curriculum', 'mixed')
     if curriculum not in CURRICULA:
         raise ValueError(curriculum)
-    stream = ItemStream('train', seed, k_values=tuple(config['k']), design=design)
-    per_k = max(32, 96 // len(config['k']))
-    if design == 'v1':
-        raw_panels = eval_panels(config['k'], per_k)
-        stop_panels = ('iid', 'dev', 'held_out_combo', 'swap', 'flip')
+    if design == 'v3':
+        import study3
+        corpus = study3.CORPORA[config['corpus']]
+        stream = study3.ItemStream3('train', seed, k_values=corpus['k'], lengths=corpus['lengths'],
+                                    wordings=corpus['wordings'])
+        per_k = 16
+        raw_panels = study3.panels(study3.K_TRAIN, per_k)
+        stop_panels = study3.STOP_PANELS
+
+        def render(arm, it, conflict=False):
+            return study3.render(renderer, arm, it)
     else:
-        raw_panels = study_panels(config['k'], per_k, design, filler=config['arm'] in FILLER_ARMS)
-        stop_panels = ('dev', 'dev_swap', 'dev_flip', 'dev_reorder')  # never the test panels
-    panels = {name: [dict(prompt=renderer.prompt(config['arm'], it, conflict=(name == 'cue_conflict')),
+        stream = ItemStream('train', seed, k_values=tuple(config['k']), design=design)
+        per_k = max(32, 96 // len(config['k']))
+        if design == 'v1':
+            raw_panels = eval_panels(config['k'], per_k)
+            stop_panels = ('iid', 'dev', 'held_out_combo', 'swap', 'flip')
+        else:
+            raw_panels = study_panels(config['k'], per_k, design, filler=config['arm'] in FILLER_ARMS)
+            stop_panels = ('dev', 'dev_swap', 'dev_flip', 'dev_reorder')  # never the test panels
+        render = renderer.prompt
+    panels = {name: [dict(prompt=render(config['arm'], it, conflict=(name == 'cue_conflict')),
                           target=renderer.target(it), statements=it)
                      for it in items]
               for name, items in raw_panels.items()}
@@ -584,7 +599,7 @@ def run(config: dict) -> dict:
             items = [stream.item(1 if stream.rng.random() < 0.25 else None) for _ in range(config['batch'])]
         else:
             items = [stream.item() for _ in range(config['batch'])]
-        rows = [dict(id=str(i), prompt=renderer.prompt(config['arm'], it), target=renderer.target(it))
+        rows = [dict(id=str(i), prompt=render(config['arm'], it), target=renderer.target(it))
                 for i, it in enumerate(items)]
         longest = max(longest, max(len(r['prompt']) + len(r['target']) + 3 for r in rows))
         assert longest <= context, f'training sequence of {longest} bytes exceeds the context of {context}'
@@ -677,10 +692,12 @@ def score(rt: Runtime, model, panels: dict) -> dict:
         exact = [r['exact'] for r in teacher_forced(rt, model, rows)]
         selected = [e for e, r in zip(exact, rows) if r['target'] != '[]']
         empty = [e for e, r in zip(exact, rows) if r['target'] == '[]']
-        by_k = defaultdict(list)
+        by_k, by_len = defaultdict(list), defaultdict(list)
         for e, r in zip(exact, rows):
             by_k[len(r['statements'])].append(e)
+            by_len[max(len(s[f]) for s in r['statements'] for f in ('subject', 'object'))].append(e)
         out[name] = dict(exact=round(sum(exact) / len(rows), 4), n=len(rows),
+                         by_len={k: round(sum(v) / len(v), 4) for k, v in sorted(by_len.items())},
                          flags=''.join('1' if e else '0' for e in exact),
                          selected=round(sum(selected) / len(selected), 4) if selected else None,
                          n_selected=len(selected),
@@ -990,6 +1007,13 @@ def suite_configs(name: str, args) -> list[dict]:
                      curriculum=args.curriculum, lr=args.lr, updates=args.updates, early_stop=4000,
                      eval_at=[u for u in GRID if u < args.updates])
                 for seed, arm in itertools.product(range(args.first_seed, args.seeds), arms)]
+    if name == 'study3':  # design v3: larger K, variable identifiers, varied wording, machine formats
+        import study3
+        arms3 = [a for a in study3.ARMS3 if not args.arms or a in args.arms.split(',')]
+        return [dict(base, arm=arm, seed=seed, k=list(study3.K_TRAIN), design='v3', corpus=args.corpus,
+                     position=args.position, curriculum=args.curriculum, lr=args.lr, updates=args.updates,
+                     early_stop=4000, eval_at=[u for u in GRID if u < args.updates])
+                for seed, arm in itertools.product(range(args.first_seed, args.seeds), arms3)]
     if name == 'selection-init':
         inits = ['fresh'] + (['copy96'] if args.copy_init else []) + (['surrogate'] if args.surrogate else [])
         selection_arms = args.arms.split(',') if args.arms else ['english']
@@ -1051,7 +1075,7 @@ def main() -> None:
     a.add_argument('--out')
     s = sub.add_parser('suite')
     s.add_argument('--source', required=True)
-    s.add_argument('--suite', choices=('lr', 'main', 'single', 'position', 'study', 'selection-init'), required=True)
+    s.add_argument('--suite', choices=('lr', 'main', 'single', 'position', 'study', 'study3', 'selection-init'), required=True)
     s.add_argument('--out', required=True)
     s.add_argument('--workers', type=int, default=4)
     s.add_argument('--seeds', type=int, default=3)
@@ -1065,7 +1089,9 @@ def main() -> None:
     s.add_argument('--init', default='fresh', choices=('fresh', 'copy96', 'surrogate'),
                    help='initial weights for the lr/main/single/position suites')
     s.add_argument('--k', default='1', help="record counts for --suite position/study, e.g. 1, 1234 or 12345678")
-    s.add_argument('--position', default='alibi', choices=POSITIONS, help='--suite study: position scheme')
+    s.add_argument('--position', default='alibi', choices=POSITIONS, help='--suite study/study3: position scheme')
+    s.add_argument('--corpus', default='all', choices=('v2', 'k12', 'ids', 'wording', 'all'),
+                   help='--suite study3: training corpus variant (see study3.CORPORA)')
     s.add_argument('--curriculum', default='mixed', choices=CURRICULA, help='--suite study: training curriculum')
     s.add_argument('--save-dir', help='write each final model here (outside the repository)')
     c = sub.add_parser('choose-lr')

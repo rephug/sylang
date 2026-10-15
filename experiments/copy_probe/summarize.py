@@ -420,6 +420,87 @@ def study(results: list[dict]) -> str:
     return table
 
 
+def study3(results: list[dict]) -> str:
+    """Design-v3 study (language.py --suite study3): K up to 12 in training, variable identifiers,
+    varied wording, JSON/CSV comparators, a fully held-out panel. Dev-selected checkpoint."""
+    groups: dict[tuple, list[dict]] = defaultdict(list)
+    for r in results:
+        o = r["overrides"]
+        groups[(o["arm"], o.get("corpus", "all"), o.get("position", "learned"), o["init"],
+                o.get("curriculum", "mixed"), o["updates"], o["lr"], o["batch"])].append(r)
+    order = {"english": 0, "sylang2": 1, "sylang1": 2, "json": 3, "csv": 4}
+    rows, curve = [], []
+    for key in sorted(groups, key=lambda k: (k[1], k[2], k[4], k[3], order.get(k[0], 9), k[0])):
+        runs = sorted(groups[key], key=lambda r: r["overrides"]["seed"])
+        sel = [_selected_checkpoint(r) for r in runs]
+        last = [r["history"][-1] for r in runs]
+
+        def col(panel, field="exact", pct=True, at=sel):
+            vals = [h[panel][field] for h in at if panel in h and h[panel].get(field) is not None]
+            return _fmt(vals, pct) if vals else "–"
+
+        def by_len(panel, length):
+            vals = [h[panel]["by_len"][str(length)] for h in sel
+                    if panel in h and str(length) in h[panel].get("by_len", {})]
+            return _fmt(vals) if vals else "–"
+
+        rows.append([key[0], key[1], key[2], key[4],
+                     ",".join(str(r["overrides"]["seed"]) for r in runs),
+                     f"{statistics.median(r['dev_selected_step'] or 0 for r in runs):,.0f}",
+                     f"{statistics.median(h['step'] for h in last):,.0f}",
+                     _median_censored([_items_to_90(r) for r in runs]),
+                     col("iid"), col("iid", "selected"), col("wording"), col("wording", "selected"),
+                     col("combo", "selected"), col("long"), col("long", "selected"),
+                     col("full"), col("full", "selected"),
+                     col("reorder"), col("swap"), col("flip"),
+                     by_len("iid", 2), by_len("iid", 5),
+                     f"{statistics.fmean(r['mean_prompt_bytes'] for r in runs):.0f}",
+                     _fmt([h["train_seconds"] for h in last], pct=False)])
+        curve.append((key, runs))
+    headers = ["arm", "corpus", "positions", "curriculum", "seeds", "dev-selected update (median)",
+               "trained to (median)", "items to 90% iid (median; range)",
+               "iid %", "iid selected %", "wording %", "wording selected %", "combo selected %",
+               "long %", "long selected %", "full %", "full selected %", "reorder %", "swap %", "flip %",
+               "iid longest-id 2 %", "iid longest-id 5 %", "prompt bytes", "train s (shared CPU)"]
+    table = ("At the dev-selected checkpoint unless stated. Mean over seeds (min–max). Panels: iid = trained "
+             "wording/combinations, K 1..12; wording = held-out wording; combo = a held-out combination; long = "
+             "K 13..16; full = held-out wording + held-out combination + K 13..16.\n\n" + _table(headers, rows))
+    # Paired per-item bootstrap: every arm minus english, on the shared panels, averaged over shared seeds.
+    boot_rows = []
+    for key, runs in curve:
+        if key[0] == "english":
+            continue
+        base_key = ("english", *key[1:])
+        if base_key not in groups:
+            continue
+        base_runs = {r["overrides"]["seed"]: r for r in groups[base_key]}
+        shared = [r for r in runs if r["overrides"]["seed"] in base_runs]
+        if not shared:
+            continue
+        for panel in ("iid", "wording", "combo", "long", "full", "reorder"):
+            a = [_selected_checkpoint(r)[panel]["flags"] for r in shared]
+            b = [_selected_checkpoint(base_runs[r["overrides"]["seed"]])[panel]["flags"] for r in shared]
+            mean, lo, hi = _paired_bootstrap(a, b)
+            boot_rows.append([key[0], key[1], key[4], panel, str(len(shared)), f"{mean:+.1f}", f"[{lo:+.1f}, {hi:+.1f}]",
+                              "yes" if lo > -3 else "no"])
+    if boot_rows:
+        table += ("\n\narm − english, paired per item at the dev-selected checkpoint, points (90% bootstrap over "
+                  "items; non-inferior if the lower bound is above −3):\n\n"
+                  + _table(["arm", "corpus", "curriculum", "panel", "seeds", "mean", "90% interval", "non-inferior"], boot_rows))
+    steps = sorted({h["step"] for _, runs in curve for r in runs for h in r["history"]})
+    for (panel, field, pct), title in ((("iid", "exact", True), "iid exact"),
+                                        (("full", "exact", True), "full (held-out) exact"),
+                                        (("long", "exact", True), "long (K 13..16) exact")):
+        lines = []
+        for key, runs in curve:
+            by_step = {s: [h[panel][field] for r in runs for h in r["history"]
+                           if h["step"] == s and panel in h and h[panel].get(field) is not None] for s in steps}
+            lines.append([key[0], key[1], key[4], *(_fmt(by_step[s], pct) if by_step[s] else "–" for s in steps)])
+        table += f"\n\n{title} by grid update (early-stopped runs end sooner):\n\n" + _table(
+            ["arm", "corpus", "curriculum", *(str(s) for s in steps)], lines)
+    return table
+
+
 def main() -> None:
     root = Path(sys.argv[1] if len(sys.argv) > 1 else "results")
     sections = []
@@ -445,10 +526,14 @@ def main() -> None:
         path = root / f"{name}.jsonl"
         if path.exists():
             sections.append(f"## {name}\n\n{render(_load(path))}\n")
-    study_files = sorted(root.glob("language_study*.jsonl"))
+    study3_files = sorted(root.glob("language_study3*.jsonl"))
+    study_files = [f for f in sorted(root.glob("language_study*.jsonl")) if f not in study3_files]
     if study_files:
         merged = [r for f in study_files for r in _load(f)]
         sections.append(f"## language_study (merged from {', '.join(f.name for f in study_files)})\n\n{study(merged)}\n")
+    if study3_files:
+        merged = [r for f in study3_files for r in _load(f)]
+        sections.append(f"## language_study3 (merged from {', '.join(f.name for f in study3_files)})\n\n{study3(merged)}\n")
     for name in ("language_benchmark", "language_benchmark_k8"):
         bench = root / f"{name}.json"
         if bench.exists():
