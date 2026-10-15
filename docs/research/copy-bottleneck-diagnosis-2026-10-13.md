@@ -891,6 +891,7 @@ JSON and CSV are in the study so that a Sylang win cannot be explained by Englis
 3. *Same time, hedge.* The decisive wave's `all`-corpus runs were queued behind the pilot before the pilot finished (`all` is the rule's default) so that the four cores stay busy. If the rule picks another corpus, those runs are reported as supplementary and the wave is re-run on the chosen corpus.
 4. *2026-10-15 14:15 UTC, with 7 of 11 decisive runs finished* (`sylang2` seed 0 learned and seed 1 did not; `english` seeds 1 and 2 learned and seed 0 did not; `json` seed 0 reached 80% and seed 1 did not). On this corpus the escape from the always-empty plateau within the 80,000-item budget is a seed-dependent event in every encoding, so three seeds measure the escape rate poorly. Two more seeds (3 and 4) of `sylang2` and of `english` were queued behind the pre-registered wave. The pre-registered comparison is reported on seeds 0–2 exactly as fixed in §10.1; the five-seed view is reported beside it, labelled, and the escape rate is given as learned-seeds / seeds with its small denominator. `json` and `csv` stay at two seeds (a `json` seed costs 6.4 h of CPU).
 5. *2026-10-15 15:45 UTC, after the `sylang1` reference run finished.* The one pre-registered `sylang1` seed scores 83% at K 13–16 and 61% on the fully held-out set against 30–38% and 30–44% for the two learned `sylang2` seeds, with everything inside the trained range equal. The only difference between the arms is the header line, which carries the record count. One seed cannot support a claim that the count helps length extrapolation, so seeds 1 and 2 of `sylang1` were queued (1.3 h each). The comparison is reported as exploratory: it was not a pre-registered question.
+6. *2026-10-15 17:40 UTC, after the pre-registered wave finished.* Both arms with an explicit count cue (the `sylang1` header's record count; English's numbered records) extrapolate to unseen record counts better than the bare header-free format on the learned seeds. To test the cue directly, a `sylang2c` arm was added: header-free, with a one-line record count before the record lines (the 2-token variant proposed in §9.4), two seeds, same recipe, same items. Exploratory.
 
 ### 10.4 Corpus pilot: which data increase buys what [M-local]
 
@@ -931,6 +932,51 @@ The non-zero "exact" of the fixed-shape corpora is the always-empty floor (items
 ### 10.3 The header-free format and the codec [M-local]
 
 `sylang_batch.py` is an independent implementation of the SYLANG-BATCH wire format, written from the format alone (letter tables, defaults and the identifier escaping were derived empirically by rendering every combination through the packet renderer as a black box; no packet source was copied). Version 1 is the existing format; `encode(..., version=1)` is byte-identical to the packet renderer on 3,000 random batches in both styles and on every BMP code point in the first and a later identifier position. Version 2 is the **opt-in header-free format**: the same record lines, no header; an optional `#sylang2` marker line costs 6 Qwen 3 tokens where the v1 header costs 15. `decode` accepts both versions and both styles and returns the records with the detected version, so every existing input keeps working; a v2 text whose first subject is literally `SYLANG-BATCH` is rejected at encode time to keep detection unambiguous. Interning, `if` records and other policies raise `NotImplementedError` rather than decoding wrongly. An independent adversarial review of the codec found no blocking or major defect (parity held on digit-only, length-1, 256-scalar, non-NFC, control-character and astral identifiers, batches of 1 and 1,000, and a 1,500-batch fuzz) and six minor ones, all fixed: header counts must now be canonical ASCII decimals (so `encode(decode(t)) == t` holds), `if` is special only as a first field, the reference's caps (1..1000 records, 1..256 scalars per identifier) are enforced in both versions so that every text this codec writes is readable by the existing tooling, a damaged v1 header or a byte-order mark is rejected instead of being read as v2, the marker's token claim is stated for a single-digit record count, and `convert --to 1 --marker` is an error. 16 tests, including the parity test, pass under the packet (`test_sylang_batch.py`).
+
+### 10.6 Decisive runs on the `all` corpus [M-local]
+
+Eleven pre-registered runs (`results/language_study3_decisive.jsonl`; the `sylang2` seed 0 is the pilot run, counted once): `english` and `sylang2` at seeds 0–2, `json` and `csv` at seeds 0–1, `sylang1` at seed 0; ALiBi, cosine decay, 10,000 updates (80,000 items), the same items per seed in every arm. Numbers are at the dev-selected checkpoint, which is the final one for every run that learned. The extra seeds of deviations 4–5 are in §10.6.4.
+
+#### 10.6.1 Learning and the escape rate (criterion 1)
+
+| arm | learned / seeds | items to 90% iid (learned seeds) | iid % (all seeds) | iid % (learned seeds) | train s per run (shared CPU) |
+|---|---|---|---|---|---|
+| english | 2 / 3 (seed 0 never escaped) | 60,000; 62,000 | 68 (9–99) | 97 (96–99) | 13,070 |
+| sylang2 | 2 / 3 (seed 1 never escaped) | 54,000; 54,000 | 67 (9–98) | 96 (94–98) | 4,098 |
+| sylang1 (reference) | 1 / 1 | 56,000 | 99 | 99 | 4,707 |
+| json | 0 / 2 (seed 0 ends at 80%, seed 1 never escaped) | – | 45 (9–80) | – | 22,865 |
+| csv | 0 / 2 | – | 8 | – | 14,173 |
+
+On this corpus the escape from the always-empty plateau within the budget is a seed-dependent event in every encoding: `english` and `sylang2` each lose one seed in three, `json` and `csv` lose both. Both `english` and `sylang2` *learn* by criterion 1; `json` and `csv` do not. Where a seed escapes, it escapes between updates 4,000 and 6,000 for `sylang2` and `sylang1` and between 6,000 and 8,000 for `english` and `json` (grid curves in `results/SUMMARY.md`), and the learned seeds then reach 94–99% iid. The §9 corpus never showed this: there `compact` + decay escaped in 3 of 3 seeds by update 3,250 (§9.3.4). Train seconds follow the sequence length (prompt bytes 178 / 214 / 367 / 412 / 539 for sylang2 / sylang1 / english / csv / json): a `json` seed costs 5.6× a `sylang2` seed on the same items.
+
+#### 10.6.2 Benefit beyond brevity (criterion 2): `sylang2` against the machine formats
+
+Paired per item on the two shared seeds (0 and 1), dev-selected checkpoint, points, 90% bootstrap over items:
+
+| contrast | iid | wording | combo | long | full | reorder |
+|---|---|---|---|---|---|---|
+| sylang2 − json | +6.8 [+4.4, +9.1] | +6.8 [+3.6, +10.4] | +6.8 [+3.1, +10.4] | +8.6 [+3.9, +13.3] | +11.7 [+7.0, +16.4] | +9.9 [+7.1, +12.8] |
+| sylang2 − csv | +43.0 [+40.9, +45.1] | +47.9 [+45.8, +50.0] | +43.8 [+40.6, +46.4] | +14.8 [+10.2, +19.5] | +14.8 [+10.2, +19.5] | +47.2 [+45.5, +48.6] |
+
+Every lower bound is above +3, so `sylang2` is *better* than both machine formats on every panel; in items to 90% it is 54,000 against never (both machine formats censored on both seeds); and in Qwen 3 tokens it is cheaper than both (0.63× English on the K 1..12 mix against 1.49× for compact JSON and 1.06× for CSV, §10.1 criterion 5 and `results/tokens3_qwen3.json`). **Criterion 2 is met: the benefit is the code, not the shortening of English.** The `json` − `csv` contrast is also informative: compact JSON, with one-letter keys and defaults omitted, is three times the bytes of `sylang2` and the slowest arm to train, yet it is the only machine format whose seed escaped at all; CSV, with every field spelled out as a word, never did.
+
+#### 10.6.3 Against English (criterion 4) and robustness (criterion 3)
+
+| contrast, 3 seeds paired | iid | wording | combo | long | full | reorder |
+|---|---|---|---|---|---|---|
+| sylang2 − english | −0.9 [−2.4, +0.7] | +2.8 [+0.7, +5.2] | +3.8 [+1.7, +5.9] | −12.5 [−17.7, −6.8] | −2.6 [−8.9, +3.1] | +0.0 [−1.1, +1.1] |
+
+Items to 90%: 54,000 against 62,000 (median over seeds, one censored each), ratio 0.87: a **tie** under the 2× rule. Paired per item, `sylang2` and `english` are tied on `iid`, `reorder` and `full`, `sylang2` is a few points up on `wording` and `combo` (lower bounds +0.7 and +1.7: not the +3 the rule asks for "better"), and `english` is ahead on `long` (K 13–16). On the learned seeds alone (two each): `english` 97 / 92 / 92 / 52 / 41 and `sylang2` 96 / 96 / 97 / 34 / 37 on iid / wording / combo / long / full; the two encodings are equal inside the trained range and English extrapolates to longer batches somewhat better.
+
+*Robustness (criterion 3).* On the `all` corpus `sylang2` is within 5 points of iid on `wording` and `combo` on both learned seeds, but not on `long` (34%) and `full` is 37%, below the 85% bar, so it is **not robust across record counts it was never trained on**. Neither is any other arm: `english` 52% / 41%, `sylang1` 83% / 61%, `json` ≤ 12%. Length extrapolation degrades with distance from the trained range for every encoding (`sylang2` seed 2: 75 / 50 / 25 / 0% at K = 13 / 14 / 15 / 16; `english` seed 2: 100 / 50 / 63 / 44%). Everything inside the trained range is at ceiling: identifiers of every length (93–100% by longest identifier), both held-out wordings (96%), the held-out combination (97–100%), reordered records, swap and flip (97–99%).
+
+*Targeted expansion (criterion 6, `results/language_study3_all16.jsonl`).* Training `sylang2` with K uniform in 1..16 instead of 1..12 (`all16`, seed 0, same budget) reaches 90% iid at 52,000 items (no slower), 99% iid over K 1..16, 95% on K 13–16 and **89% on the fully held-out set** (held-out wording and combination at K 13–16) against 30% without the expansion; the new extrapolation panel at K 17–20 scores 44% (81 / 50 / 31 / 13%). The expansion is **kept** by the rule (+59 points on the targeted cells, nothing lowered). The limit did not disappear; it moved with the trained range, by about the same profile. The practical reading is that the record count the pipeline will see should be inside the training range, which is cheap to arrange.
+
+*Exploratory, not pre-registered (deviation 5).* The one `sylang1` seed, whose only difference from `sylang2` is the header line, extrapolates far better (83% at K 13–16, 61% on `full`) with everything inside the range equal. The header carries the record count; the English rendering numbers its records (`1.`, `2.`, …) and also extrapolates better than the bare format. The common factor is an explicit count cue. Two more `sylang1` seeds are queued to test whether the one seed holds, and a `sylang2c` arm (header-free with a one-line record count, the 2-token variant §9.4 suggested) is added at two seeds to test the cue directly (deviation 6). Both are reported in §10.6.4 as exploratory.
+
+#### 10.6.4 Supplementary seeds (deviations 4–6)
+
+(filled in when the queued runs finish: `english` and `sylang2` seeds 3–4, `sylang1` seeds 1–2, `sylang2c` seeds 0–1, `english` on `all16`.)
 
 ### 10.5 A working task handoff, measured end to end [M-local]
 

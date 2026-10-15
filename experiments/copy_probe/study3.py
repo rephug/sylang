@@ -28,6 +28,8 @@ polarity, tense, aspect, evidence; see ``language.py``). What changes:
   values omitted, e.g. ``{"s":"k4m","r":"contain","neg":true,"t":"past","o":"f9b"}``.
 - ``csv``: one comma-separated row per record with every field spelled out, no header:
   ``k4m,contain,negative,past,progressive,direct,f9b``.
+- ``sylang2c``: ``sylang2`` with a one-line record count first (``3``), an exploratory arm that tests
+  whether an explicit count cue helps extrapolation to unseen record counts (doc §10.6.3).
 
 **Panels** (fixed items; identifiers from the test split unless stated): ``iid`` (trained
 wording, trained combinations, K 1..12); ``wording`` (held-out wording); ``combo`` (a
@@ -69,7 +71,7 @@ WORDINGS = {
     ),
 }
 
-ARMS3 = ('english', 'sylang2', 'sylang1', 'json', 'csv')
+ARMS3 = ('english', 'sylang2', 'sylang1', 'json', 'csv', 'sylang2c')  # sylang2c: header-free + a record-count line (exploratory)
 DEFAULTS = {'tense': 'present', 'aspect': 'simple', 'evidence': 'unspecified'}
 
 CORPORA = {
@@ -179,6 +181,8 @@ def render(renderer: L.Renderer, arm: str, item) -> str:
         body = renderer.payload('codes', statements)
     elif arm == 'sylang2':
         body = renderer.payload('codes', statements).split('\n', 1)[1]
+    elif arm == 'sylang2c':  # the §9.4 variant: no header, a one-line record count, then the record lines
+        body = f'{len(statements)}\n' + renderer.payload('codes', statements).split('\n', 1)[1]
     elif arm == 'json':
         body = '[' + ','.join(_json_record(s) for s in statements) + ']\n'
     elif arm == 'csv':

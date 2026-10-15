@@ -489,28 +489,41 @@ def study3(results: list[dict]) -> str:
               "the escape rate is learned/seeds:\n\n"
               + _table(["arm", "corpus", "learned/seeds", "items to 90% iid", "iid %", "wording %", "combo selected %",
                         "long %", "full %", "longer %", "reorder %", "swap %"], learned_rows))
-    # Paired per-item bootstrap: every arm minus english, on the shared panels, averaged over shared seeds.
-    boot_rows = []
-    for key, runs in curve:
-        if key[0] == "english":
-            continue
-        base_key = ("english", *key[1:])
-        if base_key not in groups:
-            continue
-        base_runs = {r["overrides"]["seed"]: r for r in groups[base_key]}
-        shared = [r for r in runs if r["overrides"]["seed"] in base_runs]
-        if not shared:
-            continue
-        for panel in ("iid", "wording", "combo", "long", "full", "reorder"):
-            a = [_selected_checkpoint(r)[panel]["flags"] for r in shared]
-            b = [_selected_checkpoint(base_runs[r["overrides"]["seed"]])[panel]["flags"] for r in shared]
-            mean, lo, hi = _paired_bootstrap(a, b)
-            boot_rows.append([key[0], key[1], key[4], panel, str(len(shared)), f"{mean:+.1f}", f"[{lo:+.1f}, {hi:+.1f}]",
-                              "yes" if lo > -3 else "no"])
+    # Paired per-item bootstrap on the shared panels, averaged over shared seeds: every arm minus english,
+    # then sylang2 minus each machine format (criterion 2 of §10.1).
+    def paired(base_arm, arms_to_compare):
+        rows_out = []
+        for key, runs in curve:
+            if key[0] == base_arm or (arms_to_compare and key[0] not in arms_to_compare):
+                continue
+            base_key = (base_arm, *key[1:])
+            if base_key not in groups:
+                continue
+            base_runs = {r["overrides"]["seed"]: r for r in groups[base_key]}
+            shared = [r for r in runs if r["overrides"]["seed"] in base_runs]
+            if not shared:
+                continue
+            for panel in ("iid", "wording", "combo", "long", "full", "reorder"):
+                a = [_selected_checkpoint(r)[panel]["flags"] for r in shared]
+                b = [_selected_checkpoint(base_runs[r["overrides"]["seed"]])[panel]["flags"] for r in shared]
+                mean, lo, hi = _paired_bootstrap(a, b)
+                rows_out.append([key[0], key[1], key[4], panel, str(len(shared)), f"{mean:+.1f}", f"[{lo:+.1f}, {hi:+.1f}]",
+                                 "yes" if lo > -3 else "no", "better" if lo > 3 else "worse" if hi < -3 else "tied"])
+        return rows_out
+
+    boot_rows = paired("english", None)
     if boot_rows:
         table += ("\n\narm − english, paired per item at the dev-selected checkpoint, points (90% bootstrap over "
-                  "items; non-inferior if the lower bound is above −3):\n\n"
-                  + _table(["arm", "corpus", "curriculum", "panel", "seeds", "mean", "90% interval", "non-inferior"], boot_rows))
+                  "items; non-inferior if the lower bound is above −3; better/worse if the interval is above +3 / below −3):\n\n"
+                  + _table(["arm", "corpus", "curriculum", "panel", "seeds", "mean", "90% interval", "non-inferior", "reading"], boot_rows))
+    machine_rows = []
+    for base_arm in ("json", "csv"):
+        for row in paired(base_arm, ("sylang2",)):
+            machine_rows.append([f"sylang2 − {base_arm}", *row[1:]])
+    if machine_rows:
+        table += ("\n\nsylang2 − machine format, paired per item at the dev-selected checkpoint, points (90% bootstrap over "
+                  "items), shared seeds only:\n\n"
+                  + _table(["contrast", "corpus", "curriculum", "panel", "seeds", "mean", "90% interval", "non-inferior", "reading"], machine_rows))
     steps = sorted({h["step"] for _, runs in curve for r in runs for h in r["history"]})
     for (panel, field, pct), title in ((("iid", "exact", True), "iid exact"),
                                         (("full", "exact", True), "full (held-out) exact"),
@@ -556,7 +569,13 @@ def main() -> None:
         merged = [r for f in study_files for r in _load(f)]
         sections.append(f"## language_study (merged from {', '.join(f.name for f in study_files)})\n\n{study(merged)}\n")
     if study3_files:
-        merged = [r for f in study3_files for r in _load(f)]
+        merged, seen = [], set()
+        for f in study3_files:  # the pilot's seed-0 run on the chosen corpus is reused as decisive seed 0: count it once
+            for r in _load(f):
+                key = json.dumps(r["overrides"], sort_keys=True)
+                if key not in seen:
+                    seen.add(key)
+                    merged.append(r)
         sections.append(f"## language_study3 (merged from {', '.join(f.name for f in study3_files)})\n\n{study3(merged)}\n")
     for name in ("language_benchmark", "language_benchmark_k8"):
         bench = root / f"{name}.json"
