@@ -890,6 +890,42 @@ JSON and CSV are in the study so that a Sylang win cannot be explained by Englis
 2. *Same time.* The pre-registered rule judges `k12` and `wording` on the v3 panels, whose identifiers are 2–5 characters. Corpora trained on fixed-shape identifiers (`v2`, `k12`, `wording`) are therefore out of distribution on every panel: the `v2` run scores 0% selected-only on all of them at every checkpoint, and its dev-selected checkpoint, chosen on those panels, means nothing. That makes the rule's `k12 → long` and `wording → wording` contrasts 0 against 0. Fix: those three corpora are additionally scored at their **final** checkpoint on panels built the same way (same seed) with letter-digit-letter identifiers (`eval3.py --lengths v2`), and the rule's target-panel contrasts are read there; their v3-panel numbers stay in the table as the identifier-shape result. `ids` and `all` are read on the v3 panels as planned, and the decisive corpus is still chosen by the rule's `full` clause on the v3 panels, the panels the decisive runs use.
 3. *Same time, hedge.* The decisive wave's `all`-corpus runs were queued behind the pilot before the pilot finished (`all` is the rule's default) so that the four cores stay busy. If the rule picks another corpus, those runs are reported as supplementary and the wave is re-run on the chosen corpus.
 
+### 10.4 Corpus pilot: which data increase buys what [M-local]
+
+One seed, `sylang2`, ALiBi + decay, 10,000 updates (80,000 items), the five corpora of §10.1. Results at the final checkpoint; the dev-selected checkpoint is the same for `ids` and `all` (update 10,000) and meaningless for the fixed-shape corpora (deviation 2). `results/language_study3_pilot.jsonl`, `results/study3_eval/`.
+
+**On the v3 panels** (identifiers of 2–5 characters from the test split):
+
+| corpus | iid | iid selected | wording (held out) | combo selected | long (K 13–16) | full (held out ×3) | reorder | swap | flip | iid, longest id 4 / 5 | items to 90% iid | train s |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| v2 (K ≤ 8, 3-char ids, 1 wording) | 7 | 0 | 10 | 0 | 0 | 0 | 3 | 0 | 5 | 13 / 4 | ∞ | 2,756 |
+| k12 (+ K ≤ 12) | 7 | 0 | 10 | 0 | 0 | 0 | 3 | 0 | 5 | 13 / 4 | ∞ | 4,278 |
+| ids (+ 2–5-char ids) | 66 | 64 | 71 | 56 | 2 | 3 | 60 | 66 | 66 | 67 / 65 | ∞ | 3,096 |
+| wording (+ 4 wordings) | 9 | 0 | 12 | 0 | 0 | 0 | 5 | 0 | 7 | 20 / 5 | ∞ | 2,792 |
+| **all** | **94** | **93** | **97** | **94** | **30** | **30** | 97 | 94 | 96 | 93 / 94 | 54,000 | 4,479 |
+
+The non-zero "exact" of the fixed-shape corpora is the always-empty floor (items whose answer is `[]`); their selected-only exact is 0 on every panel at every checkpoint.
+
+**On fixed-shape (letter-digit-letter) identifier panels**, same construction, final checkpoint (`eval3.py --lengths v2`):
+
+| corpus | iid | wording (held out) | combo selected | long (K 13–16) | full | reorder | swap | flip | iid K 9–12 |
+|---|---|---|---|---|---|---|---|---|---|
+| v2 | 86 | 81 | 84 | 11 | 8 | 84 | 89 | 82 | 69 |
+| k12 | 85 | 81 | 93 | **53** | 58 | 88 | 86 | 84 | 86 |
+| ids | 66 | 61 | 74 | 8 | 2 | 65 | 66 | 68 | 47 |
+| wording | 93 | **90** | 91 | 12 | 6 | 94 | 89 | 95 | 78 |
+| all | 98 | 95 | 98 | 61 | 47 | 99 | 98 | 98 | 97 |
+
+**Reading, by the pre-registered rule.**
+
+1. *Identifier shape is the first weakness.* A model trained on three-character letter-digit-letter identifiers is at 0% selected-only on every item whose identifiers have another shape, while scoring 86–93% on its own shape. Nothing in §9 could have shown this: every §9 panel used the training shape. The `ids` increase takes the 2–5-character panels from 0 to 65–67% and is *useful* by the rule, at a price: with K ≤ 8 and one wording it escapes only after 4,000 updates and never reaches 90% in the budget (the §9 corpus reached 100% at 3,250).
+2. *Record count.* `k12` raises `long` (K 13–16) from 11 to 53 points on fixed-shape panels and K 9–12 from 69 to 86: *useful*. Extrapolation stays partial: K = 16 is 38%.
+3. *Wording.* The §9 model already answers unseen request wordings at 81% without ever seeing a second wording; `wording` adds 8 points (90%), below the 10-point threshold: *not useful by the rule*, borderline, one seed.
+4. *Combination.* `all` is above every single increase on every panel, including the ones the single increases target, and reaches 90% iid at 54,000 items. On `full` (the rule's clause) it scores 30 against 3 for the best single increase, so **the decisive corpus is `all`**, as the rule's default and the hedge of deviation 3 assumed. Its per-K profile on the fully held-out set is 69 / 25 / 19 / 6% at K = 13 / 14 / 15 / 16: length extrapolation degrades with distance from the trained range, while everything inside the range is at 88–100% (wording 97%, combination 94%, identifiers of every length 93–100%, reorder/swap/flip 94–97%).
+5. *Cost.* Train seconds are a shared-CPU caveat; in items, `all` reaches 90% iid at 54,000 against 26,000 for the §9 corpus on the §9 panels (§9.3.4): the harder corpus costs about 2× the data, and the single increases alone cost more than that (`ids` never reached 90%).
+
+**Targeted expansion (criterion 6), fixed before any decisive result was read.** The weakest cell of `sylang2` on `all` is `long`/`full` at K ≥ 14 (6–25%). The addition is `all16`: the same corpus with K uniform in 1..16 instead of 1..12, same budget, same recipe; the held-out set then has K 13..16 inside the trained range, and a new extrapolation panel at K 17..20 (`longer`, identical construction) measures whether extrapolation improves with the longer trained range or just moves. Run at one seed on `sylang2` and `english`. Kept if it raises the K 13–16 cells of `full` by ≥ 5 points without lowering the rest of `full` by more than 2, as pre-registered; the K 17–20 numbers are reported as the new limit. No other blind increase (more items of the same kind) is run.
+
 ### 10.3 The header-free format and the codec [M-local]
 
 `sylang_batch.py` is an independent implementation of the SYLANG-BATCH wire format, written from the format alone (letter tables, defaults and the identifier escaping were derived empirically by rendering every combination through the packet renderer as a black box; no packet source was copied). Version 1 is the existing format; `encode(..., version=1)` is byte-identical to the packet renderer on 3,000 random batches in both styles and on every BMP code point in the first and a later identifier position. Version 2 is the **opt-in header-free format**: the same record lines, no header; an optional `#sylang2` marker line costs 6 Qwen 3 tokens where the v1 header costs 15. `decode` accepts both versions and both styles and returns the records with the detected version, so every existing input keeps working; a v2 text whose first subject is literally `SYLANG-BATCH` is rejected at encode time to keep detection unambiguous. Interning, `if` records and other policies raise `NotImplementedError` rather than decoding wrongly. An independent adversarial review of the codec found no blocking or major defect (parity held on digit-only, length-1, 256-scalar, non-NFC, control-character and astral identifiers, batches of 1 and 1,000, and a 1,500-batch fuzz) and six minor ones, all fixed: header counts must now be canonical ASCII decimals (so `encode(decode(t)) == t` holds), `if` is special only as a first field, the reference's caps (1..1000 records, 1..256 scalars per identifier) are enforced in both versions so that every text this codec writes is readable by the existing tooling, a damaged v1 header or a byte-order mark is rejected instead of being read as v2, the marker's token claim is stated for a single-digit record count, and `convert --to 1 --marker` is an error. 16 tests, including the parity test, pass under the packet (`test_sylang_batch.py`).
