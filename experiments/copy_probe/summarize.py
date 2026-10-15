@@ -372,8 +372,8 @@ def study(results: list[dict]) -> str:
         ratios = []
         for r in runs:
             m, b = _items_to_90(r), base.get(r["overrides"]["seed"])
-            ratios.append("–" if b is None and m is None else "∞" if m is None else "0 (baseline censored)" if b is None
-                          else f"{m / b:.2f}")
+            ratios.append("– (both censored)" if b is None and m is None else "∞ (method censored)" if m is None
+                          else "< 1 (baseline censored)" if b is None else f"{m / b:.2f}")
         ratio_rows.append([key[0], key[1], key[2], key[3], ", ".join(ratios)])
     if ratio_rows:
         table += "\n\nItems-to-90% ratio, method / baseline (fresh, mixed), paired by seed:\n\n" + _table(

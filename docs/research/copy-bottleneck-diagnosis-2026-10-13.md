@@ -695,3 +695,27 @@ Reading:
 - **It is not the whole story.** At positions seen in training, held-out negatives still score 38–65% against 87–98% for trained combinations. Those errors split about evenly between **polarity** (the unseen wording is not recognised as a negation, and 30–40% of held-out *positives* are answered as if negative) and **copying**. The filler-English models make almost no polarity errors (the filler decides polarity) and fail only on copying.
 - **Codes compose.** For `codes` the unseen combination is one new letter pair at a fixed offset; learned-position `codes` and `codes_jitter` score 100% on it. `codes_eqlen` loses 8% to copy errors, because its padding width changes with the unseen code.
 - **Relative positions remove the weakness at K = 1.** Both ALiBi English models score 100% on the held-out combination, at novel and seen offsets alike. Whether that holds for K up to 8 and for the second hold-out is what §9.3.3 measures.
+
+#### 9.3.3 Learning-method pilots at K ≤ 8, seed 0 [M-local]
+
+All ALiBi, 10,000 updates × 8 items at most, dev-selected checkpoint, panels of §9.1. Items-to-90% is read from the fine iid curve; "censored" means 90% was never reached within 80,000 items. One seed each except where stated; these pilots chose the method for the 3-seed runs (§9.2, deviation 3) and are reported as they are.
+
+| Arm | Method | Items to 90% iid | Dev-selected update | iid exact | iid selected | K = 5–8 | combo sel. | both sel. | similar sel. | Final iid |
+|---|---|---|---|---|---|---|---|---|---|---|
+| `compact` | baseline (fresh, mixed, constant LR) | 32,000 | 4,000 | 95% | 95% | 92% | 95% | 97% | 99% | 91% |
+| `compact` | **decay** (cosine LR to 10%) | **26,000** | 8,000 (early stop) | **100%** | 100% | 100% | 100% | 100% | 100% | 100% |
+| `compact` | COPY-96 start (ALiBi-pretrained) | censored (peak 85%) | 8,000 | 85% | 83% | 70% | 83% | 85% | 90% | 84% |
+| `english_natural` | baseline | censored (peak 89%) | 8,000 | 84% | 81% | 68% | 78% | 81% | 87% | 77% |
+| `english_natural` | **decay** | **58,000** | 10,000 | **96%** | 95% | 91% | 96% | 96% | 99% | 96% |
+| `english_natural` | staged (K = 1 until 3,000, then mixed) | 60,000 | 10,000 | 92% | 91% | 85% | 90% | 92% | 95% | 92% |
+| `english_natural` | k1mix (25% K = 1 throughout) | 46,000 | 8,000 | 90% | 89% | 81% | 81% | 93% | 92% | 84% |
+| `english_natural` | COPY-96 start (ALiBi-pretrained) | censored (peak 80%) | 10,000 | 79% | 76% | 60% | 78% | 79% | 82% | 79% |
+| `codes` (header) | baseline | censored (18%) | 10,000 | 18% | 4% | 2% | 2% | 2% | 3% | 18% |
+
+Reading, by the frozen criteria:
+
+- **No method is an improvement on speed (criterion 4).** On `compact`, `decay` reaches 90% at 0.81× the baseline's items, a tie under the 2× rule. On English the baseline is censored, so every method that reaches 90% is "< 1×"; staged, k1mix and decay are within 1.3× of each other.
+- **`decay` is the only method at ceiling, on both encodings.** The constant-LR runs all fluctuate by 10–25 points between checkpoints after their escape (`compact` baseline: 95% at 4,000, 71% at 4,750, 91% at 10,000; English baseline: 84% at 8,000, 89% at 9,500, 77% at 10,000). The cosine schedule removes the fluctuation and ends at 100% (`compact`) and 96% (English), and it is the only English run above 92% at K = 5–8. That is why it went to three seeds (§9.2, deviation 3; results in §9.3.4).
+- **The COPY-96 initialisation does not help at K ≤ 8.** Pre-trained under ALiBi so that its weights match the position scheme, it leads the fresh run early (English: 48% vs 0% at update 4,000) and then falls behind on both encodings (censored on both; peaks 80% and 85%). The benefit found at K = 1 under the packet recipe (§8.5) does not transfer to the multi-record task at LR 1e-3. The pre-training cost it would add is small (6,144 items, 0.08 MB, 26 s), so cost is not the objection; it simply does not improve learning here. The memoriser start was not re-run (§8.5: no better than fresh at 3 seeds).
+- **Curricula help English modestly and consistently** (staged, k1mix: 90–92% dev-selected against 84%), but less than the LR schedule, and they do not reach the ceiling.
+- **The header costs `codes` the budget on this seed.** With identical record lines, `compact` reaches 90% at 32,000 items and `codes` never does (18% at 80,000). Seed 1 of `codes` did learn (98%, §9.3.4), so the header delays the escape by a seed-dependent amount rather than preventing it.
