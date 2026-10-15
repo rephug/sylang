@@ -52,8 +52,42 @@ SYLANG_COPY_CURRICULUM=<packet>/copy/source/CURRICULUM.json ../../.venv/bin/pyth
 ../../.venv/bin/python combo_analysis.py --source <packet> --out results/combo_analysis.json <ckpt-dir>/selection_init/*.pt <ckpt-dir>/language_alibi/*.pt
 ../../.venv/bin/python tokens.py --source <packet> --tokenizer <qwen3-tokenizer.json> --out results/tokens_qwen3.json
 ../../.venv/bin/python language.py benchmark --source <packet> --k 12345678 --out results/language_benchmark_k8.json   # on an idle CPU
+../../.venv/bin/python tokens3.py --source <packet> --tokenizer <qwen3-tokenizer.json> --out results/tokens3_qwen3.json --example   # design v3 arms, K 1..16
+../../.venv/bin/python language.py suite --source <packet> --suite study3 --corpus all --arms sylang2 --position alibi --curriculum decay --updates 10000 --seeds 1 --save-dir <ckpt-dir>/study3 --out results/study3/pilot-sylang2-all.jsonl   # corpus pilot, one per corpus
+../../.venv/bin/python language.py suite --source <packet> --suite study3 --corpus <chosen> --arms english,sylang2 --position alibi --curriculum decay --updates 10000 --seeds 3 --save-dir <ckpt-dir>/study3 --out results/study3/decisive.jsonl
+../../.venv/bin/python language.py benchmark --source <packet> --design v3 --k 1,2,4,8,12,16 --out results/language_benchmark_v3.json   # on an idle CPU
+SYLANG_PACKET=<packet> ../../.venv/bin/python -c "import sys; sys.path.insert(0, '.'); import unittest; unittest.main(module='test_sylang_batch', argv=['t'])"   # codec tests incl. packet parity
+../../.venv/bin/python demo_handoff.py --source <packet> --tokenizer <qwen3-tokenizer.json> --design v2 --k 12345678 --checkpoint sylang2=<ckpt-dir>/study/compact-fresh-k12345678-u10000-b8-lr0.001-s0-alibi-decay-v2-devbest.pt --checkpoint english=<ckpt-dir>/study/english_natural-fresh-k12345678-u10000-b8-lr0.001-s0-alibi-decay-v2-devbest.pt --out results/demo_handoff_v2.json --examples results/demo_handoff_v2_examples.txt
 ../../.venv/bin/python summarize.py results > results/SUMMARY.md
 ```
+
+## Sylang batch codec (v1 with header, v2 header-free)
+
+`sylang_batch.py` is an independent implementation of the SYLANG-BATCH wire format written from the
+format alone (letter tables, defaults and escaping derived empirically; the packet parity test checks
+byte identity on 3,000 random batches). `encode(records, version=1)` is the existing format; `version=2`
+is the **opt-in header-free format**: identical record lines, no header line (`marker=True` adds a
+`#sylang2` first line for 6 Qwen 3 tokens instead of the header's 15). `decode(text)` accepts both and
+returns the records plus `{version, style, records, marker}`, so existing inputs keep working.
+
+```sh
+printf '%s\n' '{"subject":"k4m","relation":"contain","polarity":"negative","tense":"past","object":"f9b"}' | python -I sylang_batch.py encode --version 2
+python -I sylang_batch.py decode < batch.txt            # v1 or v2 in, JSONL records out
+python -I sylang_batch.py convert --to 2 < batch_v1.txt  # re-encode in the other version
+```
+
+Not supported (raise): interning (`@` references, N > 0), `if` records, policies other than `selective`.
+
+## Design v3 (`study3.py`) and the handoff demo
+
+`language.py --suite study3` trains the five arms `english`, `sylang2`, `sylang1`, `json`, `csv` on the
+same items (identifiers of 2–5 characters from a hash split, six request wordings of which two are held
+out, K 1..12 trained and 13..16 held out) and scores the panels `iid`, `wording`, `combo`, `long`, `full`
+(everything held out at once) and the counterfactuals; `--corpus` selects the training corpus variant
+for the pilot. `tokens3.py` counts Qwen 3 tokens for the same arms. `demo_handoff.py` is a working
+producer-to-consumer task handoff measured at every stage (conversion in, transport tokens, the trained
+byte model's answer, conversion out, lossless round trip for the machine formats); the doc's §10 has
+the pre-registration and results.
 
 `<packet>` is the unpacked `sylang-source-and-results-20261013` directory. It must contain `baseline/source/{runtime/training,rows.jsonl,plan.json}` and `copy/source/{train.jsonl,evaluation.jsonl,SCHEDULE.json}`.
 

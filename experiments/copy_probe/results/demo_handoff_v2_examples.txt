@@ -1,0 +1,59 @@
+=== handoff 1 (K=1); expected answer: [["o7o","u7h"]]
+--- english message (108 bytes, 35 Qwen 3 tokens)
+1. By report, "o7o" did not help "u7h".
+List [subject,object] of each negative record in order; [] if none.
+consumer answer: [["o7o","u7h"]]  [correct]
+--- sylang2 message (80 bytes, 26 Qwen 3 tokens)
+o7o	Hpr	u7h
+List [subject,object] of each negative record in order; [] if none.
+consumer answer: [["o7o","u7h"]]  [correct]
+--- sylang1 message (115 bytes, 41 Qwen 3 tokens)
+SYLANG-BATCH	1	codes	selective	0	1
+o7o	Hpr	u7h
+List [subject,object] of each negative record in order; [] if none.
+--- json message (140 bytes, 48 Qwen 3 tokens)
+[{"s":"o7o","r":"help","neg":true,"t":"past","e":"reported","o":"u7h"}]
+List [subject,object] of each negative record in order; [] if none.
+--- csv message (111 bytes, 34 Qwen 3 tokens)
+o7o,help,negative,past,simple,reported,u7h
+List [subject,object] of each negative record in order; [] if none.
+
+=== handoff 2 (K=1); expected answer: []
+--- english message (105 bytes, 33 Qwen 3 tokens)
+1. By inference, "e7x" helped "e1g".
+List [subject,object] of each negative record in order; [] if none.
+consumer answer: []  [correct]
+--- sylang2 message (80 bytes, 26 Qwen 3 tokens)
+e7x	hpi	e1g
+List [subject,object] of each negative record in order; [] if none.
+consumer answer: []  [correct]
+--- sylang1 message (115 bytes, 41 Qwen 3 tokens)
+SYLANG-BATCH	1	codes	selective	0	1
+e7x	hpi	e1g
+List [subject,object] of each negative record in order; [] if none.
+--- json message (129 bytes, 45 Qwen 3 tokens)
+[{"s":"e7x","r":"help","t":"past","e":"inferred","o":"e1g"}]
+List [subject,object] of each negative record in order; [] if none.
+--- csv message (111 bytes, 34 Qwen 3 tokens)
+e7x,help,positive,past,simple,inferred,e1g
+List [subject,object] of each negative record in order; [] if none.
+
+=== handoff 3 (K=1); expected answer: [["o2h","c7b"]]
+--- english message (102 bytes, 32 Qwen 3 tokens)
+1. "o2h" is not containing "c7b".
+List [subject,object] of each negative record in order; [] if none.
+consumer answer: [["o2h","c7b"]]  [correct]
+--- sylang2 message (79 bytes, 26 Qwen 3 tokens)
+o2h	Cg	c7b
+List [subject,object] of each negative record in order; [] if none.
+consumer answer: [["o2h","c7b"]]  [correct]
+--- sylang1 message (114 bytes, 41 Qwen 3 tokens)
+SYLANG-BATCH	1	codes	selective	0	1
+o2h	Cg	c7b
+List [subject,object] of each negative record in order; [] if none.
+--- json message (135 bytes, 45 Qwen 3 tokens)
+[{"s":"o2h","r":"contain","neg":true,"a":"progressive","o":"c7b"}]
+List [subject,object] of each negative record in order; [] if none.
+--- csv message (125 bytes, 36 Qwen 3 tokens)
+o2h,contain,negative,present,progressive,unspecified,c7b
+List [subject,object] of each negative record in order; [] if none.
