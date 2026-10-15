@@ -4,7 +4,7 @@ Every task yields ``Example(prompt, answer)``. The model sees
 ``[BOS] + prompt bytes + answer bytes + [EOS]`` and is supervised only on the
 answer bytes and EOS.
 
-Identifiers are letter-digit-letter strings such as ``a0r``. ``FreshIds``
+Identifiers are letter-digit-letter strings such as ``a0q``. ``FreshIds``
 draws each character independently, so the ending of an identifier cannot be
 predicted from its first character; held-out identifiers are unseen
 *combinations* of characters that all occur in training.
@@ -197,13 +197,13 @@ def replace_identifiers(example: Example, mapping: dict[str, str]) -> Example:
 
 
 REPLICA_IDS = (
-    "a0r", "g4k", "b3x", "c5m", "d1q", "e8v",
+    "a0q", "g4k", "b3x", "c5m", "d1q", "e8v",
     "f2j", "h6z", "i9p", "j7w", "k3n", "l5y",
 )  # every ending is fixed by the first character
 
 
 def replica_pool() -> PoolIds:
-    """Zipf-weighted pool, so ``a0r`` is the most frequent target."""
+    """Zipf-weighted pool, so ``a0q`` is the most frequent target."""
     return PoolIds(list(REPLICA_IDS), [1.0 / (rank + 1) for rank in range(len(REPLICA_IDS))])
 
 
