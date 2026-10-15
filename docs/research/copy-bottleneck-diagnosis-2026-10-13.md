@@ -1018,7 +1018,31 @@ Prefill cost follows bytes for the byte model (`sylang2` 0.37× English, 0.21× 
 
 #### 10.6.5 Supplementary seeds (deviations 4–6)
 
-(filled in when the queued runs finish: `english` seeds 3–4, `sylang2` seeds 3–4 (seed 3 never escaped; seed 4 escaped late and ended at 85% iid), `sylang1` seeds 1–2, `sylang2c` seeds 0–1, `english` on `all16`.)
+Not pre-registered; `results/language_study3_extra.jsonl`, rendered as the "extended" section of `results/SUMMARY.md`. The pre-registered comparison above is unchanged by these runs.
+
+**Escape rate over five seeds** (learned = the fine iid curve reached 90%; escaped = left the always-empty floor):
+
+| arm | seeds | learned | escaped | items to 90% (learned seeds) | seeds that never left the floor |
+|---|---|---|---|---|---|
+| english | 0–4 | 2 / 5 | 2 / 5 | 60,000; 62,000 | 0, 3, 4 |
+| sylang2 | 0–4 | 2 / 5 | 3 / 5 | 54,000; 54,000 (seed 4 escaped late and ended at 85% iid) | 1, 3 |
+| sylang1 | 0–2 | 2 / 3 | 2 / 3 | 56,000; 68,000 | 1 |
+| sylang2c (count line) | 0–1 | 1 / 1 so far | 1 / 1 | 54,000 | – |
+| json | 0–1 | 0 / 2 | 1 / 2 | – (seed 0 ended at 80%) | 1 |
+| csv | 0–1 | 0 / 2 | 0 / 2 | – | 0, 1 |
+
+With five seeds the escape rate is about the same for English and header-free Sylang (two or three in five) and the learned seeds' speed ordering is unchanged (Sylang 54,000, English 60,000–62,000). The rate is the property of this corpus and budget for the packet's tiny model, not of an encoding: a production run needs a dev-panel check at update 6,000 and a restart rule, whichever format is used.
+
+**The count cue (deviations 5–6), exploratory.** Dev-selected checkpoint, learned seeds, K 13–16 (`long`) and the fully held-out set (`full`):
+
+| arm | count cue | long % by learned seed | full % by learned seed |
+|---|---|---|---|
+| sylang2 | none | 30, 38 | 30, 44 |
+| sylang2c | one-line count | 50 (seed 0; seed 1 pending) | 41 |
+| sylang1 | header with the count | 83, 42 | 61, 9 |
+| english | numbered records | 41, 64 | 30, 52 |
+
+Every arm with a count cue scores higher on `long` than the bare format on every learned seed (42–83 against 30–38), in the direction of the hypothesis, but the spread between seeds of the same arm (`sylang1` 42 against 83) is as large as the difference between arms, and on `full` the picture is mixed (`sylang1` seed 2 at 9%). The `sylang2c` seed 0 run also shows why checkpoint selection matters here: at its final checkpoint `long` rises to 78% while the held-out-wording panel falls to 45%, and the dev-selected checkpoint (update 8,000; `wording` 88%, `long` 50%) is the one reported. Reading: the count cue is *suggestive, not established*; two seeds per arm cannot separate it from seed variance. If the record count travels anyway, the 2-token count line costs nothing measurable (§10.6.4) and does not slow learning (54,000 items); it should not be adopted on the strength of this evidence alone.
 
 ### 10.7 Verdict of v3: what holds, what does not, and what to use
 
