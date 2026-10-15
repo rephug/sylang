@@ -295,6 +295,16 @@ class Malformed(NoLeak):
             ('x\\n\ts\ty\n', ValueError, 'escaped LF'),
             ('x\ts\ty\r\n', ValueError, 'CRLF'),
             ('x\x7f\ts\ty\n\\u007f\ts\ty\n', ValueError, 'DEL escaped in an NFC identifier'),
+            (H.replace('\t0\t', '\t0\t0') + '1\nx\ts\ty\n', ValueError, 'R with a leading zero'),
+            (H.replace('\t0\t', '\t00\t') + '1\nx\ts\ty\n', ValueError, 'N with a leading zero'),
+            (H + '\uff11\nx\ts\ty\n', ValueError, 'fullwidth digit in R'),
+            (H + '\u0661\nx\ts\ty\n', ValueError, 'Arabic-Indic digit in R'),
+            ('x\ts\tif\n', ValueError, 'object spelled if (non-canonical, not an if record)'),
+            (H.lower() + '1\nx\ts\ty\n', ValueError, 'damaged header: lower-case tag'),
+            ('\ufeff' + H + '1\nx\ts\ty\n', ValueError, 'damaged header: BOM before the tag'),
+            ('a\tb\tc\td\te\tf\nx\ts\ty\n', ValueError, 'damaged header: six fields'),
+            ('x\ts\ty\n' * 1001, ValueError, 'more than 1000 records'),
+            ('x' * 257 + '\ts\ty\n', ValueError, 'identifier of 257 scalars'),
         ]
         for text, exception, label in cases:
             with self.subTest(label):
@@ -339,6 +349,9 @@ class Malformed(NoLeak):
             ([{'subject': 'x', 'relation': 'see'}], ValueError, 'missing object'),
             ([{**good, 'kind': 'if'}], NotImplementedError, 'if record'),
             (['x\ts\ty'], TypeError, 'record not a dict'),
+            ([good] * 1001, ValueError, 'more than 1000 records (the reference cap)'),
+            ([{**good, 'subject': 'x' * 257}], ValueError, 'identifier of 257 scalars (the reference cap)'),
+            ([{**good, 'object': 'e\u0301' * 129}], ValueError, '258 scalars in decomposed form'),
         ]
         for records, exception, label in cases:
             for version in sb.VERSIONS:
@@ -355,6 +368,10 @@ class Malformed(NoLeak):
             sb.encode([{**good, 'subject': sb.HEADER_TAG}], version=2)
         sb.encode([{**good, 'subject': sb.HEADER_TAG}], version=1)  # fine under a header
         sb.encode([good, {**good, 'subject': sb.HEADER_TAG}], version=2)  # only the first subject is reserved
+        sb.encode([good] * 1000, version=1)  # exactly the cap
+        sb.encode([{**good, 'subject': 'x' * 256}], version=2)
+        text = sb.encode([good] * 1000, version=1)
+        self.assertEqual(sb.decode(text)[1]['records'], 1000)
 
 
 @unittest.skipUnless(os.environ.get('SYLANG_PACKET'), 'set SYLANG_PACKET=<packet directory> to run the parity test')

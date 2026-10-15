@@ -115,7 +115,8 @@ text ends with exactly one LF. The style is implied by the record lines. With
 ``marker=True`` (``--marker``) the text starts with the line ``#sylang2``. The
 marker is optional and costs tokens: measured with the Qwen 3 tokenizer.json
 used by ``tokens.py``, ``#sylang2\\n`` is 6 tokens (``#``, ``s``, ``yl``, ``ang``, ``2``,
-``\\n``), against 15 for a v1 header line. Default ``marker=False``.
+``\\n``), against 15 for a v1 header line with a single-digit record count (one
+more token per additional digit of R). Default ``marker=False``.
 
 Version 2 is opt-in: ``encode`` defaults to ``version=1``. Decoders accept both:
 ``decode`` recognises v1 by a first line starting with ``SYLANG-BATCH<TAB>``, v2
@@ -142,9 +143,9 @@ other than ``pred``.
 
 Not supported: interning (dictionaries, ``@`` references), ``if`` records,
 policies other than ``selective``, and identifiers containing tab or LF or
-starting with ``@``. Unlike the reference renderer, this codec puts no cap on the
-number of records in a batch (the reference accepts 1..1000) or on identifier
-length (the reference accepts 1..256 Unicode scalars).
+starting with ``@``. The reference renderer's caps are enforced in both versions
+so that every text this codec writes is readable by the existing tooling: 1..1000
+records per batch and 1..256 Unicode scalars per identifier.
 
 API
 ===
@@ -161,6 +162,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 import unicodedata
 
@@ -200,6 +202,9 @@ _ALWAYS_ESCAPED = set('"\\')  # escaped in both modes (with the C0 controls and 
 _MARKUP = set('<[')  # their presence selects full mode, where they are escaped too
 _HEX = frozenset('0123456789abcdefABCDEF')
 _FULL_FROM = 0x7f  # full mode: every code point from here up is escaped
+_DECIMAL = re.compile(r'0|[1-9][0-9]*')  # canonical header counts: no sign, no leading zero, ASCII digits
+MAX_RECORDS = 1000  # the reference accepts 1..1000 records per batch
+MAX_IDENTIFIER = 256  # ... and identifiers of 1..256 Unicode scalars
 
 
 def _light(identifier: str) -> str:
@@ -216,10 +221,6 @@ def _full_mode(identifier: str, light: str) -> bool:
     reads as ``r`` + U+0323, which composes to U+1E5B), which makes that spelling unstable."""
     return (unicodedata.normalize('NFC', light) != light
             or any(ch in _MARKUP or unicodedata.category(ch) == 'Cn' for ch in identifier))
-
-
-class _Problem(ValueError):
-    """A validation error with a message that names no identifier text."""
 
 
 # ---------------------------------------------------------------- identifiers
@@ -241,6 +242,8 @@ def _validate_identifier(identifier, what: str = 'identifier') -> None:
         raise ValueError(f'{what} must not contain a tab or a line feed')
     if identifier[0] == '@':
         raise ValueError(f"{what} must not start with '@' (dictionary references are not supported)")
+    if len(identifier) > MAX_IDENTIFIER:
+        raise ValueError(f'{what} must be 1..{MAX_IDENTIFIER} Unicode scalars')
     try:
         identifier.encode('utf-8')
     except UnicodeEncodeError:
@@ -314,8 +317,6 @@ def unescape_identifier(field: str) -> str:
         raise TypeError(f'field must be a str, not {type(field).__name__}')
     if field == '':
         raise ValueError('empty identifier')
-    if field == 'if':
-        raise NotImplementedError("'if' records are not supported")
     if field[0] == '@':
         raise ValueError("a field starting with '@' is a dictionary reference; interning is not supported")
     raw = _unescape(field)
@@ -437,6 +438,8 @@ def _record_line(rec: dict, style: str) -> str:
 
 def _parse_line(line: str, number: int) -> tuple[str, dict]:
     parts = line.split('\t')
+    if parts[0] == 'if':
+        raise NotImplementedError(f"record line {number}: 'if' records are not supported")
     if len(parts) != 3:
         raise ValueError(f'record line {number}: expected 3 tab-separated fields, found {len(parts)}')
     try:
@@ -464,6 +467,8 @@ def encode(records, *, style: str = 'codes', version: int = 1, marker: bool = Fa
     records = list(records)
     if not records:
         raise ValueError('a batch must hold at least one record')
+    if len(records) > MAX_RECORDS:
+        raise ValueError(f'a batch holds at most {MAX_RECORDS} records')
     normalized = [_normalize_record(record, index) for index, record in enumerate(records)]
     lines = [_record_line(rec, style) for rec in normalized]
     if version == 1:
@@ -498,8 +503,8 @@ def decode(text: str) -> tuple[list[dict], dict]:
             raise ValueError(f'unknown style {header_style!r} in header; expected one of {STYLES}')
         if policy != POLICY:
             raise NotImplementedError(f'policy {policy!r} is not supported; only {POLICY!r}')
-        if not entries.isdecimal() or not count.isdecimal():
-            raise ValueError('malformed header: N and R must be decimal integers')
+        if not (_DECIMAL.fullmatch(entries) and _DECIMAL.fullmatch(count)):
+            raise ValueError('malformed header: N and R must be canonical decimal integers')
         if int(entries) > 0:
             raise NotImplementedError('dictionary entries (interning) are not supported')
         body = lines[1:]
@@ -509,10 +514,14 @@ def decode(text: str) -> tuple[list[dict], dict]:
         version, marker = 2, True
         body = lines[1:]
     else:
+        if lines[0].count('\t') == 5 or lines[0].lstrip('\ufeff').upper().startswith(HEADER_TAG + '\t'):
+            raise ValueError(f'first line looks like a damaged {HEADER_TAG} header (not a record line)')
         version = 2
         body = lines
     if not body:
         raise ValueError('a batch must hold at least one record')
+    if len(body) > MAX_RECORDS:
+        raise ValueError(f'a batch holds at most {MAX_RECORDS} records')
     style = header_style
     records = []
     for number, line in enumerate(body, 1):
@@ -554,6 +563,8 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
     try:
         data = sys.stdin.buffer.read().decode('utf-8')
+        if args.command != 'encode' and data.startswith('\ufeff'):
+            raise ValueError('input starts with a UTF-8 byte-order mark; remove it')
         if args.command == 'encode':
             out = encode(_read_records(data), style=args.style, version=args.version, marker=args.marker)
         elif args.command == 'decode':
@@ -562,8 +573,10 @@ def main(argv=None) -> int:
             if args.info:
                 print(json.dumps(info), file=sys.stderr)
         else:
+            if args.marker and args.to != 2:
+                parser.error('--marker requires --to 2')
             records, info = decode(data)
-            out = encode(records, style=info['style'], version=args.to, marker=args.marker and args.to == 2)
+            out = encode(records, style=info['style'], version=args.to, marker=args.marker)
     except (ValueError, NotImplementedError, TypeError, UnicodeDecodeError) as error:
         print(f'error: {error}', file=sys.stderr)
         return 2
