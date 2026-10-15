@@ -883,3 +883,21 @@ JSON and CSV are in the study so that a Sylang win cannot be explained by Englis
 # targeted expansion (criterion 6): one addition, one seed, sylang2 + english
 # summarize.py results > results/SUMMARY.md ; §10.3–10.6 ; README ; PR body (draft) ; claims and privacy verification
 ```
+
+### 10.3 The header-free format and the codec [M-local]
+
+`sylang_batch.py` is an independent implementation of the SYLANG-BATCH wire format, written from the format alone (letter tables, defaults and the identifier escaping were derived empirically by rendering every combination through the packet renderer as a black box; no packet source was copied). Version 1 is the existing format; `encode(..., version=1)` is byte-identical to the packet renderer on 3,000 random batches in both styles and on every BMP code point in the first and a later identifier position. Version 2 is the **opt-in header-free format**: the same record lines, no header; an optional `#sylang2` marker line costs 6 Qwen 3 tokens where the v1 header costs 15. `decode` accepts both versions and both styles and returns the records with the detected version, so every existing input keeps working; a v2 text whose first subject is literally `SYLANG-BATCH` is rejected at encode time to keep detection unambiguous. Interning, `if` records and other policies raise `NotImplementedError` rather than decoding wrongly. 16 tests, including the parity test, pass under the packet (`test_sylang_batch.py`).
+
+### 10.5 A working task handoff, measured end to end [M-local]
+
+`demo_handoff.py` runs the workflow the pipeline is for: a *producer* agent holds a batch of status records as plain dicts and hands them to a *consumer* agent with one request (list the negated records as `[subject, object]` pairs); the consumer is the packet's tiny byte model trained on the handoff format, and its answer is parsed back into pairs for a downstream tool. The abbreviation in the request ("GBG") was not defined anywhere in the project, so the demo implements a generic task handoff. Every stage is timed and every message is counted with the Qwen 3 tokenizer, the intended deployment tokenizer (no model was called; only its tokenizer). First run, with the §9 dev-selected models (K ≤ 8, three-character identifiers, one wording; 64 fresh synthetic handoffs, 8 per K; `results/demo_handoff_v2.json`, worked examples in `results/demo_handoff_v2_examples.txt`):
+
+| format | consumer model | correct | message tokens (mean) | process tokens, 64 handoffs | ratio to English | conversion in | consumer (byte model, shared CPU) | parse out | lossless round trip |
+|---|---|---|---|---|---|---|---|---|---|
+| english | §9 English + decay, seed 0 | 62/64 (K = 8: 6/8) | 93.6 | 7,197 | 1.00 | 0.07 ms | 0.59 s | no parser | n/a |
+| sylang2 | §9 `compact` + decay, seed 0 | **64/64** | 58.2 | 4,931 | **0.69** | 0.11 ms | 0.26 s | 0.06 ms | 64/64 |
+| sylang1 | (tokens only) | – | 73.2 | 5,891 | 0.82 | 0.10 ms | – | 0.06 ms | 64/64 |
+| json | (tokens only) | – | 140.2 | 10,179 | 1.41 | 0.06 ms | – | 0.03 ms | 64/64 |
+| csv | (tokens only) | – | 96.3 | 7,374 | 1.02 | 0.01 ms | – | 0.01 ms | 64/64 |
+
+Reading: the conversions into and out of Sylang are microseconds against a consumer step of hundreds of milliseconds, so the format's cost is entirely in the transport tokens and the consumer's prefill; the whole process (message + answer) costs 0.69× English in the deployment tokenizer and the byte-model consumer answers in 0.44× the time (0.30 against 0.65 GFLOP per handoff, prefill plus KV-cached decode). The Sylang messages decode back to the producer's records byte-for-byte on every handoff; compact JSON costs 1.41× English and CSV 1.02×, so neither machine format beats controlled English on tokens here, while header-free Sylang does. The consumer latencies were measured on a shared CPU during the v3 pilot and are relative, not absolute. The v3 models (variable identifiers, six wordings, K ≤ 16) re-run this demo in §10.6 once the decisive runs finish.
