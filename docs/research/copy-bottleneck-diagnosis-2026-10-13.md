@@ -14,6 +14,7 @@ No project checkpoint was read or replaced, no model was downloaded and no API w
 
 ## Current answer (latest first)
 
+0. **Study v2.1, K ≤ 8 (§9), three seeds.** With relative positions (ALiBi) and a cosine learning-rate decay, a header-free Sylang encoding (`compact`) reaches **100%** on every panel (unseen identifiers, unseen feature combinations, both, similar identifiers, reordered records, swap, flip) on 3 of 3 seeds, after a median of 26,000 training items (1.5 M Qwen 3 tokens); controlled English under the same recipe reaches 96–99% after 58,000 items (5.4 M tokens). The current encoding's 35-byte header costs 15 Qwen 3 tokens per request (−21% tokens when removed; `compact` is cheaper than English at every K, `codes` only from K = 2) and, for the byte model, 1.7× the training items with one seed in three never learning. The COPY-96 initialisation does not help at K ≤ 8. The held-out-combination weakness is explained (absolute positions, §9.3.2) and gone under relative positions.
 1. **English vs Sylang (§8.3).**
    - **With the packet's learned absolute position table**, `codes` learns selection and English does not. The cause is that `codes` puts its fields at fixed byte offsets. The same symbols at English-like offsets (`codes_jitter`) lose most of the advantage. The failing models copy the identifier's digit but not its letters.
    - **With relative positions (ALiBi, one change)**, offsets stop mattering. Natural English then learns as fast as `codes` or faster:
@@ -293,34 +294,15 @@ The builder's caps would block the budget-based fixes. `binding.schedule` limits
 | **E1**: initialisation × the unchanged COPY packet | **Answered.** Natively: warm start + 96 identifiers gives 432/432 (§0.1). Locally: the breadth × initialisation matrix (§0.2). Breadth matters more than initialisation; fresh initialisation is sufficient, but not necessary. |
 | **E2**: copy *new* identifiers in selection, with no length cue | **Answered, with a twist.** With the packet's learned absolute positions, fresh-initialised English selection does not learn within 12,000 × 8 updates: it copies digits, not letters (§8.3.1). It does learn with relative positions (ALiBi) at the same settings (§8.3.2). Under the packet's own recipe (batch 4, LR 3e-4, 6,144 updates), a COPY-96 initialisation makes it learn reliably: 3 of 3 seeds for natural English, against 1 of 3 fresh (§8.5). Length matching uses slot filler, audited in §0.5. The filler itself became a shortcut (cue-conflict 0%), so the next runs use natural English. |
 
-### 5.2 Next two experiments (revised after §8)
+### 5.2 Next experiments (revised after §9)
 
-Both are native runs: they need the real warm start, more seeds, or the target model's tokenizer.
+N1 of the previous revision has been run locally (§9): relative positions, natural English, K up to 8, three seeds, pre-registered criteria. What remains is native and needs things not available here.
 
-**N1: the language comparison where it can mean something.**
+**N1′: the same comparison with the deployment tokenizer and real identifiers.** Count Gemma 3 tokens (gated here) for `compact`, `codes` and English on the production identifier distribution; the 3-tokens-per-identifier floor under Qwen 3 is two thirds of a `compact` record, so the byte saving overstates the token saving (§9.3.1). Success: `compact` ≥ 10% fewer tokens than `codes` over the production K mix under both tokenizers.
 
-- **Arms:** natural controlled English, `codes`, and one compact readable baseline (e.g. the tab-word layout without filler), all with the same item stream.
-- **Model:** the packet's `tiny` with relative positions (ALiBi, as `language.py --suite position`). If absolute positions must stay, add `codes_jitter` as a fourth arm, so a fixed-offset advantage is visible as such.
-- **Tasks:** K = 1–4 and K = 4–8. The batch header is amortised only at larger K.
-- **Budget:** 12,000 updates × 8, LR 1e-3 and 3e-4, 3 seeds per arm.
-- **Scoring:** held-out identifiers, a held-out (relation, tense) combination, swap and flip panels; items, bytes and FLOPs to 90%; peak and final accuracy.
-- **Success**, decided before running:
-  - every arm reaches ≥ 90% held-out exact in ≥ 2 of 3 seeds;
-  - `codes` is worth pursuing only if it is within 2 points of the best readable arm on every panel at equal FLOPs, **and** at least 10% cheaper per query in prefill FLOPs.
-- **Expected from the local two-seed result (§8.3.2):**
-  - `codes` passes the cost criterion at K = 1–4: 22% fewer bytes and 0.74× prefill FLOPs.
-  - It is tied with natural English per item: a median of 48,000 vs 56,000 items to 90%.
-  - Because each item is shorter, it needs fewer bytes to get there: a median of 7.4 vs 10.8 MB.
-  - If that holds over seeds, the honest claim is "a compression gain at equal accuracy", not "easier to learn".
+**N2′: adopt the three recipe changes in the packet trainer and re-run the selection suite.** (1) Drop the batch header or replace it with a 2-byte record count (`compact_count`, §9.3.1); (2) relative positions (ALiBi or RoPE) in `tiny.py`; (3) a cosine LR decay. Each is one change; §9.3.4 gives the expected effect of each. Success, 3 seeds at K ≤ 8: ≥ 97% on the §9.1 panels for `compact`, and English learning in 3/3 seeds. The COPY-96 pre-training stage can be dropped for this task (§9.3.3).
 
-**N2: COPY-96 initialisation for the 64-example selection task.**
-
-- **Arms:** the native team's planned COPY-init vs original-init comparison, using the 96-identifier COPY checkpoint (432/432), plus a fresh arm.
-- **Scoring:** fresh held-out identifiers and a held-out combination, as well as the original 48 checks, which reuse the training identifiers.
-- **Budget:** the packet's (batch 4, LR 3e-4), with the epoch cap raised so that 6,144 updates are allowed. Locally, COPY-96 escaped only between updates 3,072 and 6,144.
-- **Success:** COPY-96-init ≥ 90% on fresh-identifier selected checks in ≥ 2 of 3 seeds, with fresh and original-init lower. A held-out combination below 70% would show the copying transferring but the record understanding not.
-
-**Cheap check before N1 (no training): token counts.** Tokenise every arm's prompts with the tokenizer of the model Sylang is meant for. In pretrained BPE models, English is cheap and code-like strings fragment, so the 22% byte saving may shrink or reverse in tokens (2026-10-04 review). If `codes` is not ≥ 10% cheaper in tokens, N1's cost criterion fails before any training.
+**N3: the only open generalisation question is scale.** Every held-out panel is at parity with iid once an arm learns (§9.3.4), so the next hold-outs should be structural: K beyond 8, more than one negative record of the same subject, and conditional (`if`) records, which the codec supports and this study did not use.
 
 ---
 
@@ -366,6 +348,7 @@ The binding builder already renders the same ASTs in two arms, `english` and `co
 - **The language comparison (§8) uses one learning rate (1e-3) for every arm, and few seeds.** Learned positions: 1 seed per arm (K = 1 and K = 1–4). ALiBi: 2 seeds per arm. The COPY-96-start comparison: 1 seed. Selection (§8.5): 3 seeds. Seeds of the same arm differ by up to 4× in updates to 90%, so only effects larger than that are claimed: learned vs ALiBi, fixed vs variable offsets, and COPY-96 vs fresh. The English-vs-`codes` per-item difference under ALiBi at K = 1–4 is not resolved.
 - **ALiBi is one relative scheme**, applied to a model trained from scratch. Other schemes (RoPE, relative biases) and pretrained models may behave differently.
 - **Cost of the learned-position K = 1 English arms.** Their seeds 1–2 were not run: each costs about an hour, and seed 0 already showed no escape. The ALiBi arms got both seeds instead.
+- **Study v2.1 (§9).** Three seeds per decisive arm, one per pilot; one tokenizer (Qwen 3; Gemma 3 gated); a 1.1 M-parameter byte model trained from scratch on synthetic records with three-character identifiers; the `decay` recipe was added after the first `compact` run (logged in §9.2) and its seed 0 was the pilot that chose it (reported with and without seed 0); train seconds come from a CPU shared by 4–7 runs; the compact-vs-codes gap is carried by one `codes` seed that never escaped, so "non-inferior" is certain and "superior" is one seed's worth of evidence.
 - Training seconds in §8 were measured with more worker processes than cores. Use bytes processed and benchmark FLOPs as the cost measures; only the serial benchmark's timings are clean.
 - The filler in English and `words` is a synthetic device. A result on those arms holds only if their cue-conflict accuracy stays close to iid; `english_natural` is the unpadded reference.
 
@@ -731,3 +714,98 @@ Reading, by the frozen criteria:
 - **The COPY-96 initialisation does not help at K ≤ 8.** Pre-trained under ALiBi so that its weights match the position scheme, it leads the fresh run early (English: 48% vs 0% at update 4,000) and then falls behind on both encodings (censored on both; peaks 80% and 85%). The benefit found at K = 1 under the packet recipe (§8.5) does not transfer to the multi-record task at LR 1e-3. The pre-training cost it would add is small (6,144 items, 0.08 MB, 26 s), so cost is not the objection; it simply does not improve learning here. The memoriser start was not re-run (§8.5: no better than fresh at 3 seeds).
 - **Curricula help English modestly and consistently** (staged, k1mix: 90–92% dev-selected against 84%), but less than the LR schedule, and they do not reach the ceiling.
 - **The header costs `codes` the budget on this seed.** With identical record lines, `compact` reaches 90% at 32,000 items and `codes` never does (18% at 80,000). Seed 1 of `codes` did learn (98%, §9.3.4), so the header delays the escape by a seed-dependent amount rather than preventing it.
+
+#### 9.3.4 Decisive runs: three seeds per arm [M-local]
+
+ALiBi, K ≤ 8, 10,000 updates × 8 items at most, dev-selected checkpoint. Items, MB and Qwen 3 tokens to 90% are read from the fine iid curve (tokens = items × the arm's K = 1..8 mix mean of §9.3.1); a censored seed counts as ∞ in the median. Raw lines: `results/language_study.jsonl`; tables: `results/SUMMARY.md`.
+
+**Encodings, baseline recipe (fresh, mixed K, constant LR 1e-3):**
+
+| Arm | Seeds ≥ 90% | Items to 90%: median (per seed) | MB to 90% | Qwen 3 tokens to 90% | iid exact | iid selected | K = 5–8 | combo sel. | both sel. | similar sel. | reorder |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `compact` | **3/3** | **38,000** (32k, 38k, 58k) | 6.0 | 2.2 M | 97% (95–99) | 96% | 94% | 95% | 96% | 98% | 95% |
+| `codes` (header) | 2/3 | 66,000 (∞, 66k, 54k) | 12.7 | 4.8 M | 71% (18–98) | 66% | 64% | 65% | 66% | 67% | 68% |
+| `english_natural` | 1/3 | ∞ (∞, ∞, 44k) | ∞ | ∞ | 88% (84–90) | 86% | 76% | 82% | 84% | 88% | 85% |
+| `codes`, learned positions (1 seed) | 0/1 | ∞ | ∞ | ∞ | 14% | 0% | 0% | 0% | 0% | 0% | 7% |
+
+**Learning recipe `decay` (cosine LR 1e-3 → 1e-4), fresh init, mixed K:**
+
+| Arm | Seeds ≥ 90% | Items to 90%: median (per seed) | MB | Qwen 3 tokens | iid exact | iid selected | K = 5–8 | combo sel. | both sel. | similar sel. | reorder |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| `compact` + decay | **3/3** | **26,000** (26k, 32k, 26k) | 4.1 | **1.5 M** | **100%** (3 × 100) | 100% | 100% | 100% | 100% | 100% | 100% |
+| `english_natural` + decay | **3/3** | 58,000 (58k, 58k, 36k) | 16.7 | 5.4 M | **97%** (96–99) | 96% | 94% | 96% | 97% | 99% | 96% |
+
+Every run's teacher-forced exact flag agrees with the packet's greedy decoder on 32/32 items; the longest sequence was 609 bytes against a 2,048-byte context. Train time on the shared CPU (4–7 single-thread runs on 4 cores, so only indicative): `compact` 1,700–2,900 s per run, `codes` 3,100–4,100 s, English 5,300–8,800 s.
+
+**Against the frozen criteria (§9.1):**
+
+1. *Learns* (≥ 90% iid in ≥ 2 of 3 seeds): `compact` yes (3/3), `codes` yes (2/3), English baseline **no** (1/3; the other two peak at 89.4% and 89.8%); with `decay`, `compact` and English both 3/3.
+2. *Efficiency*: `compact` needs 38,000 items to 90% against 66,000 for `codes` (1.7×, within the 2× tie rule) and against a censored English median; in bytes and tokens the gap is 2.1× and 2.2× against `codes`, because each `compact` item is shorter.
+3. *Non-inferiority of `compact` to `codes`* (paired per item at the dev-selected checkpoint, 3 seeds, 1,000 bootstrap resamples): compact − codes = **+25.8** points on iid [90% interval +24.0, +27.3], +25.1 on combo [+23.3, +27.0], +26.7 on both [+25.3, +28.3], +30.5 on similar [+29.5, +31.5], +26.9 on reorder [+25.4, +28.4]. Every lower bound is far above −3: non-inferior on every panel, and in fact superior. The gap is carried by `codes` seed 0, which never escaped; on seeds 1 and 2 alone both arms sit at 96–99% and are indistinguishable. Removing the header never costs accuracy and sometimes rescues the run.
+4. *Learning method*: on `compact`, `decay` / baseline items-to-90% ratios are 0.81, 0.84 and 0.45 by seed (median 0.81): **a tie on speed** by the frozen rule (≤ 0.67 in all seeds or median ≤ 0.5). On English the baseline is censored on two seeds, so the ratio is "< 1" there and 0.82 on the third: also a tie on speed as the rule is written. On the composition terms `decay` is not merely within 2 points but above the baseline everywhere (`compact`: 100% vs 95–96% on combo, both and K = 5–8; English: 96–97% vs 82–84%). What the speed rule does not capture is that `decay` turns the English baseline from "does not learn" (1/3) into "learns" (3/3) and lifts both encodings to the ceiling. §9.4 reads it accordingly.
+5. *Frame-invariant* (combo and both selected ≥ 85%): every run that learned, under both recipes; `compact` + decay at 100% on both.
+6. *Winner's curse*: `decay`'s advantage holds on seeds 1 and 2 alone (`compact` ratios 0.84 and 0.45; English 3/3 ≥ 90% against the baseline's 1/3, with the one comparable seed at 0.82).
+7. *2× rule*: the one arm-level difference beyond 2× is bytes and tokens to 90%, `compact` against `codes` (2.1–2.2×) and against English (∞).
+
+**Identifiers versus combinations (the 2 × 2, selected-only exact at the dev-selected checkpoint, mean of 3 seeds):**
+
+| | Trained combinations | Held-out combination |
+|---|---|---|
+| Training-split identifiers | `seen`: compact 96%, codes 66%, English 83%; with decay 100% / 98% | `combo`: compact 95%, codes 65%, English 82%; with decay 100% / 96% |
+| Unseen identifiers | `iid`: compact 96%, codes 66%, English 86%; with decay 100% / 96% | `both`: compact 96%, codes 66%, English 84%; with decay 100% / 97% |
+
+Within every arm the four cells agree to within 4 points: under relative positions, neither unseen identifiers nor unseen combinations are a separate difficulty; an arm either learns the task or it does not. The per-record breakdowns (`results/breakdown_*.json`) say the same: held-out and trained records are included at the same rate (97–100%), positives are excluded at 100%, and every residual error is a copy error, never a polarity error.
+
+**What did not work:**
+
+- *The COPY-96 initialisation* (ALiBi-pre-trained, 6,144 items of pre-training): censored on both encodings (dev-selected 79% English, 85% `compact`), below the fresh baseline. The K = 1 benefit of §8.5 does not carry to K ≤ 8.
+- *The batch header*: 2/3 seeds instead of 3/3, 1.7× the items, 2.1× the bytes, a seed-0 failure; and 15 Qwen 3 tokens per request for nothing the task needs.
+- *Learned absolute positions*: `codes` at 0% selected after 80,000 items at K ≤ 8, where it learned K = 1 in 16,000.
+- *Curricula* (staged, k1mix): small, consistent gains for English on one seed (90–92% vs 84%), well short of the schedule change.
+
+#### 9.3.5 Inference cost over K = 1..8 [M-local]
+
+(filled from `results/language_benchmark_k8.json` below)
+
+### 9.4 Verdict: what improved, with evidence
+
+**Improved, and recommended for the project:**
+
+1. **Remove the batch header** (`compact`). Evidence: −21% Qwen 3 prompt tokens against the current `codes` over K = 1..8 and −38% against English, cheaper than English at every K where `codes` loses at K = 1 (§9.3.1); for the byte model, 3/3 seeds learn instead of 2/3, 90% is reached at 38,000 items instead of 66,000, and at the dev-selected checkpoint `compact` is +25 to +31 points over `codes` paired per item on every panel (§9.3.4). Nothing was lost: the record lines are byte-identical. If the record count must travel, a 2-byte count line costs 2 tokens instead of 15.
+2. **Relative positions.** Evidence: with the packet's learned position table, `codes` with its header scores 0% at K ≤ 8 after 80,000 items (§9.3.4) and every learned-position model collapses when the prompt is shifted by one byte (§9.3.2); with ALiBi the same model learns every arm, and unseen identifiers, unseen feature combinations and their conjunction are at parity with iid.
+3. **A decaying learning rate.** Evidence: the constant-LR runs fluctuate by 10–25 points between checkpoints after they escape; a cosine decay to 10% takes `compact` to 100% on all panels in 3/3 seeds at 26,000 items, and English from 1/3 seeds learning to 3/3 at 96–99% (§9.3.3–§9.3.4). By the pre-registered speed criterion it is a tie (ratios 0.45–0.84); on accuracy it is the largest single change in this study.
+
+**Not improved, reported plainly:**
+
+- The **COPY-96 initialisation** does not help multi-record selection: censored on both encodings at K ≤ 8, below fresh (§9.3.3). Its K = 1 benefit under the packet recipe (§8.5) is real but does not transfer. The memoriser start is no better than fresh (§8.5).
+- **Curricula** (K = 1 first, or 25% K = 1 throughout) give English a few points on one seed and nothing comparable to the LR schedule.
+- The **identifier floor**: three-character identifiers are 3 Qwen 3 tokens each, two thirds of a `compact` record; no encoding of the relation can go below about 3 tokens per record on top of that (§9.3.1).
+
+**Answers to the three tracks:**
+
+- *Real efficiency.* Bytes, tokens, training items and inference cost are four different quantities here: `compact` saves 52% of the bytes but 38% of the tokens against English, 2.2× the tokens to 90% against `codes`, and 0.74× the prefill FLOPs of English at the K = 1..4 mix (§8.4; K ≤ 8 in §9.3.5). The byte model's cost follows bytes; a deployed model's follows tokens; neither follows the other proportionally.
+- *Generalisation.* The unseen-combination weakness was a learned-position artefact (0% at never-seen answer offsets, polarity misread at seen ones, §9.3.2). Under relative positions, every hold-out (identifiers, combinations, both, similar identifiers, reordered records, swap, flip, K = 5–8) is within 4 points of iid for every arm that learns, and at 100% for `compact` + decay (§9.3.4).
+- *Better learning.* Of the candidates, only the LR schedule changes the outcome; the representation change (relative positions) and the encoding change (no header) matter more than any initialisation or curriculum tried.
+
+**Worked example** (`results/example_compact_s0_k5.txt`, the `compact` model at its dev-selected checkpoint, K = 5, fresh synthetic identifiers):
+
+```
+--- English input
+1. "x3x" has seen "y3d".
+2. By inference, "j6e" has not contained "a0z".
+3. By report, "r4a" contained "a3x".
+4. By report, "p3w" has contained "j9d".
+5. "e2p" is not helping "v5w".
+List [subject,object] of each negative record in order; [] if none.
+--- compact input (126 bytes)
+x3x	sc	y3d
+j6e	Cci	a0z
+r4a	cpr	a3x
+p3w	ccr	j9d
+e2p	Hg	v5w
+List [subject,object] of each negative record in order; [] if none.
+expected: [["j6e","a0z"],["e2p","v5w"]]
+model:    [["j6e","a0z"],["e2p","v5w"]]  [correct]
+```
+
+The same item with its records reordered and with every subject and object swapped is also answered correctly (the file shows both). With the instruction line, the English rendering of this item is 250 bytes and 97 Qwen 3 tokens; the `compact` rendering is 126 bytes and 61 tokens, of which 30 are the ten identifiers.

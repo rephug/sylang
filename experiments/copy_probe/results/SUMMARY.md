@@ -466,14 +466,112 @@ Swap margin, mean nats (> 0: the answer follows the roles) by update (runs that 
 | english_natural | fresh | 1 | 0.0003 | -0.08 (-0.13–-0.00) | -0.02 (-0.08–0.09) | -0.06 (-0.09–0.00) | 0.43 (-0.10–0.93) | 20.24 (6.33–42.57) |
 | english | surrogate | 1 | 0.0003 | -0.01 (-0.09–0.04) | -0.02 (-0.08–0.04) | 0.01 (-0.11–0.12) | 0.21 (0.12–0.26) | 11.72 (11.08–12.85) |
 
+## language_study (merged from language_study.jsonl)
+
+At the dev-selected checkpoint unless stated. Mean over seeds (min–max).
+
+| arm | positions | init | curriculum | seeds | dev-selected update (median) | trained to (median) | items to 90% iid (median; range) | MB to 90% iid | iid % | iid selected % | iid empty % | iid K=5–8 % | seen selected % | combo selected % | both selected % | similar selected % | similar-control selected % | reorder % | swap % | flip % | peak iid % (descriptive) | prompt bytes | train s (shared CPU) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| english_natural | alibi | fresh | decay | 0,1,2 | 8,000 | 10,000 | 58,000 (36,000–58,000) | 17 (10–17) | 97 (96–99) | 96 (95–99) | 100 | 94 (91–98) | 98 (96–99) | 96 (94–98) | 97 (96–98) | 99 (97–100) | 99 (98–100) | 96 (93–100) | 96 (93–100) | 96 (95–98) | 97 (96–99) | 250 | 6045.49 (5345.97–6604.30) |
+| compact | alibi | fresh | decay | 0,1,2 | 8,000 | 8,000 | 26,000 (26,000–32,000) | 4 (4–5) | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 100 | 122 | 1826.39 (1664.69–2139.71) |
+| english_natural | alibi | fresh | k1mix | 0 | 8,000 | 10,000 | 46,000 | 11 | 90 | 89 | 100 | 81 | 85 | 81 | 93 | 92 | 93 | 85 | 86 | 89 | 90 | 250 | 8003.22 |
+| english_natural | alibi | copy96 | mixed | 0 | 10,000 | 10,000 | ∞ (1/1 censored) | ∞ (1/1 censored) | 79 | 76 | 100 | 60 | 75 | 78 | 79 | 82 | 81 | 78 | 77 | 83 | 79 | 250 | 7094.34 |
+| compact | alibi | copy96 | mixed | 0 | 8,000 | 10,000 | ∞ (1/1 censored) | ∞ (1/1 censored) | 85 | 83 | 100 | 70 | 86 | 83 | 85 | 90 | 90 | 86 | 82 | 83 | 85 | 122 | 2971.59 |
+| english_natural | alibi | fresh | mixed | 0,1,2 | 8,000 | 10,000 | ∞ (2/3 censored) | ∞ (2/3 censored) | 88 (84–90) | 86 (81–89) | 100 | 76 (68–81) | 83 (79–89) | 82 (78–88) | 84 (81–87) | 88 (85–91) | 88 (84–93) | 85 (75–92) | 85 (80–88) | 88 (82–92) | 88 (84–90) | 250 | 7859.67 (6487.02–8823.64) |
+| codes | alibi | fresh | mixed | 0,1,2 | 10,000 | 10,000 | 66,000 (54,000–66,000) [1 censored] | 13 (10–13) [1 censored] | 71 (18–98) | 66 (4–98) | 100 | 64 (2–96) | 66 (5–97) | 65 (2–97) | 66 (2–99) | 67 (3–100) | 67 (3–100) | 68 (11–98) | 65 (2–98) | 70 (14–98) | 71 (18–98) | 157 | 3631.51 (3132.89–4145.94) |
+| compact | alibi | fresh | mixed | 0,1,2 | 8,000 | 10,000 | 38,000 (32,000–58,000) | 6 (5–9) | 97 (95–99) | 96 (94–99) | 100 | 94 (92–98) | 96 (94–99) | 95 (91–99) | 96 (94–99) | 98 (94–100) | 98 (96–100) | 95 (92–98) | 95 (93–99) | 96 (95–98) | 97 (95–99) | 122 | 2884.50 (2265.40–3529.14) |
+| english_natural | alibi | fresh | staged (switch 3,000) | 0 | 10,000 | 10,000 | 60,000 | 13 | 92 | 91 | 100 | 85 | 90 | 90 | 92 | 95 | 96 | 89 | 91 | 91 | 92 | 250 | 5383.46 |
+| codes | learned | fresh | mixed | 0 | 2,000 | 10,000 | ∞ (1/1 censored) | ∞ (1/1 censored) | 14 | 0 | 95 | 0 | 0 | 0 | 0 | 0 | 0 | 7 | 0 | 8 | 15 | 157 | 3495.90 |
+
+Items-to-90% ratio, method / baseline (fresh, mixed), paired by seed:
+
+| arm | positions | init | curriculum | ratio per seed |
+|---|---|---|---|---|
+| english_natural | alibi | fresh | decay | < 1 (baseline censored), < 1 (baseline censored), 0.82 |
+| compact | alibi | fresh | decay | 0.81, 0.84, 0.45 |
+| english_natural | alibi | fresh | k1mix | < 1 (baseline censored) |
+| english_natural | alibi | copy96 | mixed | – (both censored) |
+| compact | alibi | copy96 | mixed | ∞ (method censored) |
+| english_natural | alibi | fresh | staged | < 1 (baseline censored) |
+
+compact − codes, paired per item at the dev-selected checkpoint, points (90% bootstrap over items; non-inferior if the lower bound is above −3):
+
+| positions | init | curriculum | panel | seeds | mean | 90% interval | non-inferior |
+|---|---|---|---|---|---|---|---|
+| alibi | fresh | mixed | iid | 3 | +25.8 | [+24.0, +27.3] | yes |
+| alibi | fresh | mixed | combo | 3 | +25.1 | [+23.3, +27.0] | yes |
+| alibi | fresh | mixed | both | 3 | +26.7 | [+25.3, +28.3] | yes |
+| alibi | fresh | mixed | similar | 3 | +30.5 | [+29.5, +31.5] | yes |
+| alibi | fresh | mixed | reorder | 3 | +26.9 | [+25.4, +28.4] | yes |
+
+iid exact by grid update (early-stopped runs end sooner):
+
+| arm | positions | init | curriculum | 250 | 500 | 750 | 1000 | 1500 | 2000 | 3000 | 4000 | 6000 | 8000 | 10000 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| english_natural | alibi | fresh | decay | 0 | 7 (0–12) | 4 (3–4) | 9 (4–15) | 15 | 15 | 35 (15–74) | 36 (15–78) | 80 (61–97) | 95 (91–99) | 96 (96–97) |
+| compact | alibi | fresh | decay | 8 (0–15) | 15 | 15 | 15 | 24 (15–42) | 59 (15–82) | 78 (60–89) | 94 (91–95) | 98 (95–100) | 99 (96–100) | 100 |
+| english_natural | alibi | fresh | k1mix | 0 | 4 | 12 | 15 | 15 | 15 | 76 | 61 | 77 | 90 | 84 |
+| english_natural | alibi | copy96 | mixed | 0 | 0 | 0 | 0 | 12 | 15 | 20 | 48 | 71 | 74 | 79 |
+| compact | alibi | copy96 | mixed | 0 | 13 | 15 | 15 | 15 | 15 | 52 | 65 | 84 | 85 | 84 |
+| english_natural | alibi | fresh | mixed | 0 | 4 (0–11) | 8 (4–15) | 11 (5–15) | 15 | 15 | 32 (15–65) | 32 (14–68) | 73 (69–78) | 84 (79–90) | 83 (77–89) |
+| codes | alibi | fresh | mixed | 1 (0–2) | 8 (0–15) | 15 | 15 | 15 | 15 | 15 | 15 | 15 | 60 (15–90) | 71 (18–98) |
+| compact | alibi | fresh | mixed | 5 (0–15) | 15 | 15 | 15 | 15 | 22 (15–37) | 51 (15–86) | 81 (72–95) | 86 (85–87) | 92 (88–96) | 95 (91–99) |
+| english_natural | alibi | fresh | staged | 15 | 12 | 15 | 15 | 15 | 14 | 20 | 59 | 73 | 90 | 92 |
+| codes | learned | fresh | mixed | 5 | 7 | 5 | 7 | 14 | 14 | 14 | 15 | 15 | 15 | 15 |
+
+iid selected-only exact by grid update (early-stopped runs end sooner):
+
+| arm | positions | init | curriculum | 250 | 500 | 750 | 1000 | 1500 | 2000 | 3000 | 4000 | 6000 | 8000 | 10000 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| english_natural | alibi | fresh | decay | 0 | 0 | 0 | 0 | 0 | 0 | 23 (0–69) | 25 (0–74) | 76 (55–97) | 95 (90–99) | 96 (95–96) |
+| compact | alibi | fresh | decay | 0 | 0 | 0 | 0 | 11 (0–32) | 51 (0–79) | 74 (53–88) | 93 (90–94) | 98 (94–100) | 98 (95–100) | 100 |
+| english_natural | alibi | fresh | k1mix | 0 | 0 | 0 | 0 | 0 | 0 | 72 | 54 | 73 | 89 | 81 |
+| english_natural | alibi | copy96 | mixed | 0 | 0 | 0 | 0 | 0 | 0 | 6 | 39 | 66 | 69 | 76 |
+| compact | alibi | copy96 | mixed | 0 | 0 | 0 | 0 | 0 | 0 | 44 | 59 | 81 | 83 | 81 |
+| english_natural | alibi | fresh | mixed | 0 | 0 | 0 | 0 | 0 | 0 | 20 (0–59) | 21 (0–62) | 69 (63–74) | 82 (75–89) | 80 (73–88) |
+| codes | alibi | fresh | mixed | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 53 (0–88) | 66 (4–98) |
+| compact | alibi | fresh | mixed | 0 | 0 | 0 | 0 | 0 | 9 (0–26) | 42 (0–83) | 77 (67–94) | 84 (83–85) | 90 (86–95) | 94 (90–99) |
+| english_natural | alibi | fresh | staged | 0 | 0 | 0 | 0 | 0 | 0 | 6 | 52 | 68 | 89 | 91 |
+| codes | learned | fresh | mixed | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+
+combo selected-only exact by grid update (early-stopped runs end sooner):
+
+| arm | positions | init | curriculum | 250 | 500 | 750 | 1000 | 1500 | 2000 | 3000 | 4000 | 6000 | 8000 | 10000 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| english_natural | alibi | fresh | decay | 0 | 0 | 0 | 0 | 0 | 0 | 22 (0–67) | 24 (0–73) | 77 (53–97) | 94 (89–98) | 96 |
+| compact | alibi | fresh | decay | 0 | 0 | 0 | 0 | 11 (0–32) | 52 (0–85) | 75 (55–88) | 92 (90–95) | 98 (95–100) | 99 (96–100) | 100 |
+| english_natural | alibi | fresh | k1mix | 0 | 0 | 0 | 0 | 0 | 0 | 70 | 51 | 65 | 81 | 80 |
+| english_natural | alibi | copy96 | mixed | 0 | 0 | 0 | 0 | 0 | 0 | 9 | 39 | 65 | 64 | 78 |
+| compact | alibi | copy96 | mixed | 0 | 0 | 0 | 0 | 0 | 0 | 43 | 60 | 82 | 83 | 80 |
+| english_natural | alibi | fresh | mixed | 0 | 0 | 0 | 0 | 0 | 0 | 19 (0–56) | 20 (0–59) | 69 (65–71) | 79 (72–88) | 80 (75–85) |
+| codes | alibi | fresh | mixed | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 57 (0–92) | 65 (2–97) |
+| compact | alibi | fresh | mixed | 0 | 0 | 0 | 0 | 0 | 8 (0–25) | 41 (0–75) | 77 (67–95) | 85 (83–87) | 90 (90–91) | 94 (90–99) |
+| english_natural | alibi | fresh | staged | 0 | 0 | 0 | 0 | 0 | 0 | 9 | 47 | 70 | 83 | 90 |
+| codes | learned | fresh | mixed | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+
+both selected-only exact by grid update (early-stopped runs end sooner):
+
+| arm | positions | init | curriculum | 250 | 500 | 750 | 1000 | 1500 | 2000 | 3000 | 4000 | 6000 | 8000 | 10000 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| english_natural | alibi | fresh | decay | 0 | 0 | 0 | 0 | 0 | 0 | 24 (0–72) | 25 (0–74) | 75 (45–97) | 94 (88–98) | 95 |
+| compact | alibi | fresh | decay | 0 | 0 | 0 | 0 | 11 (0–34) | 54 (0–85) | 78 (56–92) | 94 (92–96) | 99 (98–100) | 99 (98–100) | 100 |
+| english_natural | alibi | fresh | k1mix | 0 | 0 | 0 | 0 | 0 | 0 | 75 | 56 | 71 | 93 | 82 |
+| english_natural | alibi | copy96 | mixed | 0 | 0 | 0 | 0 | 0 | 0 | 8 | 41 | 63 | 66 | 79 |
+| compact | alibi | copy96 | mixed | 0 | 0 | 0 | 0 | 0 | 0 | 40 | 64 | 82 | 85 | 82 |
+| english_natural | alibi | fresh | mixed | 0 | 0 | 0 | 0 | 0 | 0 | 19 (0–56) | 20 (0–59) | 71 (65–75) | 80 (73–87) | 82 (76–86) |
+| codes | alibi | fresh | mixed | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 58 (0–93) | 66 (2–99) |
+| compact | alibi | fresh | mixed | 0 | 0 | 0 | 0 | 0 | 10 (0–29) | 41 (0–83) | 78 (69–96) | 85 (84–88) | 90 (87–94) | 94 (89–99) |
+| english_natural | alibi | fresh | staged | 0 | 0 | 0 | 0 | 0 | 0 | 8 | 51 | 72 | 88 | 92 |
+| codes | learned | fresh | mixed | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 | 0 |
+
 ## language_benchmark
 
-| arm | prompt bytes (natural) | by K = 1 / 2 / 3 / 4 | answer bytes | prefill ms (median) | decode ms (mean) | prefill GFLOPs | decode GFLOPs | prefill FLOPs vs english |
-|---|---|---|---|---|---|---|---|---|
-| english | 171.1 | 106 / 152 / 193 / 233 | 17.9 | 8.040 | 192.41 | 0.3502 | 8.2552 | 1.00 |
-| english_natural | 171.1 | 106 / 152 / 193 / 233 | 17.9 | 7.456 | 188.88 | 0.3502 | 8.2552 | 1.00 |
-| words | 190.4 | 132 / 174 / 212 / 244 | 17.9 | 8.093 | 208.74 | 0.3952 | 9.1628 | 1.13 |
-| codes | 133.1 | 115 / 127 / 140 / 151 | 17.9 | 5.424 | 122.82 | 0.2593 | 5.7217 | 0.74 |
-| codes_eqlen | 133.1 | 115 / 127 / 140 / 151 | 17.9 | 5.415 | 123.71 | 0.2593 | 5.7217 | 0.74 |
-| codes_jitter | 133.1 | 115 / 127 / 140 / 151 | 17.9 | 5.500 | 124.09 | 0.2593 | 5.7217 | 0.74 |
+| arm | prompt bytes (natural) | by K | answer bytes | prefill ms (median) | decode ms (reference decoder, mean) | prefill GFLOPs | decode GFLOPs (reference decoder) | decode GFLOPs (KV-cached, analytic) | prefill FLOPs vs english |
+|---|---|---|---|---|---|---|---|---|---|
+| english | 171.1 | 106 / 152 / 193 / 233 | 17.9 | 8.040 | 192.41 | 0.3502 | 8.2552 | – | 1.00 |
+| english_natural | 171.1 | 106 / 152 / 193 / 233 | 17.9 | 7.456 | 188.88 | 0.3502 | 8.2552 | – | 1.00 |
+| words | 190.4 | 132 / 174 / 212 / 244 | 17.9 | 8.093 | 208.74 | 0.3952 | 9.1628 | – | 1.13 |
+| codes | 133.1 | 115 / 127 / 140 / 151 | 17.9 | 5.424 | 122.82 | 0.2593 | 5.7217 | – | 0.74 |
+| codes_eqlen | 133.1 | 115 / 127 / 140 / 151 | 17.9 | 5.415 | 123.71 | 0.2593 | 5.7217 | – | 0.74 |
+| codes_jitter | 133.1 | 115 / 127 / 140 / 151 | 17.9 | 5.500 | 124.09 | 0.2593 | 5.7217 | – | 0.74 |
 
