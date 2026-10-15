@@ -563,8 +563,10 @@ def main() -> None:
         path = root / f"{name}.jsonl"
         if path.exists():
             sections.append(f"## {name}\n\n{render(_load(path))}\n")
-    study3_files = sorted(root.glob("language_study3*.jsonl"))
-    study_files = [f for f in sorted(root.glob("language_study*.jsonl")) if f not in study3_files]
+    study3_all = sorted(root.glob("language_study3*.jsonl"))
+    extra_files = [f for f in study3_all if "language_study3_extra" in f.name]  # seeds beyond the pre-registration
+    study3_files = [f for f in study3_all if f not in extra_files]
+    study_files = [f for f in sorted(root.glob("language_study*.jsonl")) if f not in study3_all]
     if study_files:
         merged = [r for f in study_files for r in _load(f)]
         sections.append(f"## language_study (merged from {', '.join(f.name for f in study_files)})\n\n{study(merged)}\n")
@@ -577,6 +579,17 @@ def main() -> None:
                     seen.add(key)
                     merged.append(r)
         sections.append(f"## language_study3 (merged from {', '.join(f.name for f in study3_files)})\n\n{study3(merged)}\n")
+        if extra_files:  # the extended view: the same groups with the supplementary seeds (doc §10.2 deviations 4-6)
+            merged_all = list(merged)
+            for f in extra_files:
+                for r in _load(f):
+                    key = json.dumps(r["overrides"], sort_keys=True)
+                    if key not in seen:
+                        seen.add(key)
+                        merged_all.append(r)
+            sections.append(f"## language_study3, extended with the supplementary seeds (merged from "
+                            f"{', '.join(f.name for f in study3_files + extra_files)}; the pre-registered comparison is the section above)"
+                            f"\n\n{study3(merged_all)}\n")
     for name in ("language_benchmark", "language_benchmark_k8"):
         bench = root / f"{name}.json"
         if bench.exists():
