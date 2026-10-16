@@ -1,0 +1,15 @@
+{
+ "arm": "english",
+ "batch_size": 4,
+ "data_version": "smoke",
+ "dev_eval_examples": 8,
+ "epochs": 1,
+ "max_length": 512,
+ "max_steps": 20,
+ "model": "tiny-random",
+ "name": "smoke_english",
+ "seed": 0,
+ "stage": "smoke",
+ "timeout_minutes": 20,
+ "train_size": 64
+}

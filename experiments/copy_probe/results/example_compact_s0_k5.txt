@@ -1,0 +1,68 @@
+=== item 1 (compact, K=5)
+--- English input
+1. "x3x" has seen "y3d".
+2. By inference, "j6e" has not contained "a0z".
+3. By report, "r4a" contained "a3x".
+4. By report, "p3w" has contained "j9d".
+5. "e2p" is not helping "v5w".
+List [subject,object] of each negative record in order; [] if none.
+--- compact input (126 bytes)
+x3x	sc	y3d
+j6e	Cci	a0z
+r4a	cpr	a3x
+p3w	ccr	j9d
+e2p	Hg	v5w
+List [subject,object] of each negative record in order; [] if none.
+expected: [["j6e","a0z"],["e2p","v5w"]]
+model:    [["j6e","a0z"],["e2p","v5w"]]  [correct]
+--- reordered (compact input)
+x3x	sc	y3d
+r4a	cpr	a3x
+p3w	ccr	j9d
+e2p	Hg	v5w
+j6e	Cci	a0z
+expected: [["e2p","v5w"],["j6e","a0z"]]
+model:    [["e2p","v5w"],["j6e","a0z"]]  [correct]
+--- swapped (compact input)
+y3d	sc	x3x
+a0z	Cci	j6e
+a3x	cpr	r4a
+j9d	ccr	p3w
+v5w	Hg	e2p
+expected: [["a0z","j6e"],["v5w","e2p"]]
+model:    [["a0z","j6e"],["v5w","e2p"]]  [correct]
+
+=== item 2 (compact, K=5)
+--- English input
+1. By inference, "z2e" is containing "w2x".
+2. By inference, "f1t" does not help "q3s".
+3. "f4s" will be helping "b9d".
+4. By direct observation, "y4p" was helping "r6g".
+5. By report, "m5d" has not contained "v2q".
+List [subject,object] of each negative record in order; [] if none.
+--- compact input (128 bytes)
+z2e	cgi	w2x
+f1t	Hi	q3s
+f4s	hfg	b9d
+y4p	hpgd	r6g
+m5d	Ccr	v2q
+List [subject,object] of each negative record in order; [] if none.
+expected: [["f1t","q3s"],["m5d","v2q"]]
+model:    [["f1t","q3s"],["m5d","v2q"]]  [correct]
+--- reordered (compact input)
+m5d	Ccr	v2q
+y4p	hpgd	r6g
+f4s	hfg	b9d
+f1t	Hi	q3s
+z2e	cgi	w2x
+expected: [["m5d","v2q"],["f1t","q3s"]]
+model:    [["m5d","v2q"],["f1t","q3s"]]  [correct]
+--- swapped (compact input)
+w2x	cgi	z2e
+q3s	Hi	f1t
+b9d	hfg	f4s
+r6g	hpgd	y4p
+v2q	Ccr	m5d
+expected: [["q3s","f1t"],["v2q","m5d"]]
+model:    [["q3s","f1t"],["v2q","m5d"]]  [correct]
+

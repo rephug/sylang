@@ -1,0 +1,20 @@
+# Python packages for the rented GPU machine (setup_gpu.sh installs them into a fresh venv).
+# Versions match the development server's CPU venv where the package was smoke-tested
+# (transformers 4.57.6 / peft 0.21.2 / accelerate 1.15.0 / tokenizers 0.22.2 / safetensors 0.8.0 /
+# numpy 2.5.2 / huggingface_hub 0.36.2), so GPU and CPU runs share one code path.
+# Python 3.12 or newer is required: numpy==2.5.2 ships no wheel for older interpreters;
+# setup_gpu.sh checks the floor (PILOT_SYSTEM_PYTHON) before it creates the venv.
+#
+# torch: the CUDA wheel must match the provider image's driver. setup_gpu.sh installs it FIRST,
+# from https://download.pytorch.org/whl/$PILOT_TORCH_CUDA (default cu128; cu126 for drivers below
+# 570), or reuses the image's own CUDA torch when the venv is created with --system-site-packages
+# (PILOT_USE_IMAGE_TORCH=1). The line below only pins the version range so that `pip install -r`
+# never silently replaces it with a CPU wheel from PyPI.
+torch>=2.6,<2.10
+transformers==4.57.6
+peft==0.21.2
+accelerate==1.15.0
+safetensors==0.8.0
+tokenizers==0.22.2
+numpy==2.5.2
+huggingface_hub==0.36.2

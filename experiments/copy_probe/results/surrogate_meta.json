@@ -1,0 +1,25 @@
+{
+  "kind": "surrogate-memoriser",
+  "sha256": "5cd93cd0edda575ef3c62b451d3bac1ce11c08c7cb8b04163ccaa934afb0dc89",
+  "bytes": 4504884,
+  "rows": 16,
+  "prompt_bytes": [
+    676,
+    684
+  ],
+  "recipe": {
+    "seed": 20261010,
+    "steps": 200,
+    "batch_size": 2,
+    "learning_rate": 0.0003
+  },
+  "first_last_loss": [
+    5.69477653503418,
+    0.06587648391723633
+  ],
+  "memorised_exact": 8,
+  "torch": "2.6.0+cpu",
+  "threads": 3,
+  "deterministic_algorithms": false,
+  "command": "followup.py surrogate --source <packet> --out <dir> --threads 3"
+}
