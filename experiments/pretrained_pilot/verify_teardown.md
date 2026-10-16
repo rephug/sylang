@@ -53,6 +53,8 @@ pasted into a chat, **never** written to a file in this repository, **never** pu
 `ledger.jsonl` (`ledger.py` refuses a line that contains the value of `PILOT_PROVIDER_TOKEN` or
 anything shaped like a bearer token or API key), never passed on a command line that a shell
 history or a process list can show, and never given to the stage scripts, which do not read it.
+`PILOT_UPLOAD_CMD` must be credential-free (use rclone's config or ssh keys), because it runs
+through a shell and its program name is recorded in `profile.json`.
 When a token has been exposed anywhere, revoke it first and investigate second.
 
 ## Modal

@@ -137,14 +137,14 @@ recorded by the scripts as `status: timeout` in the ledger (the process cannot r
             "totals": {"uncached": ..., "cached": ..., "output": ..., "requests": ..., "retries": ...}},
  "latency": {"batched_items_per_s": ..., "single": {"n": ..., "mean_s": ..., "p50_s": ..., "p95_s": ...,
                                                 "by_task": {"<task>": {"n": ..., "mean_s": ..., "p50_s": ..., "p95_s": ...}}}},
- "conversion": {"in_mean_s": ..., "tokenize_mean_s": ..., "out_mean_s": ...},
+ "conversion": {"in_mean_s": ..., "in_source": "...", "tokenize_mean_s": ..., "out_mean_s": ...},
  "cost": {"price_per_hour": ..., "gpu_seconds": ..., "per_correct_final": ..., "per_item": ...}}
 ```
 
 `convert_in_s` is the codec time: the manifest's `render_seconds` mean for the config's arm and the
 evaluated split (0.0 when the manifest has no such key); `tokenize_s` is the prompt assembly and
 tokenisation wall-clock of the first request plus, when retried, of the retry (the codec is not
-re-run); `convert_out_s` is the parse and grade wall-clock only. Generated ids are decoded with
+re-run); `convert_out_s` is the parse and grade wall-clock only; eval.json's `conversion.in_source` states that `in_mean_s` was measured at generation, not during the evaluation. Generated ids are decoded with
 `common.decode_output` (the ids before the first `<|im_end|>`, special tokens skipped, the rule
 `train_lora.py` uses for dev selection); output token counts are the tokens before the end token.
 Immediately before the timed generation one untimed warm-up generation runs on the first request

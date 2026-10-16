@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # setup_gpu.sh - prepare a freshly rented GPU machine for the pilot (run once per rental).
 #
-#   1. a Python venv with requirements-gpu.txt (torch from the CUDA wheel index first);
+#   1. a Python venv with requirements-gpu.txt (torch from the CUDA wheel index first); the
+#      interpreter that creates it must be Python 3.12 or newer (numpy==2.5.2 and the other pins
+#      ship no wheels for older ones): the script checks that before any venv or pip call;
 #   2. the model weights: downloaded with the Hugging Face CLI ONLY when PILOT_ALLOW_DOWNLOAD=1
 #      (Qwen/Qwen3-0.6B, Apache-2.0, about 1.5 GB of bf16 safetensors plus the tokenizer), or found
 #      already under $PILOT_MODEL_ROOT (uploaded by the owner);
@@ -13,6 +15,8 @@
 #   5. the `export PILOT_TOKENIZER=... PILOT_MODEL=...` lines to paste before run_stage_*.sh.
 #
 # Variables (all optional):
+#   PILOT_SYSTEM_PYTHON   the interpreter that creates the venv (default python3; must be 3.12+,
+#                           e.g. PILOT_SYSTEM_PYTHON=python3.12 when the image's python3 is older)
 #   PILOT_VENV            venv directory (default $HOME/pilot-venv)
 #   PILOT_TORCH_CUDA      CUDA wheel tag for torch (default cu128; cu126 for drivers below 570)
 #   PILOT_USE_IMAGE_TORCH 1: create the venv with --system-site-packages and keep the image's torch
@@ -51,6 +55,15 @@ df -h "$HOME" "$HERE" | sed -n '1p;2p;3p'
 say "venv at $VENV"
 SYS_PY=${PILOT_SYSTEM_PYTHON:-python3}
 "$SYS_PY" --version
+# The floor, before any venv or pip call: the pins in requirements-gpu.txt (numpy==2.5.2) need 3.12+.
+"$SYS_PY" - <<'EOF' || exit 2
+import sys
+if sys.version_info < (3, 12):
+    raise SystemExit(f'setup_gpu.sh: {sys.executable} is Python {sys.version.split()[0]}; the pins in '
+                     f'requirements-gpu.txt (numpy==2.5.2) need Python 3.12 or newer. Set PILOT_SYSTEM_PYTHON '
+                     f'to a 3.12+ interpreter, e.g. PILOT_SYSTEM_PYTHON=python3.12 bash setup_gpu.sh')
+print(f'python {sys.version.split()[0]} meets the 3.12 floor')
+EOF
 if [ ! -x "$VENV/bin/python" ]; then
   if [ "${PILOT_USE_IMAGE_TORCH:-0}" = 1 ]; then
     "$SYS_PY" -m venv --system-site-packages "$VENV"

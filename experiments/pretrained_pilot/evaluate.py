@@ -13,8 +13,11 @@ What happens, in order:
    (``--limit N`` keeps N examples, taken round-robin over the panels in file order so a smoke
    test touches every panel);
 3. every prompt is assembled and tokenised (``tokenize_s`` is that wall-clock; ``convert_in_s``
-   is the codec time: the example's rendering wall-clock ``render_s`` recorded by data.py, 0.0
-   when the data file predates that key), then, after one untimed warm-up generation on the
+   is the codec time: the generation-time rendering wall-clock per case that data.py measured
+   when it wrote the frozen files, ``manifest.json["render_seconds"][arm][split]["mean"]``, the
+   same value for every item of the evaluation, 0.0 when the manifest lacks the key as older
+   datasets do; the example lines carry no timing so the files stay byte-reproducible), then,
+   after one untimed warm-up generation on the
    first request (CUDA/cuBLAS initialisation; the generation clock is reset afterwards), decoded
    greedily in batches with left padding, stopping at ``<|im_end|>``; ``--latency-sample N`` runs
    N items (spread evenly within each task's items: the files interleave the tasks, so an even
@@ -105,6 +108,23 @@ def select_examples(rows: list[dict], tasks, limit: int | None) -> list[dict]:
     order = {id(r): i for i, r in enumerate(rows)}
     chosen.sort(key=lambda r: order[id(r)])
     return chosen
+
+
+def manifest_render_mean(manifest: dict, arm: str, split: str) -> float:
+    """``render_seconds[arm][split]["mean"]`` of a dataset manifest, 0.0 when any level is absent or null."""
+    block = ((manifest.get('render_seconds') or {}).get(arm) or {}).get(split) or {}
+    return float(block.get('mean') or 0.0)
+
+
+def codec_seconds(version: str, arm: str, split: str) -> float:
+    """The generation-time codec cost per case for this arm and split (``convert_in_s``): the mean
+    rendering wall-clock data.py measured when it wrote the frozen files, read once from
+    ``data/<version>/manifest.json``; 0.0 when the manifest or the key is absent (older datasets)."""
+    path = common.data_dir(version) / 'manifest.json'
+    if not path.is_file():
+        return 0.0
+    with open(path, encoding='utf-8') as f:
+        return manifest_render_mean(json.load(f), arm, split)
 
 
 def latency_sample_indices(tasks: list[str], n_sample: int) -> set[int]:
@@ -313,6 +333,9 @@ def main(argv=None) -> None:
     examples = select_examples(rows, tasks, args.limit)
     if not examples:
         raise SystemExit(f'no examples for arm {arm!r} tasks {tasks} in split {args.split!r}')
+    codec_s = codec_seconds(config['data_version'], arm, args.split)   # convert_in_s of every item
+    print(f'[evaluate] codec (conversion-in) {codec_s * 1000:.3f} ms per case from the manifest render_seconds '
+          f'[{arm}][{args.split}]' + ('' if codec_s else ' (key absent: 0.0)'), file=sys.stderr)
     single_idx = latency_sample_indices([ex['task'] for ex in examples], args.latency_sample)
     single_by_task = {t: sum(1 for i in single_idx if examples[i]['task'] == t) for t in tasks}
     print(f'[evaluate] {len(examples)} examples ({args.split}, {arm}, {fmt}); {len(single_idx)} single-request '
@@ -323,7 +346,7 @@ def main(argv=None) -> None:
     dump = open(args.dump_outputs, 'w', encoding='utf-8') if args.dump_outputs else None
 
     # --- first requests: assemble + tokenise (tokenize_s), generate, decode, parse + grade (convert_out_s);
-    #     convert_in_s is the codec time, the rendering wall-clock data.py records per example as render_s
+    #     convert_in_s is the codec time: the manifest's mean rendering wall-clock per case (codec_s)
     items, requests = [], []
     for i, ex in enumerate(examples):
         t0 = time.perf_counter()
@@ -340,7 +363,7 @@ def main(argv=None) -> None:
                       'correct_first': None, 'invalid_first': None, 'retried': False,
                       'correct_final': None, 'invalid_final': None, 'reason_first': None, 'reason_final': None,
                       'tokens': {**parts, 'output_first': 0, 'output_retry': 0, 'prompt_retry': 0},
-                      'latency_s': 0.0, 'latency_mode': mode, 'convert_in_s': float(ex.get('render_s') or 0.0),
+                      'latency_s': 0.0, 'latency_mode': mode, 'convert_in_s': codec_s,
                       'tokenize_s': tokenize, 'convert_out_s': 0.0})
 
     # --- warm-up: one untimed generation on the first request, so CUDA/cuBLAS initialisation inflates
@@ -415,7 +438,10 @@ def main(argv=None) -> None:
                        'warmup_s': warmup_s},
         'n_items': len(items), 'panels': panels, 'tokens': tokens,
         'latency': latency_stats(single_first_latency, gen),
-        'conversion': {'in_mean_s': sum(it['convert_in_s'] for it in items) / len(items),        # codec (render_s)
+        'conversion': {'in_mean_s': sum(it['convert_in_s'] for it in items) / len(items),        # codec (manifest)
+                       'in_source': f'generation-time codec mean per case from data/{config["data_version"]}/manifest.json '
+                                    f'render_seconds[{arm}][{args.split}].mean (measured by data.py when it wrote the '
+                                    'frozen files; 0.0 when the key is absent), not measured during this evaluation',
                        'tokenize_mean_s': sum(it['tokenize_s'] for it in items) / len(items),    # prompt assembly + tokeniser
                        'out_mean_s': sum(it['convert_out_s'] for it in items) / len(items)},     # parser + grader
         'cost': cost,

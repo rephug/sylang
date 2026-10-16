@@ -60,3 +60,4 @@ experiments/pretrained_pilot/data/
 experiments/pretrained_pilot/runs/
 experiments/pretrained_pilot/results/
 experiments/pretrained_pilot/analysis/
+experiments/pretrained_pilot/profile.json

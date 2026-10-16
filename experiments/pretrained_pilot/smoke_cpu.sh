@@ -47,8 +47,9 @@ LOG_DIR=runs/_smoke_logs
 PRICE=0.34                                # a nominal price so the cost fields are exercised
 START=$SECONDS
 
-# A clean slate: stale smoke outputs must not mask a failure.
-rm -rf "$LOG_DIR" analysis/smoke
+# A clean slate: stale smoke outputs must not mask a failure. data/smoke is a throwaway and goes too:
+# data.py refuses to overwrite an existing version unless --force.
+rm -rf "$LOG_DIR" analysis/smoke "data/$VERSION"
 for arm in "${ARMS[@]}"; do rm -rf "runs/smoke_$arm" "results/smoke_$arm" "results/smoke_${arm}_zeroshot"; done
 mkdir -p "$LOG_DIR"
 

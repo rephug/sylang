@@ -28,7 +28,7 @@ key) is refused: tokens live only in the environment and the provider CLI's own 
     ledger.py add --event stop  ... --measured-spend 1.23
     ledger.py add --event balance --provider runpod --balance-after 23.77 --stage B --measured-spend 1.31
     ledger.py add --event note --note "cell stage_b_json_s0_n2000 timed out" --run-names stage_b_json_s0_n2000
-    ledger.py report --ceiling 100 [--profile profile.json]
+    ledger.py report --ceiling 100 [--profile profile.json] [--pending-spend USD]
     ledger.py selftest
 """
 from __future__ import annotations
@@ -264,7 +264,10 @@ def read_projection(profile_path: Path) -> dict:
 
 
 def report(path: Path, ceiling: float, profile: Path | None = None, results_dir: Path | None = None,
-           out=None) -> int:
+           out=None, pending: float | None = None) -> int:
+    """``pending``: the running session's elapsed x price (USD), not in the ledger yet because its
+    stop line is written when the stage script ends; counted against the ceiling and printed on
+    its own line (run_stage_a.sh passes it so that the ceiling check includes stage A's own time)."""
     out = out or sys.stdout
     results_dir = results_dir or RESULTS_DIR
     lines = read_ledger(path)
@@ -289,9 +292,11 @@ def report(path: Path, ceiling: float, profile: Path | None = None, results_dir:
     used = {s: (provider[s] if provider_seen[s] else estimate[s]) for s in STAGES}
     total_estimate = sum(estimate.values())
     total_provider = sum(provider.values()) + unstaged_provider
-    total_used = sum(used.values()) + unstaged_provider
+    total_used = sum(used.values()) + unstaged_provider + (pending or 0.0)
     print(f'measured spend (stop lines, elapsed x price):   ${total_estimate:9.2f}', file=out)
     print(f'provider-reported spend (balance lines):         ${total_provider:9.2f}', file=out)
+    if pending is not None:
+        print(f'pending spend (this session, elapsed x price):   ${pending:9.2f}  (not in the ledger yet)', file=out)
     print(f'spend counted against the ceiling:               ${total_used:9.2f}', file=out)
     print('spend per stage:   stage   stop-lines   provider   counted', file=out)
     for s in STAGES:
@@ -399,6 +404,8 @@ def build_parser() -> argparse.ArgumentParser:
     r.add_argument('--ceiling', type=float, default=100.0, help='USD (default 100)')
     r.add_argument('--profile', type=Path, help='profile.json from profile_gpu.py (its "projection" is checked)')
     r.add_argument('--results-dir', dest='results_dir', type=Path, default=RESULTS_DIR)
+    r.add_argument('--pending-spend', dest='pending_spend', metavar='USD',
+                   help='the running session\'s elapsed x price, not in the ledger yet; counted against the ceiling')
 
     sub.add_parser('selftest', help='run the self-checks against a temporary ledger')
     return p
@@ -424,7 +431,8 @@ def main(argv=None) -> int:
         if args.command == 'add':
             return cmd_add(args)
         if args.command == 'report':
-            return report(args.path, args.ceiling, args.profile, args.results_dir)
+            pending = None if args.pending_spend in (None, '') else _money('pending_spend', args.pending_spend)
+            return report(args.path, args.ceiling, args.profile, args.results_dir, pending=pending)
         if args.command == 'selftest':
             return selftest()
     except LedgerError as exc:
@@ -488,6 +496,14 @@ def selftest() -> int:
             check(rc == 2 and TOKEN_ENV in out, f'the value of {TOKEN_ENV} is refused')
         finally:
             del os.environ[TOKEN_ENV]
+        # The stage scripts' upload-failure note names the tarball relative to the package directory:
+        # that must pass the generic 48-character pattern (an absolute path would not).
+        rc, out = run(*base, 'add', '--event', 'note', '--dry-run', '--note',
+                      'upload command failed; copy runs/_outbox/stage_c_20261020T113000Z.tar.gz off the machine by hand')
+        check(rc == 0 and 'dry run' in out, f'a relative results path in a note is accepted: {out}')
+        rc, out = run(*base, 'add', '--event', 'note', '--dry-run', '--note', 'copy '
+                      '/home/user/sylang/experiments/pretrained_pilot/runs/_outbox/stage_c_20261020T113000Z.tar.gz off')
+        check(rc == 2 and 'secret' in out, 'an absolute path of that length is refused (hence the relative one above)')
 
         rc, out = run(*base, 'add', '--event', 'start', *start, '--stage', 'A', '--purpose', 'profile',
                       '--ts', '2026-10-20T10:00:00Z')
@@ -527,6 +543,16 @@ def selftest() -> int:
         check('last recorded balance: $22.00' in out, 'last balance printed')
         rc, out = run(*base, 'report', '--ceiling', '2.5', '--results-dir', str(results))
         check(rc == 1 and 'EXCEEDED' in out, 'spend over the ceiling exits non-zero')
+        rc, out = run(*base, 'report', '--ceiling', '100', '--pending-spend', '0.5', '--results-dir', str(results))
+        check(rc == 0 and 'pending spend (this session, elapsed x price):   $     0.50' in out
+              and 'spend counted against the ceiling:               $     3.10' in out,
+              f'pending spend printed and added to the counted total: {out}')
+        rc, out = run(*base, 'report', '--ceiling', '3', '--pending-spend', '0.5', '--results-dir', str(results))
+        check(rc == 1 and 'measured spend $3.10 exceeds' in out, 'pending spend counts against the ceiling')
+        rc, out = run(*base, 'report', '--pending-spend', '-1', '--results-dir', str(results))
+        check(rc == 2 and 'pending_spend' in out, 'negative pending spend is refused')
+        rc, out = run(*base, 'report', '--results-dir', str(results))
+        check('pending spend' not in out, 'no pending line without --pending-spend')
 
         profile = tmp / 'profile.json'
         profile.write_text(json.dumps({'projection': {'contingency': 1.5, 'stages': {'B': {'cost': 3.0},
