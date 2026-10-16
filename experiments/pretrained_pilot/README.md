@@ -16,9 +16,10 @@ project's CPU virtual environment for smoke tests and with the same code on a GP
 | `evaluate.py` | generation-based evaluation (greedy, non-thinking), zero-shot baseline with the legend, retry policy (one retry with the format reminded), whole-request token accounting with the model's own tokenizer (system/legend, instruction, records, output; cached and uncached conventions), latency per request, cost per correct answer |
 | `analyze.py` | paired per-item differences with a **cluster bootstrap over seeds then items**, the pre-registered non-inferiority rule (δ = 3 points), learning curves, tables |
 | `profile_gpu.py` | stage A: measures, on the `json` arm (the longest rendering, so the single measured rate is conservative for every cell), model load time, peak memory, training examples/s, generation items/s, checkpoint size and upload time (only the upload program's name, seconds and exit status are recorded), checks every plan file before measuring, and writes `profile.json` with the measured values first and then the projected cost of stages B and C at the quoted price, flagging with `!!!` any cell whose projected training or evaluation phase exceeds its `timeout_minutes` |
-| `ledger.py` | cost ledger: every rental's provider, instance, price, start, stop, purpose and measured spend; `verify_teardown.md` lists the provider-side checks (no running instance, no retained volume, final balance) that must be recorded before a stage is called finished |
+| `ledger.py` | cost ledger: every rental's provider, instance, price, start, stop, purpose and measured spend (`report --pending-spend` counts a running session's time against the ceiling; stage A uses it); `verify_teardown.md` lists the provider-side checks (no running instance, no retained volume, final balance) that must be recorded before a stage is called finished |
 | `smoke_cpu.sh` | end-to-end CPU smoke test with a tiny randomly-initialised Qwen3-architecture model (no weight download): data → train 20 steps → evaluate → analyze |
-| `run_stage_a.sh`, `run_stage_b.sh`, `run_stage_c.sh` | the exact launch commands per stage, each wrapped in a hard `timeout` and ending with the ledger entry and the checkpoint/result upload |
+| `run_stage_a.sh`, `run_stage_b.sh`, `run_stage_c.sh` | the exact launch commands per stage, every step under a hard `timeout`; SIGHUP/SIGINT/SIGTERM are trapped (the running step is killed and the interruption noted) and every exit ends with the ledger stop line and then the results tarball and upload; start them under `nohup`/`setsid`/tmux (header of each script) |
+| `setup_gpu.sh`, `requirements-gpu.txt` | prepare a rented machine: venv (Python 3.12 or newer, `PILOT_SYSTEM_PYTHON`, checked before any pip call), weights (download only with `PILOT_ALLOW_DOWNLOAD=1`), the dataset tarball, import/GPU/template/manifest checks |
 | `configs/*.json` | per-cell training configs (arm, task mix, size, seed, answer format) |
 
 ## Rules carried from the study
@@ -40,5 +41,8 @@ Qwen 3 → zero-shot and trained evaluations → analysis. The verification reco
 
 ## Secrets
 
-Provider API tokens are read from environment variables (`PILOT_PROVIDER_TOKEN`, documented in
-`verify_teardown.md`) and are never written to files in this repository.
+Provider API tokens live only in the owner's provider CLI and, if this session needs one, in the cloud
+environment's secrets as `PILOT_PROVIDER_TOKEN` (`verify_teardown.md`); the package never reads or
+writes one, and `ledger.py` refuses a line containing it. `PILOT_UPLOAD_CMD` must be credential-free
+(rclone config or ssh keys): the scripts print only its first word and `profile.json` records only the
+program name. `profile.json` is git-ignored; it travels in the stage tarball and is committed only after review.

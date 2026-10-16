@@ -219,22 +219,39 @@ Plan file format (`configs/plan_stage_b.json`, `configs/plan_stage_c.json`): `{"
 `ledger.py add --event ... --provider ... [...]` appends; `ledger.py report --ceiling 100`
 prints the total measured spend, spend per stage, the number of completed experiments (result
 directories with `eval.json`), dollars per completed experiment, and exits non-zero when the
-spend or the projection in `profile.json` exceeds the ceiling. A `balance` line that carries `measured_spend` is the provider's own figure for its `stage` and overrides the stop line's elapsed-time estimate in the report; `results/smoke_*` directories (free CPU checks) are not counted as experiments; a line containing the value of `PILOT_PROVIDER_TOKEN` or an API-key-shaped string is refused.
+spend or the projection in `profile.json` exceeds the ceiling. `--pending-spend USD` adds a running
+session's elapsed × price, which is not in the ledger until the stage script's stop line is written,
+to the spend counted against the ceiling and prints it on its own line; `run_stage_a.sh` passes its
+own elapsed × price so that the ceiling check includes stage A's time. A `balance` line that carries `measured_spend` is the provider's own figure for its `stage` and overrides the stop line's elapsed-time estimate in the report; `results/smoke_*` directories (free CPU checks) are not counted as experiments; a line containing the value of `PILOT_PROVIDER_TOKEN` or an API-key-shaped string is refused.
 
 ## Stage scripts
 
 `run_stage_a.sh`, `run_stage_b.sh`, `run_stage_c.sh`: `set -euo pipefail`; refuse to start
-unless `PILOT_TOKENIZER`, `PILOT_MODEL`, `PILOT_PRICE_PER_HOUR`, `PILOT_PROVIDER`, `PILOT_INSTANCE` and `PILOT_GPU` are set (the last three label the ledger lines; optional: `PILOT_CEILING`, `PILOT_STAGE_BUDGET`, `PILOT_UPLOAD_CMD`, `STAGE_B_CURVES=1`, `STAGE_C_FILL_SEED0=1`); append a ledger
+unless `PILOT_TOKENIZER`, `PILOT_MODEL`, `PILOT_PRICE_PER_HOUR`, `PILOT_PROVIDER`, `PILOT_INSTANCE` and `PILOT_GPU` are set (the last three label the ledger lines; optional: `PILOT_CEILING`, `PILOT_STAGE_BUDGET`, `PILOT_UPLOAD_CMD` (credential-free: it runs through a shell and its program name is recorded in `profile.json`), `STAGE_B_CURVES=1`, `STAGE_C_FILL_SEED0=1`, `STAGE_C_ALLOW_MISSING_SEED0=1`); append a ledger
 `start` line; run each cell under `timeout` with the config's `timeout_minutes`; on timeout
 or failure append a ledger `note` and continue with the next cell; run the evaluation and the
-analysis; append a ledger `stop` line; print the `verify_teardown.md` checklist. They never
+analysis; append a ledger `stop` line, then package `results/`, `analysis/`, `runs/*/{run.json,train_log.jsonl,best}`,
+`profile.json` and `ledger.jsonl` (stop line included) into `runs/_outbox/stage_<x>_<ts>.tar.gz` and run
+`PILOT_UPLOAD_CMD` on it when set (only the command's first word is printed; a failed upload is a ledger
+note naming the tarball relative to the package directory); print the `verify_teardown.md` checklist. They never
 call a provider API: starting and stopping the instance is the owner's action, recorded in the
-ledger by hand with `ledger.py add`. Stage A runs `profile_gpu.py` on `configs/stage_a_profile.json` (with
+ledger by hand with `ledger.py add`. Every timed step runs as a background job under `timeout` (which
+owns its process group) and is awaited with `wait`; SIGHUP, SIGINT and SIGTERM are trapped: the running
+step's process group is killed, a ledger note `stage <X> interrupted by SIG<name> during <cell>` is
+written, the EXIT trap still writes the stop line (note `script exit interrupted by SIG<name>, <128+n>`)
+and the package, and the script exits 128+n. Start a stage detached from the SSH session
+(`nohup bash run_stage_<x>.sh > stage_<x>.log 2>&1 &`, or setsid/tmux); a script left in the foreground
+receives SIGHUP when the connection drops and is handled as above. A cell whose `train_lora.py --config
+<cfg>` is already running on the machine (another copy of the script) is refused with a ledger note.
+Stage C needs stage B's seed-0 results (`results/stage_b_<arm>_s0_n2000/eval.json`) for the three-seed
+analysis: when any is missing it exits 2 with unpack instructions, unless `STAGE_C_FILL_SEED0=1` (trains
+and evaluates the missing cells first) or `STAGE_C_ALLOW_MISSING_SEED0=1` (proceeds; a ledger note
+records it and the two-seed contrasts of those arms are reported as exploratory). Stage A runs `profile_gpu.py` on `configs/stage_a_profile.json` (with
 `--upload-cmd "$PILOT_UPLOAD_CMD"` when set), then, unless `STAGE_A_END_TO_END=0`, trains and evaluates
 the 500-case `sylang2` cell `stage_b_sylang2_s0_n500` end to end (the optional learning-curve point of
 stage B, skipped there once it exists), optionally the `english` zero-shot baseline (`STAGE_A_ZERO_SHOT=1`),
-and finally `ledger.py report --ceiling ${PILOT_CEILING:-100} --profile profile.json`, whose exit code the
-script returns: stage B is not started on a non-zero exit. The 1.7B extension has its own configs
+and finally `ledger.py report --ceiling ${PILOT_CEILING:-100} --profile profile.json --pending-spend <elapsed × price>`,
+whose exit code the script returns: stage B is not started on a non-zero exit. The 1.7B extension has its own configs
 (`stage_d_1p7b_*`) and plan file (`plan_stage_d_1p7b.json`), projected with `profile_gpu.py --plan` after
 profiling the 1.7B weights; no stage script runs it.
 
