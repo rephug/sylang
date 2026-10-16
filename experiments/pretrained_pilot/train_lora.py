@@ -13,9 +13,14 @@ CUDA (float32 everywhere on CPU).  At every epoch end, and when ``max_steps`` st
 early, it records the mean training loss, scores ``dev_eval_examples`` dev examples by greedy
 generation (``grader.grade``), writes ``checkpoints/epoch<N>/`` (adapter + ``trainer_state.pt``),
 refreshes ``best/`` (highest dev accuracy, ties to the later epoch) and rewrites ``run.json``;
-formats are in ``interfaces.md``.  ``--resume`` continues from the last checkpoint, including
-one written by an early ``max_steps`` stop in the middle of an epoch.  ``profile_gpu.py`` imports
-the building blocks below instead of duplicating them.
+formats are in ``interfaces.md``.  Dev outputs are decoded with ``common.decode_output`` (the text
+before the first <|im_end|>, special tokens skipped), the rule ``evaluate.py`` grades by, so dev
+selection sees exactly the text the evaluator sees.  ``--resume`` continues from the last
+checkpoint, including one written by an early ``max_steps`` stop in the middle of an epoch; it
+re-derives ``best/`` from the checkpoint the saved state names (a kill may have lost the copy) and
+drops the ``train_log.jsonl`` lines past the checkpoint's step (the resumed run writes them again),
+so the log never holds a step twice.  ``profile_gpu.py`` imports the building blocks below instead
+of duplicating them.
 """
 from __future__ import annotations
 
@@ -23,6 +28,7 @@ import argparse
 import contextlib
 import json
 import math
+import os
 import random
 import shutil
 import traceback
@@ -191,7 +197,8 @@ def train_step(model, optimizer, scheduler, batches, device, autocast_dtype):
 
 @torch.no_grad()
 def generate_outputs(model, tok, prompts, max_new_tokens, device, autocast_dtype, batch_size):
-    """Greedy, batched, left-padded generation; each output is the text up to the first <|im_end|>."""
+    """Greedy, batched, left-padded generation; each output is ``common.decode_output`` of the new
+    tokens: the text before the first <|im_end|>, special tokens skipped, exactly as evaluate.py grades it."""
     im_end = tok.convert_tokens_to_ids(common.IM_END)
     pad_id = tok.pad_token_id
     encoded = [tok(p, add_special_tokens=False)['input_ids'] for p in prompts]
@@ -214,10 +221,7 @@ def generate_outputs(model, tok, prompts, max_new_tokens, device, autocast_dtype
                                  eos_token_id=im_end, pad_token_id=pad_id, use_cache=True,
                                  temperature=None, top_p=None, top_k=None)
         for row, i in enumerate(idx):
-            new = gen[row, width:].tolist()
-            if im_end in new:
-                new = new[:new.index(im_end)]
-            outputs[i] = tok.decode(new, skip_special_tokens=False)
+            outputs[i] = common.decode_output(tok, gen[row, width:].tolist())
     if was_training:
         model.train()
     return outputs
@@ -302,6 +306,35 @@ def last_checkpoint(out_dir):
     return max(found)[1] if found else None
 
 
+def trim_train_log(out_dir, step):
+    """On resume, drop the ``train_log.jsonl`` lines a killed run wrote after the checkpoint's ``step``
+    (the resumed run writes them again) and any line the kill cut short; lines with a step at or
+    before the checkpoint are kept as they are.  Returns the number of lines dropped."""
+    path = Path(out_dir) / 'train_log.jsonl'
+    if not path.exists():
+        return 0
+    kept, dropped = [], 0
+    with open(path, encoding='utf-8') as f:
+        for raw in f:
+            if not raw.strip():
+                continue
+            try:
+                line = json.loads(raw)
+            except ValueError:
+                dropped += 1  # a line the kill cut short
+                continue
+            if line['step'] <= step:
+                kept.append(raw.rstrip('\n') + '\n')
+            else:
+                dropped += 1
+    if dropped:
+        tmp = path.with_name(path.name + '.tmp')
+        with open(tmp, 'w', encoding='utf-8') as f:
+            f.writelines(kept)
+        os.replace(tmp, path)
+    return dropped
+
+
 def peak_memory_bytes(device):
     if device == 'cuda':
         return int(torch.cuda.max_memory_allocated())
@@ -358,6 +391,9 @@ def train(args):
     state = None
     if resume_from is not None:
         state = torch.load(resume_from / STATE_FILE, map_location='cpu', weights_only=False)
+        dropped_lines = trim_train_log(out, state['step'])
+        if dropped_lines:
+            print(f'--resume: dropped {dropped_lines} train_log.jsonl line(s) past step {state["step"]}')
     else:  # a fresh start: nothing of an earlier attempt in this directory may survive
         if args.resume:
             print(f'--resume: no complete checkpoint under {out / "checkpoints"}, starting from scratch')
@@ -430,6 +466,8 @@ def _train_loop(args, config, out, device, record, state, resume_from, write_rec
         set_rng_state(state['rng'])
         step, examples_seen, tokens_seen = state['step'], state['examples_seen'], state['tokens_seen']
         history, best = state['history'], state['best']
+        if best['epoch'] is not None:  # the kill may have lost best/; the checkpoint it names always exists
+            copy_adapter(out / 'checkpoints' / f"epoch{best['epoch']}", out / 'best')
         if state['epoch_complete']:
             start_epoch = state['epoch'] + 1
         else:

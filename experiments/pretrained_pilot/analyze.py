@@ -5,7 +5,10 @@ decision rules in ``contract.md``).
 
 Every result directory (an ``eval.json`` with its ``items.jsonl``) is keyed by
 ``(model, arm, seed, train_size, answer_format, split)`` from its config; a zero-shot baseline
-(adapter ``none``) has train size 0.  Per (split, model, answer format, train size) the
+(adapter ``none``) has train size 0.  The model label is the config's ``model`` when set, else
+the basename of the evaluation's ``model_path`` (the stage configs leave ``model`` null and
+``PILOT_MODEL`` supplies the weights), else ``unknown``; every result record and the inventory
+table carry the full ``model_path``, and the warning about superseded directories prints it.  Per (split, model, answer format, train size) the
 contrasts ``arm − english`` (every other arm), ``sylang2g − sylang2`` and ``sylang2 − json`` are
 computed on the paired per-item differences of ``correct_final`` (and, secondarily,
 ``correct_first``) for every panel and task including ``all``, over the seeds that both arms
@@ -20,9 +23,12 @@ Intervals (accuracy points):
   on evaluation order); the interval is the central ``--level`` percentile range;
 * per-item-only: every item averaged over the seeds, then items resampled with replacement.
 
-Verdict under δ (``--delta``) on the cluster interval: superior (lower > +δ), non-inferior
-(lower > −δ), inferior (upper < −δ), inconclusive otherwise; with one shared seed the verdict is
-``exploratory (1 seed): no decision`` and the intervals are printed as exploratory numbers.
+Verdict under δ (``--delta``) on the cluster interval of ``correct_final``: superior (lower > +δ),
+non-inferior (lower > −δ), inferior (upper < −δ), inconclusive otherwise.  The rule applies at
+``MIN_DECISION_SEEDS`` (3, contract) shared seeds or more; with fewer the verdict is
+``exploratory (1 seed): no decision`` or ``exploratory (2 seeds): no decision`` and the intervals
+are printed as exploratory numbers.  The secondary ``correct_first`` contrasts carry intervals
+only, no verdict.
 
 Also written: accuracy tables per panel and task, learning curves (accuracy vs train size per
 arm, mean over seeds with min/max), retry and invalid rates, token, latency, conversion and
@@ -49,6 +55,7 @@ from common import now_iso, read_jsonl, write_json
 
 DEFAULTS = {'delta': 3.0, 'resamples': 2000, 'bootstrap_seed': 0, 'level': 0.90}
 EXPLORATORY = 'exploratory (1 seed): no decision'
+MIN_DECISION_SEEDS = 3   # contract: the δ rule applies at three seeds; fewer shared seeds take no decision
 METRICS = ('correct_final', 'correct_first')
 CHUNK = 200   # resamples per vectorised chunk (memory bound: CHUNK × seeds × items floats)
 
@@ -95,7 +102,9 @@ def find_result_dirs(patterns) -> list[Path]:
 def result_key(ev: dict) -> tuple:
     cfg = ev['config']
     train_size = 0 if str(ev.get('adapter', 'none')).lower() == 'none' else int(cfg['train_size'])
-    return (str(cfg['model']), cfg['arm'], int(cfg['seed']), train_size, cfg['answer_format'], ev['split'])
+    # the stage configs leave `model` null (PILOT_MODEL supplies the weights): label by the weights' directory
+    model = cfg.get('model') or Path(str(ev.get('model_path') or '')).name or 'unknown'
+    return (model, cfg['arm'], int(cfg['seed']), train_size, cfg['answer_format'], ev['split'])
 
 
 def load_results(dirs: list[Path]) -> list[dict]:
@@ -106,7 +115,7 @@ def load_results(dirs: list[Path]) -> list[dict]:
         items = read_jsonl(d / 'items.jsonl') if (d / 'items.jsonl').is_file() else []
         model, arm, seed, train_size, fmt, split = result_key(ev)
         results.append({'path': str(d), 'name': ev.get('name', d.name), 'eval': ev, 'items': items,
-                        'model': model, 'arm': arm, 'seed': seed, 'train_size': train_size,
+                        'model': model, 'model_path': ev.get('model_path'), 'arm': arm, 'seed': seed, 'train_size': train_size,
                         'answer_format': fmt, 'split': split, 'adapter': ev.get('adapter'),
                         'n_items': ev.get('n_items', len(items)), 'started_at': ev.get('started_at'), 'used': True})
     by_key = defaultdict(list)
@@ -118,7 +127,8 @@ def load_results(dirs: list[Path]) -> list[dict]:
             for r in group[:-1]:
                 r['used'] = False
             print(f'[analyze] warning: {len(group)} result directories share the key {key}; using the latest '
-                  f'({group[-1]["path"]}), ignoring {[r["path"] for r in group[:-1]]}', file=sys.stderr)
+                  f'({group[-1]["path"]}, model_path {group[-1]["model_path"]}), ignoring '
+                  + ', '.join(f'{r["path"]} (model_path {r["model_path"]})' for r in group[:-1]), file=sys.stderr)
     return results
 
 
@@ -163,8 +173,11 @@ def item_bootstrap(d: np.ndarray, resamples: int, level: float, seed: int) -> tu
 
 
 def verdict(lower: float, upper: float, delta: float, n_seeds: int) -> str:
-    if n_seeds < 2:
-        return EXPLORATORY
+    """The pre-registered decision on the cluster interval, taken only with ``MIN_DECISION_SEEDS``
+    or more shared seeds (contract: the δ rule applies at three seeds); with fewer no decision is
+    taken and the string says how many seeds there were."""
+    if n_seeds < MIN_DECISION_SEEDS:
+        return EXPLORATORY if n_seeds <= 1 else f'exploratory ({n_seeds} seeds): no decision'
     if lower > delta:
         return 'superior'
     if lower > -delta:
@@ -244,8 +257,9 @@ def compute_contrasts(cells: dict, args) -> list[dict]:
                     i_lo, i_hi = item_bootstrap(D.mean(axis=0), args.resamples, args.level, args.bootstrap_seed)
                     row[metric] = {'acc_a': acc_a, 'acc_b': acc_b, 'diff_points': point,
                                    'cluster': {'lower': c_lo * 100, 'upper': c_hi * 100},
-                                   'item': {'lower': i_lo * 100, 'upper': i_hi * 100},
-                                   'verdict': verdict(c_lo * 100, c_hi * 100, args.delta, len(seeds))}
+                                   'item': {'lower': i_lo * 100, 'upper': i_hi * 100}}
+                    if metric == 'correct_final':   # the secondary metric carries intervals only, no verdict
+                        row[metric]['verdict'] = verdict(c_lo * 100, c_hi * 100, args.delta, len(seeds))
                 rows.append(row)
     return rows
 
@@ -385,13 +399,14 @@ def write_summary_md(path: Path, settings: dict, results: list[dict], acc_rows, 
         out.append('\n**Overrides of the pre-registered defaults:** ' +
                    ', '.join(f'{k} = {v} (default {DEFAULTS[k]})' for k, v in settings['overrides'].items()) + '\n')
     out.append('\nVerdicts use the cluster-bootstrap interval of `correct_final` under δ: superior (lower > +δ), '
-               'non-inferior (lower > −δ), inferior (upper < −δ), inconclusive otherwise; with one shared seed no '
-               'decision is taken (`exploratory`). Intervals are the central percentile range of the resamples, in '
-               'accuracy points.\n')
+               'non-inferior (lower > −δ), inferior (upper < −δ), inconclusive otherwise; with fewer than three '
+               f'shared seeds no decision is taken (`exploratory`; the rule applies at {MIN_DECISION_SEEDS} seeds, '
+               'contract). Intervals are the central percentile range of the resamples, in accuracy points.\n')
 
     out.append('\n## Result directories\n')
-    out.append(md_table(['name', 'split', 'model', 'arm', 'seed', 'train_size', 'answer_format', 'adapter', 'items', 'started', 'used'],
-                        [[r['name'], r['split'], r['model'], r['arm'], r['seed'], r['train_size'], r['answer_format'],
+    out.append(md_table(['name', 'split', 'model', 'model_path', 'arm', 'seed', 'train_size', 'answer_format', 'adapter', 'items',
+                         'started', 'used'],
+                        [[r['name'], r['split'], r['model'], r['model_path'], r['arm'], r['seed'], r['train_size'], r['answer_format'],
                           r['adapter'], r['n_items'], r['started_at'], 'yes' if r['used'] else 'no (superseded)'] for r in results]))
 
     out.append('\n## Contrasts and verdicts (`correct_final`, after the retry)\n')
@@ -403,10 +418,10 @@ def write_summary_md(path: Path, settings: dict, results: list[dict], acc_rows, 
     for key in sorted(groups):
         out.append(f'\n### {group_title(*key)}\n')
         out.append(contrast_table(groups[key], 'correct_final'))
-    out.append('\n## Contrasts on `correct_first` (before the retry; secondary)\n')
+    out.append('\n## Contrasts on `correct_first` (before the retry; secondary: intervals only, no verdict)\n')
     for key in sorted(groups):
         out.append(f'\n### {group_title(*key)}\n')
-        out.append(contrast_table(groups[key], 'correct_first'))
+        out.append(contrast_table(groups[key], 'correct_first', with_verdict=False))
 
     out.append('\n## Accuracy per panel and task (`acc_final`, % mean over seeds; min–max when more than one seed)\n')
     acc_groups = defaultdict(list)
@@ -529,8 +544,8 @@ def main(argv=None) -> None:
 
     out_dir = Path(args.out)
     summary = {'settings': settings, 'git_commit': common.git_commit(),
-               'results': [{k: r[k] for k in ('name', 'path', 'split', 'model', 'arm', 'seed', 'train_size', 'answer_format',
-                                               'adapter', 'n_items', 'started_at', 'used')} for r in results],
+               'results': [{k: r[k] for k in ('name', 'path', 'split', 'model', 'model_path', 'arm', 'seed', 'train_size',
+                                               'answer_format', 'adapter', 'n_items', 'started_at', 'used')} for r in results],
                'contrasts': contrasts, 'accuracy': acc_rows, 'learning_curves': curves,
                'resources': res_rows, 'resource_means': res_means}
     write_json(out_dir / 'summary.json', summary)

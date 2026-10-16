@@ -3,9 +3,11 @@
     python -I data.py --version v1 --seeds 0,1,2 --train-cases 8000 --dev-cases 400 --test-cases 1000
     python -I data.py --smoke [--out DIR]        # seeds 0,1; 64 train cases per seed, 16 dev, 32 test
     python -I data.py --check [--out DIR]        # re-grade every answer file against itself, verify hashes
+    python -I data.py ... --force                # replace an existing <out>/<version>; refused without it (frozen)
 
 Environment: ``PILOT_TOKENIZER`` (Qwen 3 tokenizer directory, token counts) and ``SYLANG_PACKET`` (the study
-packet, whose renderer produces the ``english`` arm). Generation reuses the v3 generator of
+packet, whose renderer produces the ``english`` arm; the manifest records the SHA-256 digests of the packet modules
+that render it, never their path or text). Generation reuses the v3 generator of
 ``experiments/copy_probe`` (``study3.py``: hash split, identifier alphabet, select wordings, json record
 rendering; ``language.py``: the held-out feature pairs and the packet renderer; ``sylang_batch.py``: the
 header-free Sylang codes).
@@ -19,8 +21,9 @@ the last record of that subject; otherwise the subject is fresh and the record g
 probability ``P_OBJECT_REUSE`` = 0.2 the object is one of the case's earlier identifiers (uniform, excluding the
 record's subject and any identifier that would repeat a (subject, object) pair); otherwise fresh. The ``pair``
 panel forces one record (uniform index in generation order) onto a held-out feature pair and draws the others
-freely; every other file forbids held-out pairs. The lookup query is a uniform record index; the wording
-indices are uniform over 0..3 (trained) or 4..5 (the ``wording`` panel). A case whose record tuple was already
+freely; every other file forbids held-out pairs. The lookup query is a uniform record index, except on the pair
+panel where it is the forced held-out record (the index is still drawn); the wording indices are uniform over 0..3
+(trained) or 4..5 (the ``wording`` panel). A case whose record tuple was already
 generated anywhere in this run is redrawn (``duplicate_redraws`` in the manifest).
 
 Random streams: one ``random.Random`` per file, seeded with the string ``"<version>:<split>:<panel>:<seed>"``
@@ -29,7 +32,8 @@ file is the concatenation of its four panel streams in the order iid, wording, p
 k, the forced index (pair panel), then per record in generation order: relation, tense, aspect, evidence,
 polarity (repeated until the held-out rule holds), the subject-reuse coin and subject, the object-reuse coin and
 object (a fresh identifier draws its length, then its characters, rejecting until accepted); then the query
-index, the select wording and the lookup wording. Dev and test are shared by every seed; the training stream
+index (drawn on every stream; the ``pair`` panel ignores it and queries the forced held-out record), the select
+wording and the lookup wording. Dev and test are shared by every seed; the training stream
 of a seed is one list of cases, so ``case_index < N`` is the nested prefix.
 """
 from __future__ import annotations
@@ -41,6 +45,7 @@ import os
 import random
 import sys
 import time
+import types
 from collections import defaultdict
 from pathlib import Path
 
@@ -151,8 +156,7 @@ ARM_LEGEND = {
              '(direct, reported, inferred), o object. Default values are omitted: positive, present, simple, '
              'unspecified.'),
     'sylang2': 'Records are lines of subject TAB code TAB object, one record per line, in record order. ' + _CODE_LEGEND,
-    'sylang2g': ('Records are grouped by subject: each line is subject TAB then code object pairs joined by '
-                 'semicolons, in record order. ' + _CODE_LEGEND),
+    'sylang2g': 'Lines are subject TAB code object;code object, one line per subject, in record order. ' + _CODE_LEGEND,
 }
 TASK_LEGEND = {
     'json': ('Select task: output a JSON list of [subject,object] pairs of the negated records in record order, '
@@ -189,6 +193,7 @@ class CaseStream:
         self.heldout_pair, self.heldout_wording = heldout_pair, heldout_wording
         self.wording_indices = (tuple(range(N_TRAINED_WORDINGS, 6)) if heldout_wording
                                 else tuple(range(N_TRAINED_WORDINGS)))
+        self._forced_record = None  # the pair panel's forced held-out record of the last ``records`` call
 
     def identifier(self, used: set) -> str:
         """As study3.ItemStream3.identifier: 2-5 characters of [a-z0-9], at least one letter, in this split."""
@@ -214,6 +219,7 @@ class CaseStream:
 
     def records(self, k: int) -> list[dict]:
         forced = self.rng.randrange(k) if self.heldout_pair else None
+        self._forced_record = None
         records: list[dict] = []
         used: set = set()
         order: list[str] = []  # identifiers in order of first occurrence
@@ -239,6 +245,8 @@ class CaseStream:
             record = {'subject': subject, 'relation': features['relation'], 'object': obj,
                       'polarity': features['polarity'], 'tense': features['tense'], 'aspect': features['aspect'],
                       'evidence': features['evidence']}
+            if i == forced:  # the subject-adjacent insertion moves records, so the generation index is not the list index
+                self._forced_record = record
             last = max((j for j, r in enumerate(records) if r['subject'] == subject), default=None)
             records.insert(len(records) if last is None else last + 1, record)
         check_records(records, self.split, self.heldout_pair)
@@ -247,7 +255,9 @@ class CaseStream:
     def case(self) -> dict:
         k = self.rng.choice(self.k_values)
         records = self.records(k)
-        query = records[self.rng.randrange(k)]
+        index = self.rng.randrange(k)  # drawn on every stream: the documented draw order is the same everywhere
+        query = self._forced_record if self.heldout_pair else records[index]
+        assert query is not None and (not self.heldout_pair or L.is_held_out(query, HELDOUT_DESIGN)), query
         wording = {'select': self.rng.choice(self.wording_indices), 'lookup': self.rng.choice(self.wording_indices)}
         return {'k': k, 'records': records, 'wording': wording,
                 'query': {'subject': query['subject'], 'object': query['object']},
@@ -379,10 +389,24 @@ def instructions(task: str, index: int, query: dict | None = None) -> dict:
     return out
 
 
-def examples_of(case: dict, arm: str, renderer) -> list[dict]:
-    """The two example lines of a case in one arm: select, then lookup (interfaces.md)."""
+def render_summary(times: list[float]) -> dict:
+    """Mean, 95th percentile and maximum of the per-case rendering wall-clock, in seconds."""
+    if not times:
+        return {'n': 0, 'mean': None, 'p95': None, 'max': None}
+    ordered = sorted(times)
+    return {'n': len(times), 'mean': sum(times) / len(times), 'p95': ordered[min(len(ordered) - 1, int(0.95 * len(ordered)))],
+            'max': ordered[-1]}
+
+
+def examples_of(case: dict, arm: str, renderer, render_times: list | None = None) -> list[dict]:
+    """The two example lines of a case in one arm: select, then lookup (interfaces.md). The arm's
+    rendering wall-clock (the contract's conversion-in) is appended to ``render_times``; it is
+    summarised in the manifest, not written to the example line, so the files stay byte-reproducible."""
     records = case['records']
+    t0 = time.perf_counter()
     rendering = render(arm, records, renderer)
+    if render_times is not None:
+        render_times.append(time.perf_counter() - t0)
     out = []
     for task in common.TASKS:
         example = {'id': f"{case['case']}-{task}", 'case': case['case'], 'case_index': case['case_index'],
@@ -479,8 +503,40 @@ def print_table(summary: dict) -> None:
 # ---------------------------------------------------------------------------
 # Generation
 
+def packet_renderer_files(rt) -> list[Path]:
+    """The packet modules that render the ``english`` arm: the runtime's data module and the module behind
+    ``data.SCREEN`` (a module object in the study packet; otherwise the module defining its class), plus the file
+    defining ``SCREEN.encode_english`` when it is another one."""
+    screen = rt.data.SCREEN
+    screen_module = screen if isinstance(screen, types.ModuleType) else sys.modules[type(screen).__module__]
+    files = {Path(rt.data.__file__), Path(screen_module.__file__)}
+    code = getattr(getattr(screen.encode_english, '__func__', screen.encode_english), '__code__', None)
+    if code is not None and Path(code.co_filename).is_file():
+        files.add(Path(code.co_filename))
+    return sorted(p.resolve() for p in files)
+
+
+def packet_renderer_digests(rt) -> list[str]:
+    """SHA-256 digests (sorted; never a path) of ``packet_renderer_files``: the manifest's identity of the renderer."""
+    return sorted(common.sha256_file(p) for p in packet_renderer_files(rt))
+
+
+def refuse_frozen(out_dir: Path, force: bool) -> None:
+    """Datasets are frozen: an existing ``<out>/<version>/manifest.json`` is replaced only with ``--force``."""
+    existing = out_dir / 'manifest.json'
+    if not existing.exists() or force:
+        return
+    with open(existing, encoding='utf-8') as f:
+        old = json.load(f)
+    raise SystemExit(f'{existing} exists: dataset version {old.get("version")!r} generated at {old.get("generated_at")} '
+                     f'by generator commit {(old.get("generator") or {}).get("git_commit")}; datasets are frozen: '
+                     f'choose a new --version or pass --force to replace it')
+
+
 def generate(args) -> None:
     from followup import Runtime  # the packet runtime: its data module renders the english arm
+    out_dir = Path(args.out) / args.version
+    refuse_frozen(out_dir, args.force)
     packet = os.environ.get(common.PACKET_ENV)
     if not packet:
         raise SystemExit(f'set {common.PACKET_ENV} to the study packet directory (english rendering)')
@@ -488,14 +544,16 @@ def generate(args) -> None:
     tok = common.load_tokenizer()
     common.check_template(tok)
     legend_counts = legend_tokens(tok)
-    renderer = L.Renderer(Runtime(packet))
-    out_dir = Path(args.out) / args.version
+    rt = Runtime(packet)
+    renderer = L.Renderer(rt)
+    packet_digests = packet_renderer_digests(rt)
     out_dir.mkdir(parents=True, exist_ok=True)
     seeds = [int(s) for s in args.seeds.split(',') if s.strip()]
     train_cases, dev_cases, test_cases = args.train_cases, args.dev_cases, args.test_cases
     if args.smoke:
         seeds, train_cases, dev_cases, test_cases = list(SMOKE['seeds']), SMOKE['train_cases'], SMOKE['dev_cases'], SMOKE['test_cases']
     plan = file_plan(args.version, seeds, train_cases, dev_cases, test_cases)
+    render_times: dict = {}  # arm -> split -> rendering seconds per case (conversion-in, contract.md)
 
     common.write_json(out_dir / 'legends.json', LEGENDS)
     files = ['legends.json']
@@ -516,7 +574,8 @@ def generate(args) -> None:
         for panel in entry['panels']:
             rng_seeds[f'{cases_name}:{panel["panel"]}'] = panel['seed_key']
         for arm in common.ARMS:
-            examples = [example for case in cases for example in examples_of(case, arm, renderer)]
+            timings = render_times.setdefault(arm, {}).setdefault(split, [])
+            examples = [example for case in cases for example in examples_of(case, arm, renderer, timings)]
             path = common.examples_path(args.version, split, arm, seed)
             path = out_dir / path.name
             common.write_jsonl(path, examples)
@@ -534,7 +593,8 @@ def generate(args) -> None:
             'data.py': common.sha256_file(HERE / 'data.py'),
             'study3.py': common.sha256_file(COPY_PROBE / 'study3.py'),
             'sylang_batch.py': common.sha256_file(COPY_PROBE / 'sylang_batch.py'),
-            'language.py': common.sha256_file(COPY_PROBE / 'language.py')}},
+            'language.py': common.sha256_file(COPY_PROBE / 'language.py')},
+                      'packet_english_renderer_sha256': packet_digests},
         'seeds': seeds,
         'smoke': bool(args.smoke),
         'sizes': {'train': train_cases, 'dev': dev_cases, 'test': test_cases, 'test_panels': panel_sizes(test_cases),
@@ -558,9 +618,12 @@ def generate(args) -> None:
         'legend_tokens': legend_counts,
         'legend_token_range': list(LEGEND_TOKENS),
         'token_stats': summary,
+        'render_seconds': {arm: {split: render_summary(times) for split, times in per_split.items()}
+                           for arm, per_split in render_times.items()},
         'token_stats_verified_against_common': stats.verified,
         'seconds': round(clock.seconds(), 1),
     }
+    assert str(Path(packet).resolve()) not in json.dumps(manifest), 'the packet path must not appear in the manifest'
     common.write_json(out_dir / 'manifest.json', manifest)
     print(f'wrote {len(files) + 1} files to {out_dir} in {clock.seconds():.1f}s (duplicate redraws: {redraws})')
     print('legend tokens:', json.dumps(legend_counts))
@@ -607,6 +670,14 @@ def check(args) -> int:
             problem(f'legend token counts differ from the manifest: {counts}')
     else:
         print(f'note: {common.TOKENIZER_ENV} not set; legend token counts not re-verified')
+    if os.environ.get(common.PACKET_ENV):
+        from followup import Runtime
+        digests = packet_renderer_digests(Runtime(os.environ[common.PACKET_ENV]))
+        recorded = (manifest.get('generator') or {}).get('packet_english_renderer_sha256')
+        if recorded != digests:
+            problem(f'packet english renderer digests differ from the manifest: packet {digests}, manifest {recorded}')
+    else:
+        print(f'note: {common.PACKET_ENV} not set; packet english renderer digests not re-verified')
 
     graded = 0
     cases_files = sorted(name for name in manifest['sha256'] if name.startswith('cases_'))
@@ -631,8 +702,11 @@ def check(args) -> int:
             if (case['panel'] == 'wording') != case['heldout_wording'] or (case['panel'] == 'pair') != case['heldout_pair']:
                 problem(f'{cases_name} {case["case"]}: panel/held-out flags disagree')
             query = (case['query']['subject'], case['query']['object'])
-            if sum((r['subject'], r['object']) == query for r in case['records']) != 1:
+            queried = [r for r in case['records'] if (r['subject'], r['object']) == query]
+            if len(queried) != 1:
                 problem(f'{cases_name} {case["case"]}: query does not match exactly one record')
+            elif case['heldout_pair'] and not L.is_held_out(queried[0], HELDOUT_DESIGN):
+                problem(f'{cases_name} {case["case"]}: pair-panel query record is not a held-out feature pair')
             digest = case_hash(case['records'])
             if digest in seen_pairs:
                 problem(f'{cases_name} {case["case"]}: duplicate case')
@@ -681,6 +755,8 @@ def main(argv=None) -> int:
     parser.add_argument('--smoke', action='store_true', help=f'seeds {SMOKE["seeds"]}, {SMOKE["train_cases"]} train cases '
                                                              f'per seed, {SMOKE["dev_cases"]} dev, {SMOKE["test_cases"]} test')
     parser.add_argument('--check', action='store_true', help='verify an existing dataset instead of generating')
+    parser.add_argument('--force', action='store_true', help='replace an existing <out>/<version> (datasets are frozen; '
+                                                             'without this flag an existing manifest.json is refused)')
     args = parser.parse_args(argv)
     if args.check:
         return check(args)

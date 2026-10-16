@@ -1,6 +1,6 @@
 {
  "answer_format": "json",
- "arm": "sylang2",
+ "arm": "json",
  "batch_size": 16,
  "data_version": "v1",
  "dev_eval_examples": 200,

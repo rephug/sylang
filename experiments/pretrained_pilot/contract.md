@@ -24,7 +24,9 @@ length band. Two feature pairs are held out of training as in the study: (contai
 2. **lookup** (relationship lookup, new): given a subject and an object that occur together in
    exactly one record, return that record's relation and polarity as a JSON object
    `{"relation": ..., "polarity": ...}`; the queried pair is chosen uniformly among the case's
-   records. The request names the pair in the instruction line.
+   records, except on the held-out-pair test panel, where the query is the record carrying the
+   held-out feature pair (so every pair-panel lookup tests the held-out combination). The request
+   names the pair in the instruction line.
 
 Request wordings: four trained, two held out (per task; the lookup wordings are new strings of
 the same style).
@@ -38,8 +40,9 @@ the same style).
 | `sylang2` | header-free Sylang codes, `subject<TAB>code<TAB>object` lines (the tested compact format) |
 | `sylang2g` | the improved-M candidate: header-free codes **grouped by subject** — one line per subject, `subject<TAB>code object;code object`, record order preserved by first occurrence (the single reversible change under test) |
 
-Every arm's prompt = system message (legend for that arm, ≈ 100–120 Qwen 3 tokens, written per
-arm to be of matched length) + user message (records in the arm's rendering, then the task's
+Every arm's prompt = system message (legend for that arm, 100–130 Qwen 3 tokens, arms matched
+within 15 tokens of each other, asserted by `data.py`; the grouped and ungrouped code legends are
+token-identical) + user message (records in the arm's rendering, then the task's
 instruction line). Output = the task's JSON answer. A second **answer format** factor
 (`bare`: `subject object` pairs separated by spaces for *select*, the word `none` when there is
 no negated record; `relation polarity` for *lookup*) exists only for stage C and is never adopted
@@ -52,7 +55,10 @@ case never appears in two splits in any rendering. Identifiers follow the v3 tra
 split. Held out of training entirely: two wordings per task, the two feature pairs, K 13..16.
 Sizes (pilot v1): train up to 8,000 cases per seed (nested prefixes 500 / 2,000 / 8,000 of one
 stream per seed), dev 400 cases, test 1,000 cases (iid 480, held-out wording 160, held-out pair
-160, K 13..16 200); dev and test are shared by all seeds; each case yields one example per task. `manifest.json` records every seed, size and the SHA-256 of each file.
+160, K 13..16 200); dev and test are shared by all seeds; each case yields one example per task. `manifest.json` records every seed, size and the SHA-256 of each file, the SHA-256 digests of the
+packet modules that render the `english` arm (digests only, never the packet's path) and the
+generator commit; a version directory is frozen: `data.py` refuses to regenerate into an existing
+`data/<version>/` unless `--force` is passed.
 
 ## Grader
 
@@ -74,7 +80,10 @@ reported before and after the retry; the retry rate per arm is a reported number
 Per request: system tokens (legend), instruction tokens, record tokens, output tokens (first
 and retry); two conventions reported side by side: *uncached* (every token of every request) and
 *cached* (the system message counted once per 100 requests, the provider's cache discount not
-assumed). Conversion-in and conversion-out wall-clock (codec, parser) measured per request.
+assumed). Conversion-in wall-clock is the arm's rendering time of the case's records (the codec), measured
+at generation and summarised per arm and split in the manifest (`render_seconds`: mean, p95, max);
+conversion-out (parser and grader) wall-clock is measured per request by the evaluator, with the
+prompt assembly and tokenisation time reported separately.
 
 ## Decision rules (pre-registered; δ = 3 accuracy points)
 

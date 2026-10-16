@@ -12,15 +12,22 @@ What happens, in order:
 2. the split's examples of the config's arm are read and restricted to the config's tasks
    (``--limit N`` keeps N examples, taken round-robin over the panels in file order so a smoke
    test touches every panel);
-3. every prompt is assembled and tokenised (``convert_in_s`` is that wall-clock), then decoded
+3. every prompt is assembled and tokenised (``tokenize_s`` is that wall-clock; ``convert_in_s``
+   is the codec time: the example's rendering wall-clock ``render_s`` recorded by data.py, 0.0
+   when the data file predates that key), then, after one untimed warm-up generation on the
+   first request (CUDA/cuBLAS initialisation; the generation clock is reset afterwards), decoded
    greedily in batches with left padding, stopping at ``<|im_end|>``; ``--latency-sample N`` runs
-   N items (evenly spaced over the item list) one at a time instead, which gives the
+   N items (spread evenly within each task's items: the files interleave the tasks, so an even
+   stride over the whole list would pick one task only) one at a time instead, which gives the
    single-request latency distribution; batched items carry the batch wall-clock divided by the
    batch size;
-4. outputs are graded with ``grader.grade`` (``convert_out_s`` is the decode + grade wall-clock);
-   every item whose first output is ``invalid`` gets exactly one retry request
-   (``common.retry_user_text``), run and graded the same way; both requests are counted in
-   tokens, latency and cost, and ``*_final`` reflects the retry;
+4. outputs are decoded with ``common.decode_output`` (the ids before the first ``<|im_end|>``,
+   special tokens skipped: the rule train_lora.py uses for dev selection) and graded with
+   ``grader.grade`` (``convert_out_s`` is the parse + grade wall-clock only; decoding is
+   model-side and outside that clock); every item whose first output is ``invalid`` gets exactly
+   one retry request (``common.retry_user_text``; its tokenisation is added to ``tokenize_s``,
+   the codec is not re-run), run and graded the same way; both requests are counted in tokens,
+   latency and cost, and ``*_final`` reflects the retry;
 5. ``items.jsonl`` (one line per example; synthetic ids, flags and numbers only) and
    ``eval.json`` (the aggregates) are written to ``--out``.
 
@@ -100,12 +107,30 @@ def select_examples(rows: list[dict], tasks, limit: int | None) -> list[dict]:
     return chosen
 
 
-def latency_sample_indices(n_items: int, n_sample: int) -> set[int]:
-    """N indices spread evenly over the item list (which interleaves the tasks and panels)."""
-    n_sample = max(0, min(n_sample, n_items))
+def latency_sample_indices(tasks: list[str], n_sample: int) -> set[int]:
+    """Indices of the N single-request latency items, stratified by task: ``tasks`` is the item
+    list's task per index; the N are split as evenly as possible over the tasks (in order of
+    first appearance, the remainder to the first ones) and each task's share is spread evenly
+    over that task's own items.  (The files interleave the tasks, so an even stride over the whole
+    list would pick one task only.)"""
+    positions: dict[str, list[int]] = {}
+    for i, task in enumerate(tasks):
+        positions.setdefault(task, []).append(i)
+    n_sample = max(0, min(n_sample, len(tasks)))
     if n_sample == 0:
         return set()
-    return {int(i * n_items / n_sample) for i in range(n_sample)}
+    share = {task: 0 for task in positions}
+    remaining = n_sample
+    while remaining:   # round-robin over the tasks; terminates because n_sample <= len(tasks)
+        for task, pos in positions.items():
+            if remaining and share[task] < len(pos):
+                share[task] += 1
+                remaining -= 1
+    chosen: set[int] = set()
+    for task, pos in positions.items():
+        m = share[task]
+        chosen.update(pos[int(j * len(pos) / m)] for j in range(m))
+    return chosen
 
 
 # ---------------------------------------------------------------------------
@@ -148,7 +173,7 @@ class Generator:
         self.generation_seconds += seconds
         gen = out[:, input_ids.shape[1]:].tolist()
         results = []
-        for row in gen:
+        for row in gen:   # the tokens before the end token: the output token count, and what decode_output decodes
             if self.eos_id in row:
                 row = row[:row.index(self.eos_id)]
             results.append(row)
@@ -233,10 +258,17 @@ def _percentile(values, q):
     return values[lo] + (values[hi] - values[lo]) * (pos - lo)
 
 
-def latency_stats(single_first_latency: list[float], gen: Generator) -> dict:
-    single = {'n': len(single_first_latency),
-              'mean_s': (sum(single_first_latency) / len(single_first_latency)) if single_first_latency else None,
-              'p50_s': _percentile(single_first_latency, 0.5), 'p95_s': _percentile(single_first_latency, 0.95)}
+def _single_block(values: list[float]) -> dict:
+    return {'n': len(values), 'mean_s': (sum(values) / len(values)) if values else None,
+            'p50_s': _percentile(values, 0.5), 'p95_s': _percentile(values, 0.95)}
+
+
+def latency_stats(single_first_latency: list[tuple[str, float]], gen: Generator) -> dict:
+    """``single_first_latency``: (task, seconds) of every single-request first request; the block
+    carries the distribution over all of them and per task (the sample is stratified by task)."""
+    tasks = sorted({t for t, _ in single_first_latency}, key=lambda t: (common.TASKS + (t,)).index(t))
+    single = {**_single_block([s for _, s in single_first_latency]),
+              'by_task': {t: _single_block([s for task, s in single_first_latency if task == t]) for t in tasks}}
     return {'batched_items_per_s': (gen.batched_requests / gen.batched_seconds) if gen.batched_seconds else None,
             'batched_requests': gen.batched_requests, 'batched_seconds': gen.batched_seconds, 'single': single}
 
@@ -281,21 +313,23 @@ def main(argv=None) -> None:
     examples = select_examples(rows, tasks, args.limit)
     if not examples:
         raise SystemExit(f'no examples for arm {arm!r} tasks {tasks} in split {args.split!r}')
-    single_idx = latency_sample_indices(len(examples), args.latency_sample)
-    print(f'[evaluate] {len(examples)} examples ({args.split}, {arm}, {fmt}); {len(single_idx)} single-request, '
-          f'the rest batched by {args.batch_size}', file=sys.stderr)
+    single_idx = latency_sample_indices([ex['task'] for ex in examples], args.latency_sample)
+    single_by_task = {t: sum(1 for i in single_idx if examples[i]['task'] == t) for t in tasks}
+    print(f'[evaluate] {len(examples)} examples ({args.split}, {arm}, {fmt}); {len(single_idx)} single-request '
+          f'{single_by_task}, the rest batched by {args.batch_size}', file=sys.stderr)
 
     clock_eval = Stopwatch()   # the cost clock: everything after model load
     gen = Generator(model, tok, device, config['max_new_tokens'], args.batch_size)
     dump = open(args.dump_outputs, 'w', encoding='utf-8') if args.dump_outputs else None
 
-    # --- first requests: assemble + tokenise (convert_in), generate, decode + grade (convert_out)
+    # --- first requests: assemble + tokenise (tokenize_s), generate, decode, parse + grade (convert_out_s);
+    #     convert_in_s is the codec time, the rendering wall-clock data.py records per example as render_s
     items, requests = [], []
     for i, ex in enumerate(examples):
         t0 = time.perf_counter()
         prompt = common.prompt_text(legend, user_text(ex, fmt))
         ids = tok(prompt, add_special_tokens=False)['input_ids']
-        convert_in = time.perf_counter() - t0
+        tokenize = time.perf_counter() - t0
         parts = token_breakdown(tok, legend, ex, fmt)
         assert parts['prompt_total'] == len(ids), (parts, len(ids))
         mode = 'single' if i in single_idx else 'batched'
@@ -306,13 +340,22 @@ def main(argv=None) -> None:
                       'correct_first': None, 'invalid_first': None, 'retried': False,
                       'correct_final': None, 'invalid_final': None, 'reason_first': None, 'reason_final': None,
                       'tokens': {**parts, 'output_first': 0, 'output_retry': 0, 'prompt_retry': 0},
-                      'latency_s': 0.0, 'latency_mode': mode, 'convert_in_s': convert_in, 'convert_out_s': 0.0})
+                      'latency_s': 0.0, 'latency_mode': mode, 'convert_in_s': float(ex.get('render_s') or 0.0),
+                      'tokenize_s': tokenize, 'convert_out_s': 0.0})
+
+    # --- warm-up: one untimed generation on the first request, so CUDA/cuBLAS initialisation inflates
+    #     neither the first single-request latency nor the batched throughput; the generation clock is reset
+    t0 = time.perf_counter()
+    gen._generate([requests[0]['ids']], requests[0]['task'])
+    warmup_s = time.perf_counter() - t0
+    gen.generation_seconds = 0.0
+    print(f'[evaluate] warm-up generation {warmup_s:.2f}s (untimed; generation clock reset)', file=sys.stderr)
     gen.run(requests)
 
     def grade_request(req, ex, which):
         it = items[req['index']]
+        text = common.decode_output(tok, req['output_ids'])   # model-side decoding, outside the parser clock
         t0 = time.perf_counter()
-        text = tok.decode(req['output_ids'], skip_special_tokens=True)
         result = grade(ex['task'], fmt, common.answer_text(ex, fmt), text)
         it['convert_out_s'] += time.perf_counter() - t0
         it['latency_s'] += req['latency_s']
@@ -330,12 +373,12 @@ def main(argv=None) -> None:
         it['correct_first'], it['invalid_first'], it['reason_first'] = bool(r['correct']), bool(r['invalid']), r['reason']
         it['correct_final'], it['invalid_final'], it['reason_final'] = it['correct_first'], it['invalid_first'], it['reason_first']
         if req['mode'] == 'single':
-            single_first_latency.append(req['latency_s'])
+            single_first_latency.append((ex['task'], req['latency_s']))
         if it['invalid_first']:
             t0 = time.perf_counter()
             prompt = common.prompt_text(legend, retry_user_text(ex, fmt))
             ids = tok(prompt, add_special_tokens=False)['input_ids']
-            it['convert_in_s'] += time.perf_counter() - t0
+            it['tokenize_s'] += time.perf_counter() - t0   # the codec is not re-run for a retry
             it['retried'] = True
             it['tokens']['prompt_retry'] = len(ids)
             retry_requests.append({'ids': ids, 'task': ex['task'], 'mode': req['mode'], 'index': req['index']})
@@ -368,11 +411,13 @@ def main(argv=None) -> None:
         'started_at': started_at, 'finished_at': now_iso(), 'seconds': clock_total.seconds(),
         'seconds_model_load': seconds_model_load, 'limit': args.limit,
         'generation': {'greedy': True, 'max_new_tokens': {t: config['max_new_tokens'][t] for t in tasks},
-                       'batch_size': args.batch_size, 'stop': IM_END, 'padding': 'left', 'thinking': False},
+                       'batch_size': args.batch_size, 'stop': IM_END, 'padding': 'left', 'thinking': False,
+                       'warmup_s': warmup_s},
         'n_items': len(items), 'panels': panels, 'tokens': tokens,
         'latency': latency_stats(single_first_latency, gen),
-        'conversion': {'in_mean_s': sum(it['convert_in_s'] for it in items) / len(items),
-                       'out_mean_s': sum(it['convert_out_s'] for it in items) / len(items)},
+        'conversion': {'in_mean_s': sum(it['convert_in_s'] for it in items) / len(items),        # codec (render_s)
+                       'tokenize_mean_s': sum(it['tokenize_s'] for it in items) / len(items),    # prompt assembly + tokeniser
+                       'out_mean_s': sum(it['convert_out_s'] for it in items) / len(items)},     # parser + grader
         'cost': cost,
     }
     write_jsonl(out_dir / 'items.jsonl', items)

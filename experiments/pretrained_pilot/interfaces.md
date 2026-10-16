@@ -15,7 +15,7 @@ rendering), `PILOT_ALLOW_DOWNLOAD=1` (the only way any script may download weigh
 | `legends.json` | `{"json": {arm: legend}, "bare": {arm: legend}}`: the system message per arm and answer format, 100–130 Qwen 3 tokens, arms matched within 15 tokens of each other (asserted by `data.py`) |
 | `cases_dev.jsonl`, `cases_test.jsonl`, `cases_train_s<seed>.jsonl` | one underlying case per line (arm-independent), see below |
 | `dev_<arm>.jsonl`, `test_<arm>.jsonl`, `train_s<seed>_<arm>.jsonl` | rendered examples, two per case (one per task), in case order: case 0 select, case 0 lookup, case 1 select, … |
-| `manifest.json` | `version`, `generator` (git commit, `study3`/`sylang_batch` file hashes), `seeds`, `sizes` (cases per split), `counts` (examples per file), `sha256` per file, `split_hashes` (SHA-256 over each case file's case hashes), `legend_tokens` per arm and format, `token_stats` (mean prompt tokens per arm, task, split; mean answer tokens), `heldout` (the wordings and feature pairs), `generated_at` |
+| `manifest.json` | `version`, `generator` (`git_commit`; `sha256` of `data.py`, `study3.py`, `sylang_batch.py`, `language.py`; `packet_english_renderer_sha256`: sorted SHA-256 digests of the packet modules that render the `english` arm, digests only, never a path), `seeds`, `sizes` (cases per split), `counts` (examples per file), `sha256` per file (the files are byte-reproducible from the seeds), `split_hashes` (SHA-256 over each case file's case hashes), `legend_tokens` per arm and format, `token_stats` (mean prompt tokens per arm, task, split; mean answer tokens), `render_seconds` (per arm and split: `n`, `mean`, `p95`, `max` seconds of the arm's rendering per case, the contract's conversion-in), `heldout` (the wordings and feature pairs), `generated_at`. Datasets are frozen: `data.py` exits with status 1 when `data/<version>/manifest.json` exists unless `--force` is given |
 
 The nested prefix rule: the training stream of a seed holds `train_cases` cases; a config's
 `train_size` = N uses the examples whose `case_index` < N (`common.training_examples`). Dev and
@@ -32,8 +32,10 @@ test are shared by all seeds.
 ```
 
 `panel` is `iid` for train and dev; one of `iid`, `wording`, `pair`, `long` for test. `wording`
-indexes the task's wording list (0–3 trained, 4–5 held out). `query` is the lookup pair, drawn
-uniformly among the case's records with the case's own random stream. Records sharing a
+indexes the task's wording list (0–3 trained, 4–5 held out). `query` is the lookup pair: a uniformly drawn record of the case (the case's own random stream),
+except on the `pair` panel where it is the record forced onto a held-out feature pair (the index is
+still drawn, so the draw order is identical on every panel); `data.py --check` verifies that every
+pair-panel query record is held out. Records sharing a
 subject are adjacent (contract), and no (subject, object) pair repeats within a case.
 
 ### Example line (one per case and task, identical `answer` bytes across arms)
@@ -119,7 +121,7 @@ recorded by the scripts as `status: timeout` in the ledger (the process cannot r
  "invalid_final": false, "reason_first": "ok", "reason_final": "ok",
  "tokens": {"system": 112, "records": 60, "instruction": 18, "template": 13, "prompt_total": 203,
             "output_first": 11, "output_retry": 0, "prompt_retry": 0},
- "latency_s": 0.41, "latency_mode": "batched|single", "convert_in_s": ..., "convert_out_s": ...}
+ "latency_s": 0.41, "latency_mode": "batched|single", "convert_in_s": ..., "tokenize_s": ..., "convert_out_s": ...}
 ```
 
 `eval.json`:
@@ -133,25 +135,39 @@ recorded by the scripts as `status: timeout` in the ledger (the process cannot r
  "tokens": {"per_request_mean": {"system": ..., "records": ..., "instruction": ..., "template": ...,
                                  "prompt_total": ..., "output": ...},
             "totals": {"uncached": ..., "cached": ..., "output": ..., "requests": ..., "retries": ...}},
- "latency": {"batched_items_per_s": ..., "single": {"n": ..., "mean_s": ..., "p50_s": ..., "p95_s": ...}},
- "conversion": {"in_mean_s": ..., "out_mean_s": ...},
+ "latency": {"batched_items_per_s": ..., "single": {"n": ..., "mean_s": ..., "p50_s": ..., "p95_s": ...,
+                                                "by_task": {"<task>": {"n": ..., "mean_s": ..., "p50_s": ..., "p95_s": ...}}}},
+ "conversion": {"in_mean_s": ..., "tokenize_mean_s": ..., "out_mean_s": ...},
  "cost": {"price_per_hour": ..., "gpu_seconds": ..., "per_correct_final": ..., "per_item": ...}}
 ```
 
+`convert_in_s` is the codec time: the manifest's `render_seconds` mean for the config's arm and the
+evaluated split (0.0 when the manifest has no such key); `tokenize_s` is the prompt assembly and
+tokenisation wall-clock of the first request plus, when retried, of the retry (the codec is not
+re-run); `convert_out_s` is the parse and grade wall-clock only. Generated ids are decoded with
+`common.decode_output` (the ids before the first `<|im_end|>`, special tokens skipped, the rule
+`train_lora.py` uses for dev selection); output token counts are the tokens before the end token.
+Immediately before the timed generation one untimed warm-up generation runs on the first request
+(`generation.warmup_s`; inside `cost.gpu_seconds`, outside `seconds_generation`).
 `cached` counts the system message once per 100 requests (contract); `uncached` counts every
 token of every request including retries. `--price-per-hour` (default 0) fills `cost`.
-`--latency-sample N` measures N items one at a time (`latency_mode: single`); the rest are
-batched and carry the batch's wall-clock divided by the batch size.
+`--latency-sample N` measures N items one at a time, the N split evenly over the tasks and spread
+evenly within each task's items (`latency_mode: single`); the rest are batched and carry the batch's
+wall-clock divided by the batch size.
 
 ## Analysis: `analyze.py --results results/*/ --out analysis/`
 
 Groups result directories by `(model, arm, seed, train_size, answer_format, split)` from each
-`eval.json`'s config. Writes `analysis/summary.md` and `analysis/summary.json` with: accuracy
+`eval.json`'s config, where `model` is the config's `model` when set, else the basename of the
+`model_path` the evaluator recorded (the stage configs leave `model` null and `PILOT_MODEL` supplies
+the weights), else `unknown`; the result records and the inventory table carry the full `model_path`,
+and the warning about superseded directories prints each directory's `model_path`. Writes `analysis/summary.md` and `analysis/summary.json` with: accuracy
 tables per panel and task; the contrasts `arm − english`, `sylang2g − sylang2`, `sylang2 −
 json` per panel, task and train size with the 90% cluster bootstrap (seeds then items, 2,000
 resamples, seed 0), the per-item-only interval, and the verdict `non-inferior | inferior |
-superior | inconclusive` under δ = 3 (contract) — or `exploratory (1 seed): no decision` when
-only one seed is present; learning curves (accuracy vs train size); token, latency and cost
+superior | inconclusive` under δ = 3 (contract), issued only with three or more shared seeds
+(`MIN_DECISION_SEEDS = 3`); with fewer the verdict is `exploratory (1 seed): no decision` or
+`exploratory (2 seeds): no decision`; the secondary `correct_first` contrasts carry intervals only; learning curves (accuracy vs train size); token, latency and cost
 tables; the retry rates. `--delta` and `--resamples` override the defaults and the overrides
 are printed in the output.
 
@@ -201,6 +217,6 @@ script returns: stage B is not started on a non-zero exit. The 1.7B extension ha
 (`stage_d_1p7b_*`) and plan file (`plan_stage_d_1p7b.json`), projected with `profile_gpu.py --plan` after
 profiling the 1.7B weights; no stage script runs it.
 
-`smoke_cpu.sh`: generates a small dataset (`data.py --smoke`: 64 train cases per seed for 2
+`smoke_cpu.sh`: removes any previous smoke dataset and generates a small one (`data.py --smoke`: 64 train cases per seed for 2
 seeds, 16 dev, 32 test), builds the tiny model, trains 20 steps for two arms, evaluates
 zero-shot and trained, runs the analysis; exits non-zero on any failure.
