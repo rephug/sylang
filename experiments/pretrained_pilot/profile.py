@@ -39,6 +39,8 @@ def sync(device):
 
 
 def measure(args):
+    if args.train_steps < 1 or args.gen_items < 1:
+        raise SystemExit('--train-steps and --gen-items must be at least 1')
     config = common.load_config(args.config)
     device = common.resolve_device(args.device)
     if device == 'cpu':

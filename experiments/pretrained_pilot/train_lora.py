@@ -179,19 +179,19 @@ def train_step(model, optimizer, scheduler, batches, device, autocast_dtype):
     and examples consumed, the gradient norm and the learning rate that was applied."""
     model.train()
     lr = optimizer.param_groups[0]['lr']
-    loss_sum = torch.zeros((), dtype=torch.float64)
+    loss_sum = 0.0  # token-weighted, accumulated on the device; read back once per step
     loss_tokens = tokens = examples = 0
     for batch in batches:
+        n_target = int((batch['labels'][:, 1:] != -100).sum())  # counted on the CPU tensors
+        tokens += int(batch['attention_mask'].sum())
+        examples += int(batch['input_ids'].shape[0])
         batch = {k: v.to(device) for k, v in batch.items()}
-        n_target = int((batch['labels'][:, 1:] != -100).sum())
         with autocast_context(autocast_dtype):
             out = model(input_ids=batch['input_ids'], attention_mask=batch['attention_mask'],
                         labels=batch['labels'], use_cache=False)
         (out.loss / len(batches)).backward()
-        loss_sum += out.loss.detach().double().cpu() * n_target
+        loss_sum = loss_sum + out.loss.detach().double() * n_target
         loss_tokens += n_target
-        tokens += int(batch['attention_mask'].sum())
-        examples += int(batch['input_ids'].shape[0])
     grad_norm = torch.nn.utils.clip_grad_norm_([p for p in model.parameters() if p.requires_grad], MAX_GRAD_NORM)
     optimizer.step()
     scheduler.step()
@@ -372,7 +372,9 @@ def train(args):
     state = None
     if resume_from is not None:
         state = torch.load(resume_from / STATE_FILE, map_location='cpu', weights_only=False)
-    elif not args.resume:
+    else:  # a fresh start: nothing of an earlier attempt in this directory may survive
+        if args.resume:
+            print(f'--resume: no complete checkpoint under {out / "checkpoints"}, starting from scratch')
         for name in ('checkpoints', 'best'):
             shutil.rmtree(out / name, ignore_errors=True)
         (out / 'train_log.jsonl').unlink(missing_ok=True)

@@ -39,7 +39,8 @@ done
 
 export PILOT_MODEL=tiny-random            # never real weights in the smoke test
 unset PILOT_ALLOW_DOWNLOAD                # and never a download
-export OMP_NUM_THREADS=${OMP_NUM_THREADS:-2} MKL_NUM_THREADS=${OMP_NUM_THREADS:-2} TOKENIZERS_PARALLELISM=false
+export OMP_NUM_THREADS=${OMP_NUM_THREADS:-2}
+export MKL_NUM_THREADS=$OMP_NUM_THREADS TOKENIZERS_PARALLELISM=false
 VERSION=smoke
 ARMS=(sylang2 english)
 LOG_DIR=runs/_smoke_logs

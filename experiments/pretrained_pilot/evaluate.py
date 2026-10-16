@@ -229,7 +229,7 @@ def _percentile(values, q):
     return values[lo] + (values[hi] - values[lo]) * (pos - lo)
 
 
-def latency_stats(items: list[dict], single_first_latency: list[float], gen: Generator) -> dict:
+def latency_stats(single_first_latency: list[float], gen: Generator) -> dict:
     single = {'n': len(single_first_latency),
               'mean_s': (sum(single_first_latency) / len(single_first_latency)) if single_first_latency else None,
               'p50_s': _percentile(single_first_latency, 0.5), 'p95_s': _percentile(single_first_latency, 0.95)}
@@ -366,7 +366,7 @@ def main(argv=None) -> None:
         'generation': {'greedy': True, 'max_new_tokens': {t: config['max_new_tokens'][t] for t in tasks},
                        'batch_size': args.batch_size, 'stop': IM_END, 'padding': 'left', 'thinking': False},
         'n_items': len(items), 'panels': panels, 'tokens': tokens,
-        'latency': latency_stats(items, single_first_latency, gen),
+        'latency': latency_stats(single_first_latency, gen),
         'conversion': {'in_mean_s': sum(it['convert_in_s'] for it in items) / len(items),
                        'out_mean_s': sum(it['convert_out_s'] for it in items) / len(items)},
         'cost': cost,
