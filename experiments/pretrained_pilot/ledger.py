@@ -352,8 +352,11 @@ def report(path: Path, ceiling: float, profile: Path | None = None, results_dir:
         print(f'projection ({profile}): {stage_text}; total ${proj["total"]:.2f}{cont}', file=out)
         print(f'  projected cost of stages without a stop line yet: ${remaining:.2f}; '
               f'measured + projected remaining: ${total_used + remaining:.2f}', file=out)
-        if proj['total'] > ceiling:
+        if proj['total'] > ceiling and (remaining > 0 or not proj['stages']):
             exceeded.append(f'projected total ${proj["total"]:.2f} exceeds the ceiling ${ceiling:.2f}')
+        elif proj['total'] > ceiling:
+            print(f'  (the projected total ${proj["total"]:.2f} exceeded the ceiling, but every projected stage has '
+                  f'a stop line: the measured spend decides)', file=out)
         if total_used + remaining > ceiling:
             exceeded.append(f'measured ${total_used:.2f} + projected remaining ${remaining:.2f} exceeds the '
                             f'ceiling ${ceiling:.2f}')
