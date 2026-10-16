@@ -205,7 +205,17 @@ The package `experiments/pretrained_pilot/` (README there) contains the frozen c
 
 #### 6.1.1 Code-review findings
 
-(Recorded when the review completes.)
+Thirty findings were raised, six were refuted by the second reader, twenty-four were confirmed (seven major, seventeen minor, none blocking) and all twenty-four were fixed before the package was re-tested. The seven major ones, each of which would have changed a number, a verdict or a kept file:
+
+1. A kill between writing an epoch checkpoint and refreshing `best/` left the stale adapter under the newer `selected_epoch`; `--resume` now re-derives `best/` from the checkpoint it names.
+2. The evaluator's "conversion-in" time was prompt assembly, not the codec; the generator now records each example's rendering wall-clock (`render_s`) and the evaluator reports it as the codec time, with tokenisation and parsing timed separately.
+3. The analysis keyed results by the config's `model` field, which is null for every stage cell, so results from different weights would have merged; the key is now the weights' directory name recorded by the evaluator.
+4. The analysis issued pre-registered verdicts at two shared seeds; the rule now requires three (fewer is "exploratory: no decision"), and stage C refuses to run without stage B's seed-0 results unless told to fill or to proceed.
+5. The stage scripts packaged the ledger before writing the `stop` line, so the tarball never carried it; the order is reversed.
+6. An SSH drop (SIGHUP) made the scripts write "exit 0" and package results while training kept running and billing; the scripts now trap HUP/INT/TERM, kill the child process group, note the interruption in the ledger and exit non-zero.
+7. The GPU setup script would have installed a multi-gigabyte torch before failing on an image with Python below 3.12 (the numpy pin); it now checks the interpreter first.
+
+The minor ones (fixed): the pair-panel lookup query now names the forced held-out record (otherwise 57% of those queries would have hit trained pairs and diluted the panel); the grouped arm's legend is now token-identical to the ungrouped arm's (it was 6 tokens longer, a fixed cost against the candidate); a frozen dataset version is never overwritten without `--force`; the manifest records a digest of the packet modules that render English; the profiler no longer stores the upload command or its output (a credential risk) and profiles the longest arm so the projection is conservative, writes its measurement before projecting, validates the plan files before any GPU time, counts both model loads, and prints the cells its projection predicts to exceed their timeout; the evaluator warms up before timing, samples single-request latency from both tasks, and decodes with the same rule as dev selection; resumed runs no longer duplicate log lines; the stage-A ceiling check counts the session's own elapsed spend; an upload failure can be recorded in the ledger; the upload command's arguments are not echoed into logs; the secondary (before-retry) table carries no verdict column.
 
 ### 6.2 Constraints honoured
 

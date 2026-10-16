@@ -239,6 +239,16 @@ def count_tokens(tok, text: str) -> int:
     return len(tok(text, add_special_tokens=False)['input_ids'])
 
 
+def decode_output(tok, ids) -> str:
+    """The generated ids before the first <|im_end|>, decoded to the text the grader sees; the one
+    rule for dev selection (train_lora.py) and evaluation (evaluate.py)."""
+    end = tok.convert_tokens_to_ids(IM_END)
+    ids = list(ids)
+    if end in ids:
+        ids = ids[:ids.index(end)]
+    return tok.decode(ids, skip_special_tokens=True)
+
+
 def check_template(tok) -> None:
     """Assert that ``PROMPT_TEMPLATE`` is what the tokenizer's own chat template produces."""
     if getattr(tok, 'chat_template', None) is None:
