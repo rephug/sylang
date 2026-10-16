@@ -229,7 +229,7 @@ def _cost_of(obj) -> float | None:
 def read_projection(profile_path: Path) -> dict:
     """``profile.json['projection']``: per-stage and total projected cost.
 
-    Accepted shapes (profile.py, builder C): ``projection.stages.<stage>.cost`` or
+    Accepted shapes (profile_gpu.py): ``projection.stages.<stage>.cost`` or
     ``projection.<stage>.cost`` (stage keys ``B``/``C`` or ``stage_b``/``stage_c``), with the total
     under ``projection.total.cost``, ``projection.total_cost`` or ``projection.total`` (a number);
     without a total the stage costs are summed. Returns ``{'stages': {stage: cost}, 'total': cost}``.
@@ -257,7 +257,10 @@ def read_projection(profile_path: Path) -> dict:
         if not stages:
             raise LedgerError(f'{profile_path}: projection holds neither per-stage costs nor a total')
         total = sum(stages.values())
-    return {'stages': stages, 'total': total, 'contingency': proj.get('contingency')}
+    contingency = proj.get('contingency')
+    if contingency is None:  # profile.py keeps it per stage
+        contingency = next((v.get('contingency') for v in source.values() if isinstance(v, dict) and v.get('contingency')), None)
+    return {'stages': stages, 'total': total, 'contingency': contingency}
 
 
 def report(path: Path, ceiling: float, profile: Path | None = None, results_dir: Path | None = None,
@@ -394,7 +397,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     r = sub.add_parser('report', help='spend, completed experiments, open instances, ceiling check')
     r.add_argument('--ceiling', type=float, default=100.0, help='USD (default 100)')
-    r.add_argument('--profile', type=Path, help='profile.json from profile.py (its "projection" is checked)')
+    r.add_argument('--profile', type=Path, help='profile.json from profile_gpu.py (its "projection" is checked)')
     r.add_argument('--results-dir', dest='results_dir', type=Path, default=RESULTS_DIR)
 
     sub.add_parser('selftest', help='run the self-checks against a temporary ledger')
@@ -538,6 +541,15 @@ def selftest() -> int:
         profile.write_text(json.dumps({'projection': {'stage_b': {'cost_usd': 1.0}, 'stage_c': {'cost_usd': 2.0}}}))
         rc, out = run(*base, 'report', '--profile', str(profile), '--results-dir', str(results))
         check(rc == 0 and 'total $3.00' in out, 'alternative projection shape summed')
+        # The shape profile.py actually writes: per-stage dicts keyed stage_b/stage_c, cost and contingency
+        # inside each, a missing plan projecting to None, no top-level total.
+        profile.write_text(json.dumps({'projection': {
+            'stage_b': {'plan': 'configs/plan_stage_b.json', 'n_cells': 8, 'seconds': 100.0, 'contingency': 1.5,
+                        'seconds_with_contingency': 150.0, 'cost': 4.25, 'price_per_hour': 0.34},
+            'stage_c': None}, 'notes': ['stage_c: plan not found']}))
+        rc, out = run(*base, 'report', '--profile', str(profile), '--results-dir', str(results))
+        check(rc == 0 and 'stage B $4.25; total $4.25 (x1.5 contingency included)' in out
+              and 'projected remaining: $2.60' in out, f'profile.py shape read (stage B stopped, C absent): {out}')
         profile.write_text(json.dumps({'measurements': {}}))
         rc, out = run(*base, 'report', '--profile', str(profile), '--results-dir', str(results))
         check(rc == 2 and 'projection' in out, 'profile without a projection is an error')

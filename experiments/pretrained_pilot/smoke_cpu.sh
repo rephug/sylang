@@ -56,7 +56,7 @@ step() {  # step <label> <command...>: short line per step; the log on failure
   local label=$1 log t0=$SECONDS rc
   shift
   log="$LOG_DIR/$(printf '%s' "$label" | tr -c 'A-Za-z0-9_.-' '_').log"
-  printf '%-44s' "$label"
+  printf '%-50s' "$label"
   if [ "${SMOKE_VERBOSE:-0}" = 1 ]; then
     echo
     set +e; "$@" 2>&1 | tee "$log"; rc=${PIPESTATUS[0]}; set -e

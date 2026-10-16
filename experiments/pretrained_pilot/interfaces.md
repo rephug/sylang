@@ -15,7 +15,7 @@ rendering), `PILOT_ALLOW_DOWNLOAD=1` (the only way any script may download weigh
 | `legends.json` | `{"json": {arm: legend}, "bare": {arm: legend}}`: the system message per arm and answer format, 100–130 Qwen 3 tokens, arms matched within 15 tokens of each other (asserted by `data.py`) |
 | `cases_dev.jsonl`, `cases_test.jsonl`, `cases_train_s<seed>.jsonl` | one underlying case per line (arm-independent), see below |
 | `dev_<arm>.jsonl`, `test_<arm>.jsonl`, `train_s<seed>_<arm>.jsonl` | rendered examples, two per case (one per task), in case order: case 0 select, case 0 lookup, case 1 select, … |
-| `manifest.json` | `version`, `generator` (git commit, `study3`/`sylang_batch` file hashes), `seeds`, `sizes` (cases per split), `counts` (examples per file), `sha256` per file, `legend_tokens` per arm and format, `token_stats` (mean prompt tokens per arm, task, split; mean answer tokens), `heldout` (the wordings and feature pairs), `generated_at` |
+| `manifest.json` | `version`, `generator` (git commit, `study3`/`sylang_batch` file hashes), `seeds`, `sizes` (cases per split), `counts` (examples per file), `sha256` per file, `split_hashes` (SHA-256 over each case file's case hashes), `legend_tokens` per arm and format, `token_stats` (mean prompt tokens per arm, task, split; mean answer tokens), `heldout` (the wordings and feature pairs), `generated_at` |
 
 The nested prefix rule: the training stream of a seed holds `train_cases` cases; a config's
 `train_size` = N uses the examples whose `case_index` < N (`common.training_examples`). Dev and
@@ -155,7 +155,9 @@ only one seed is present; learning curves (accuracy vs train size); token, laten
 tables; the retry rates. `--delta` and `--resamples` override the defaults and the overrides
 are printed in the output.
 
-## Profiling: `profile.py --config C --out profile.json [--price-per-hour P] [--upload-cmd '...']`
+## Profiling: `profile_gpu.py --config C --out profile.json [--price-per-hour P] [--upload-cmd '...']`
+
+(The script is not called `profile.py` because that name shadows the standard-library module that torch imports.)
 
 Measures, on the current machine: model load seconds, parameter count, peak memory, training
 examples/s and tokens/s over `--train-steps` (default 30) steps with the config's batch, dev
@@ -164,6 +166,8 @@ upload seconds if `--upload-cmd` is given (a shell command receiving the checkpo
 Writes `profile.json` with those numbers and, for the cell lists in `configs/plan_stage_b.json`
 and `configs/plan_stage_c.json`, the projected seconds and cost of each stage at the given
 price with a 1.5× contingency (failed runs and retries), under `projection`.
+
+Plan file format (`configs/plan_stage_b.json`, `configs/plan_stage_c.json`): `{"stage": "B", "cells": [{"name", "config", "arm", "answer_format", "seed", "train_size", "train_cases", "train_examples", "epochs", "batch_size", "max_length", "optimizer_steps", "dev_evals", "dev_eval_items", "eval_items", "timeout_minutes", "optional"}, ...], "zero_shot": [{"name", "config", "arm", "answer_format", "adapter": "none", "eval_items"}, ...], "totals": {...}, "totals_with_optional": {...}}`; the profiler reads `config`, `train_cases`, `epochs`, `eval_items`, `dev_evals` and `dev_eval_items` of every cell (optional cells included, zero-shot evaluations not projected: both conservative directions are inside the contingency). Upload convention, here and in the stage scripts' `PILOT_UPLOAD_CMD`: the path is appended as the command's last argument; there is no placeholder substitution.
 
 ## Ledger: `ledger.py`
 
@@ -178,12 +182,12 @@ price with a 1.5× contingency (failed runs and retries), under `projection`.
 `ledger.py add --event ... --provider ... [...]` appends; `ledger.py report --ceiling 100`
 prints the total measured spend, spend per stage, the number of completed experiments (result
 directories with `eval.json`), dollars per completed experiment, and exits non-zero when the
-spend or the projection in `profile.json` exceeds the ceiling.
+spend or the projection in `profile.json` exceeds the ceiling. A `balance` line that carries `measured_spend` is the provider's own figure for its `stage` and overrides the stop line's elapsed-time estimate in the report; `results/smoke_*` directories (free CPU checks) are not counted as experiments; a line containing the value of `PILOT_PROVIDER_TOKEN` or an API-key-shaped string is refused.
 
 ## Stage scripts
 
 `run_stage_a.sh`, `run_stage_b.sh`, `run_stage_c.sh`: `set -euo pipefail`; refuse to start
-unless `PILOT_TOKENIZER`, `PILOT_MODEL` and `PILOT_PRICE_PER_HOUR` are set; append a ledger
+unless `PILOT_TOKENIZER`, `PILOT_MODEL`, `PILOT_PRICE_PER_HOUR`, `PILOT_PROVIDER`, `PILOT_INSTANCE` and `PILOT_GPU` are set (the last three label the ledger lines; optional: `PILOT_CEILING`, `PILOT_STAGE_BUDGET`, `PILOT_UPLOAD_CMD`, `STAGE_B_CURVES=1`, `STAGE_C_FILL_SEED0=1`); append a ledger
 `start` line; run each cell under `timeout` with the config's `timeout_minutes`; on timeout
 or failure append a ledger `note` and continue with the next cell; run the evaluation and the
 analysis; append a ledger `stop` line; print the `verify_teardown.md` checklist. They never

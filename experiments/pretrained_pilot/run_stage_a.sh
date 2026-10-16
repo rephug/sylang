@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # run_stage_a.sh - stage A of the pretrained pilot (interfaces.md, "Stage scripts" and "Profiling").
 #
-# Stage A measures the machine, it does not run experiments: profile.py with
+# Stage A measures the machine, it does not run experiments: profile_gpu.py with
 # configs/stage_a_profile.json (model load, peak memory, training examples/s, generation items/s,
 # checkpoint size and upload time) writes profile.json with the projected cost of stages B and C at
 # $PILOT_PRICE_PER_HOUR; then `ledger.py report --ceiling $PILOT_CEILING --profile profile.json`
@@ -15,8 +15,9 @@
 #
 # Required: PILOT_TOKENIZER PILOT_MODEL PILOT_PRICE_PER_HOUR PILOT_PROVIDER PILOT_INSTANCE PILOT_GPU.
 # Optional: PYTHON (default python), PILOT_CEILING (USD, default 100), STAGE_A_ZERO_SHOT=1,
-# PILOT_UPLOAD_CMD (passed to profile.py --upload-cmd to time the checkpoint upload, and used at the
-# end for the results tarball: the path is appended as the last argument or put in place of "{}").
+# PILOT_UPLOAD_CMD (passed to profile_gpu.py --upload-cmd to time the checkpoint upload, and used at the
+# end for the results tarball; in both cases the path is appended as the last argument, e.g.
+# 'rclone copy --quiet' or 'scp -r -o BatchMode=yes dev-server:pilot_inbox/' style wrappers).
 set -euo pipefail
 
 STAGE=A
@@ -24,6 +25,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$HERE"
 PYTHON=${PYTHON:-python}
 SCRIPT=$(basename "${BASH_SOURCE[0]}")
+PROFILE_PY=profile_gpu.py   # the profiler script (interfaces.md "Profiling")
 DONE=()
 FAILED=()
 SKIPPED=()
@@ -42,7 +44,7 @@ case "$PILOT_PRICE_PER_HOUR" in
   ''|*[!0-9.]*|.|*.*.*) echo "$SCRIPT: PILOT_PRICE_PER_HOUR=$PILOT_PRICE_PER_HOUR is not a number" >&2; exit 2 ;;
 esac
 "$PYTHON" -c 'import common' || { echo "$SCRIPT: $PYTHON cannot import common.py (set PYTHON to the venv's python)" >&2; exit 2; }
-for f in profile.py evaluate.py ledger.py configs/plan_stage_b.json configs/plan_stage_c.json; do
+for f in "$PROFILE_PY" evaluate.py ledger.py configs/plan_stage_b.json configs/plan_stage_c.json; do
   [ -f "$f" ] || { echo "$SCRIPT: $f is missing" >&2; exit 2; }
 done
 
@@ -94,8 +96,7 @@ package_results() {  # a tarball of everything worth keeping, uploaded with PILO
   tar czf "$tarball" --ignore-failed-read "${paths[@]}" || { echo "$SCRIPT: WARNING: tar failed" >&2; return 0; }
   echo "$SCRIPT: packaged $(du -h "$tarball" | cut -f1) -> $HERE/$tarball"
   if [ -n "${PILOT_UPLOAD_CMD:-}" ]; then
-    local cmd=$PILOT_UPLOAD_CMD
-    case "$cmd" in *"{}"*) cmd=${cmd//\{\}/"'$HERE/$tarball'"} ;; *) cmd="$cmd '$HERE/$tarball'" ;; esac
+    local cmd="$PILOT_UPLOAD_CMD '$HERE/$tarball'"   # the path is appended, as profile_gpu.py --upload-cmd does
     banner "upload: $cmd"
     bash -c "$cmd" || ledger_note "upload command failed; copy $HERE/$tarball off the machine by hand"
   else
@@ -141,20 +142,20 @@ TMO=$(cfg_timeout_seconds "$CFG")
 banner "stage $STAGE on $PILOT_PROVIDER/$PILOT_INSTANCE ($PILOT_GPU, \$$PILOT_PRICE_PER_HOUR/h); model $PILOT_MODEL"
 ledger_add --event start --provider "$PILOT_PROVIDER" --instance "$PILOT_INSTANCE" --gpu "$PILOT_GPU" \
   --price-per-hour "$PILOT_PRICE_PER_HOUR" --stage "$STAGE" --run-names stage_a_profile \
-  --purpose "stage A: profile.py on the actual GPU, projected cost of stages B and C"
+  --purpose "stage A: profile_gpu.py on the actual GPU, projected cost of stages B and C"
 trap finish EXIT
 
 PROFILE_ARGS=(--config "$CFG" --out profile.json --price-per-hour "$PILOT_PRICE_PER_HOUR")
 if [ -n "${PILOT_UPLOAD_CMD:-}" ]; then PROFILE_ARGS+=(--upload-cmd "$PILOT_UPLOAD_CMD"); fi
-banner "profile.py ${PROFILE_ARGS[*]} (timeout $(cfg_get "$CFG" timeout_minutes) min)"
+banner "$PROFILE_PY ${PROFILE_ARGS[*]} (timeout $(cfg_get "$CFG" timeout_minutes) min)"
 set +e
-timeout --kill-after=60 "$TMO" "$PYTHON" profile.py "${PROFILE_ARGS[@]}"
+timeout --kill-after=60 "$TMO" "$PYTHON" "$PROFILE_PY" "${PROFILE_ARGS[@]}"
 rc=$?
 set -e
 if [ "$rc" -eq 124 ] || [ "$rc" -eq 137 ]; then
-  ledger_note "stage_a_profile: profile.py timed out (exit $rc)" stage_a_profile; FAILED+=(stage_a_profile)
+  ledger_note "stage_a_profile: profile_gpu.py timed out (exit $rc)" stage_a_profile; FAILED+=(stage_a_profile)
 elif [ "$rc" -ne 0 ] || [ ! -f profile.json ]; then
-  ledger_note "stage_a_profile: profile.py failed (exit $rc, profile.json $([ -f profile.json ] && echo present || echo absent))" stage_a_profile
+  ledger_note "stage_a_profile: profile_gpu.py failed (exit $rc, profile.json $([ -f profile.json ] && echo present || echo absent))" stage_a_profile
   FAILED+=(stage_a_profile)
 else
   DONE+=(stage_a_profile)

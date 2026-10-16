@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Stage A profiling: measure this machine, project the cost of stages B and C.
 
-    profile.py --config C --out profile.json [--price-per-hour P] [--train-steps 30] [--gen-items 64]
+    profile_gpu.py --config C --out profile.json [--price-per-hour P] [--train-steps 30] [--gen-items 64]
                [--upload-cmd CMD] [--device auto|cpu|cuda] [--threads N]
 
 Measures model load seconds, parameter counts, peak memory, training examples/s and tokens/s
@@ -24,10 +24,10 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-import train_lora as tl  # first: it un-shadows the stdlib 'profile' module that this file's name hides from torch
-import torch  # noqa: E402
+import torch
 
-import common  # noqa: E402
+import common
+import train_lora as tl
 
 CONTINGENCY = 1.5
 PLANS = {'stage_b': 'plan_stage_b.json', 'stage_c': 'plan_stage_c.json'}

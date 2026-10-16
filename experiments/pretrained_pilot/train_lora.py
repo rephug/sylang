@@ -14,7 +14,7 @@ early, it records the mean training loss, scores ``dev_eval_examples`` dev examp
 generation (``grader.grade``), writes ``checkpoints/epoch<N>/`` (adapter + ``trainer_state.pt``),
 refreshes ``best/`` (highest dev accuracy, ties to the later epoch) and rewrites ``run.json``;
 formats are in ``interfaces.md``.  ``--resume`` continues from the last checkpoint, including
-one written by an early ``max_steps`` stop in the middle of an epoch.  ``profile.py`` imports
+one written by an early ``max_steps`` stop in the middle of an epoch.  ``profile_gpu.py`` imports
 the building blocks below instead of duplicating them.
 """
 from __future__ import annotations
@@ -29,29 +29,9 @@ import traceback
 from pathlib import Path
 
 
-def _unshadow_stdlib_profile():
-    """This package's ``profile.py`` has the name of a standard-library module that ``cProfile``
-    (imported by ``torch._dynamo``, hence by ``transformers.generation``) needs.  Whenever the
-    package directory is first on ``sys.path`` (any script run from it), ``import profile`` would
-    yield ours and torch would fail to import; load the real one by path first."""
-    import importlib.util
-    import sys
-    import sysconfig
-    stdlib = Path(sysconfig.get_paths()['stdlib']) / 'profile.py'
-    current = sys.modules.get('profile')
-    if not stdlib.exists() or (current is not None and getattr(current, '__file__', None) == str(stdlib)):
-        return
-    spec = importlib.util.spec_from_file_location('profile', stdlib)
-    module = importlib.util.module_from_spec(spec)
-    sys.modules['profile'] = module
-    spec.loader.exec_module(module)
+import torch
 
-
-_unshadow_stdlib_profile()
-
-import torch  # noqa: E402
-
-import common  # noqa: E402
+import common
 
 MAX_GRAD_NORM = 1.0          # fixed part of the recipe (not a config key)
 STATE_FILE = 'trainer_state.pt'

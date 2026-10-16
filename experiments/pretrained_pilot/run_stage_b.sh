@@ -18,8 +18,8 @@
 # Required: PILOT_TOKENIZER PILOT_MODEL PILOT_PRICE_PER_HOUR PILOT_PROVIDER PILOT_INSTANCE PILOT_GPU.
 # Optional: PYTHON (default python), STAGE_B_CURVES=1, PILOT_CEILING (USD, default 100),
 # PILOT_STAGE_BUDGET (USD: no new cell is started once elapsed x price exceeds it),
-# PILOT_UPLOAD_CMD (a shell command that receives the results tarball path as its last argument,
-# or in place of "{}"; e.g. 'rclone copy {} remote:pilot/').
+# PILOT_UPLOAD_CMD (a shell command that receives the results tarball path appended as its last
+# argument, the convention of profile.py --upload-cmd; e.g. a small wrapper script).
 set -euo pipefail
 
 STAGE=B
@@ -181,8 +181,7 @@ package_results() {  # a tarball of everything worth keeping, uploaded with PILO
   tar czf "$tarball" --ignore-failed-read "${paths[@]}" || { echo "$SCRIPT: WARNING: tar failed" >&2; return 0; }
   echo "$SCRIPT: packaged $(du -h "$tarball" | cut -f1) -> $HERE/$tarball"
   if [ -n "${PILOT_UPLOAD_CMD:-}" ]; then
-    local cmd=$PILOT_UPLOAD_CMD
-    case "$cmd" in *"{}"*) cmd=${cmd//\{\}/"'$HERE/$tarball'"} ;; *) cmd="$cmd '$HERE/$tarball'" ;; esac
+    local cmd="$PILOT_UPLOAD_CMD '$HERE/$tarball'"   # the path is appended, as profile.py --upload-cmd does
     banner "upload: $cmd"
     bash -c "$cmd" || ledger_note "upload command failed; copy $HERE/$tarball off the machine by hand"
   else
