@@ -83,8 +83,8 @@ Writes `runs/<name>/`:
 |---|---|
 | `run.json` | the record below, rewritten at every checkpoint |
 | `checkpoints/epoch<N>/` | PEFT adapter (`adapter_model.safetensors`, `adapter_config.json`) plus `trainer_state.pt` (optimizer, scheduler, RNG, step) for resumption |
-| `best/` | copy of the dev-selected adapter |
-| `train_log.jsonl` | one line per logging step: `step`, `epoch`, `loss`, `lr`, `examples_seen`, `tokens_seen`, `seconds` |
+| `best/` | copy of the dev-selected adapter; `--resume` re-derives it from `checkpoints/epoch<selected_epoch>/` (a kill may have lost the copy) |
+| `train_log.jsonl` | one line per logging step: `step`, `epoch`, `loss`, `lr`, `examples_seen`, `tokens_seen`, `seconds`; on `--resume` the lines past the checkpoint's `step` (written by the killed attempt) are dropped before training continues, so no step appears twice |
 
 `run.json`:
 
@@ -99,8 +99,10 @@ Writes `runs/<name>/`:
  "selected_epoch": 2, "peak_memory_bytes": ..., "checkpoint_bytes": ..., "resumed_from": null}
 ```
 
-`--resume` continues from the last complete `checkpoints/epoch<N>/`. Every exception is
-caught and recorded (`status: failed`) before re-raising; the stage scripts' `timeout` is
+`--resume` continues from the last complete `checkpoints/epoch<N>/`. Dev outputs are decoded with
+`common.decode_output` (text before the first `<|im_end|>`, special tokens skipped), the same rule
+`evaluate.py` grades by, so checkpoint selection sees exactly the text the evaluator sees. Every
+exception is caught and recorded (`status: failed`) before re-raising; the stage scripts' `timeout` is
 recorded by the scripts as `status: timeout` in the ledger (the process cannot record it).
 
 ## Evaluation: `evaluate.py --config C --adapter runs/<name>/best|none --split test|dev --out results/<name>`
@@ -179,9 +181,28 @@ Measures, on the current machine: model load seconds, parameter count, peak memo
 examples/s and tokens/s over `--train-steps` (default 30) steps with the config's batch, dev
 generation items/s over `--gen-items` (default 64), checkpoint save seconds and bytes, and the
 upload seconds if `--upload-cmd` is given (a shell command receiving the checkpoint path).
+`upload` in `profile.json` is `{"program", "seconds", "returncode"}` (the first word of `--upload-cmd`); the
+command line and its output are never written (they may carry credentials); on a non-zero exit the
+last 500 characters of stderr are printed to the console only. Every plan file is read and checked
+before anything is measured (each cell must carry `config`, `train_cases`, `dev_evals`,
+`dev_eval_items`, `eval_items`, the counts numeric); a malformed plan aborts with the file and cell
+named before any GPU time. The measured profile is written with `projection: null` before
+projecting; if the projection fails the file is rewritten with `notes: ["projection failed: …;
+measured values kept"]` and the script exits non-zero. `configs/stage_a_profile.json` profiles the
+`json` arm, the longest rendering, so the single-rate projection over-estimates the other arms.
+
 Writes `profile.json` with those numbers and, for the cell lists in `configs/plan_stage_b.json`
-and `configs/plan_stage_c.json`, the projected seconds and cost of each stage at the given
-price with a 1.5× contingency (failed runs and retries), under `projection`.
+and `configs/plan_stage_c.json` (or the `--plan NAME=FILE` overrides), the projected seconds and
+cost of each stage at the given price with a 1.5× contingency (failed runs and retries), under
+`projection`. Per cell, two phases, each loading the model (`train_lora.py` and `evaluate.py` each
+load it): `train_phase_s` = `load_s` + `train_s` + `dev_gen_s` + `checkpoint_s` (save seconds ×
+epochs), what the training timeout covers; `eval_phase_s` = `load_s` + `test_gen_s`, what the
+evaluation timeout covers; `epoch_s` = `load_s` + (`train_s` + `dev_gen_s`)/epochs + save seconds,
+the time to the first checkpoint; `seconds` = `train_phase_s` + `eval_phase_s` + `upload_s`.
+`exceeds_timeout` = max(`train_phase_s`, `eval_phase_s`) > `timeout_minutes` × 60 and
+`epoch_exceeds_timeout` = `epoch_s` > the same; a flagged cell prints a `!!!` line (config,
+projected training and evaluation minutes against `timeout_minutes`, 'raise timeout_minutes or
+shrink the cell before starting the stage'), also kept in `notes`.
 
 Plan file format (`configs/plan_stage_b.json`, `configs/plan_stage_c.json`): `{"stage": "B", "cells": [{"name", "config", "arm", "answer_format", "seed", "train_size", "train_cases", "train_examples", "epochs", "batch_size", "max_length", "optimizer_steps", "dev_evals", "dev_eval_items", "eval_items", "timeout_minutes", "optional"}, ...], "zero_shot": [{"name", "config", "arm", "answer_format", "adapter": "none", "eval_items"}, ...], "totals": {...}, "totals_with_optional": {...}}`; the profiler reads `config`, `train_cases`, `epochs`, `eval_items`, `dev_evals` and `dev_eval_items` of every cell (optional cells included, zero-shot evaluations not projected: both conservative directions are inside the contingency). Upload convention, here and in the stage scripts' `PILOT_UPLOAD_CMD`: the path is appended as the command's last argument; there is no placeholder substitution.
 
