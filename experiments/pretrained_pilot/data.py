@@ -44,6 +44,12 @@ import time
 from collections import defaultdict
 from pathlib import Path
 
+import sys
+
+HERE = Path(__file__).resolve().parent
+if str(HERE) not in sys.path:  # python -I does not add the script's directory
+    sys.path.insert(0, str(HERE))
+
 os.environ.setdefault('OMP_NUM_THREADS', '2')
 os.environ.setdefault('MKL_NUM_THREADS', '2')
 os.environ.setdefault('RAYON_NUM_THREADS', '2')

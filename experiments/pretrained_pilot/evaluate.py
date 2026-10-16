@@ -43,6 +43,10 @@ import sys
 import time
 from pathlib import Path
 
+HERE = Path(__file__).resolve().parent
+if str(HERE) not in sys.path:  # python -I does not add the script's directory
+    sys.path.insert(0, str(HERE))
+
 import common
 from common import (FORMAT_REMINDER, IM_END, Stopwatch, check_template, count_tokens, examples_path, git_commit,
                     load_adapter, load_config, load_legends, load_model, load_tokenizer, now_iso, read_jsonl,

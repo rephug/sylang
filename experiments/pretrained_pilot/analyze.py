@@ -38,6 +38,10 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
+HERE = Path(__file__).resolve().parent
+if str(HERE) not in sys.path:  # python -I does not add the script's directory
+    sys.path.insert(0, str(HERE))
+
 import numpy as np
 
 import common

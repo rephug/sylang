@@ -144,6 +144,9 @@ def grade(task: str, answer_format: str, expected: str, output: str) -> dict:
 
 def main(argv=None) -> int:
     argv = sys.argv[1:] if argv is None else argv
+    if not argv or argv[0] in ('-h', '--help'):
+        print('usage: grader.py <jsonl with task, answer_format, expected, output per line>', file=sys.stderr)
+        return 0 if argv else 2
     if len(argv) != 1:
         print('usage: grader.py items.jsonl   (lines with task, answer_format, expected, output)', file=sys.stderr)
         return 2
