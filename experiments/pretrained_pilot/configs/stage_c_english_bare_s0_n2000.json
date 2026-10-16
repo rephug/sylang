@@ -1,0 +1,16 @@
+{
+ "answer_format": "bare",
+ "arm": "english",
+ "batch_size": 16,
+ "data_version": "v1",
+ "dev_eval_examples": 200,
+ "epochs": 2,
+ "lr": 0.0002,
+ "max_length": 1024,
+ "model": null,
+ "name": "stage_c_english_bare_s0_n2000",
+ "seed": 0,
+ "stage": "C",
+ "timeout_minutes": 90,
+ "train_size": 2000
+}
