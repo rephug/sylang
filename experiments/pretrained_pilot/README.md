@@ -29,9 +29,14 @@ project's CPU virtual environment for smoke tests and with the same code on a GP
 - Results files hold aggregates and per-item flags, never prompts or identifiers beyond synthetic ones.
 - No output-format change is adopted from this pilot; the bare-answer arm is an experiment (stage C), reported, not deployed.
 
-## Smoke test (CPU, no downloads beyond the tokenizer already in the repository's scratch)
+## Smoke test (CPU; nothing downloaded; the tokenizer and the study packet are local directories)
 
-    bash experiments/pretrained_pilot/smoke_cpu.sh   # about five minutes on four cores
+    PYTHON=<venv>/bin/python PILOT_TOKENIZER=<dir with tokenizer.json> SYLANG_PACKET=<packet> \
+      bash experiments/pretrained_pilot/smoke_cpu.sh   # about three minutes on four cores
+
+Passed on the development server on 2026-10-16 (153 s): data → check → two 20-step trainings of a randomly initialised
+Qwen 3 → zero-shot and trained evaluations → analysis. The verification record is §6.1 of
+`docs/research/sylang-pilot-revised-2026-10-16.md`.
 
 ## Secrets
 
