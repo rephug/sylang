@@ -2,7 +2,7 @@
 """Stage A profiling: measure this machine, project the cost of stages B and C.
 
     profile_gpu.py --config C --out profile.json [--price-per-hour P] [--train-steps 30] [--gen-items 64]
-               [--upload-cmd CMD] [--device auto|cpu|cuda] [--threads N]
+               [--upload-cmd CMD] [--device auto|cpu|cuda] [--threads N] [--plan NAME=FILE ...]
 
 Measures model load seconds, parameter counts, peak memory, training examples/s and tokens/s
 (with ``train_lora.train_step``, the trainer's own step), dev generation items/s (with the
@@ -163,7 +163,7 @@ def measure(args):
             'peak_memory_bytes': tl.peak_memory_bytes(device), 'seconds': total.seconds()}
 
 
-def project(measured, price, plan_dir=None):
+def project(measured, price, plan_dir=None, plans=None):
     """Projected seconds and cost per cell and per stage from the measured rates.
 
     Returns ``(projection, notes)``; a stage whose plan file is missing projects to None, and when
@@ -175,7 +175,7 @@ def project(measured, price, plan_dir=None):
     ckpt_s = measured['checkpoint']['seconds']
     upload_s = measured['upload']['seconds'] if measured.get('upload') else 0.0
     notes, stages = [], {}
-    for stage, fname in PLANS.items():
+    for stage, fname in (plans or PLANS).items():
         path = plan_dir / fname
         if not path.exists():
             stages[stage] = None
@@ -223,13 +223,17 @@ def parse_args(argv=None):
     p.add_argument('--upload-cmd', default=None, help='shell command; the checkpoint directory is appended')
     p.add_argument('--device', default='auto', choices=['auto', 'cpu', 'cuda'])
     p.add_argument('--threads', type=int, default=2, help='torch threads on CPU')
+    p.add_argument('--plan', action='append', default=None, metavar='NAME=FILE',
+                   help='project this plan file instead of the stage B and C plans (repeatable), e.g. '
+                        'stage_d_1p7b=plan_stage_d_1p7b.json when profiling the 1.7B weights')
     return p.parse_args(argv)
 
 
 def main(argv=None):
     args = parse_args(argv)
     measured = measure(args)
-    projection, notes = project(measured, args.price_per_hour)
+    plans = dict(item.split('=', 1) for item in args.plan) if args.plan else None
+    projection, notes = project(measured, args.price_per_hour, plans=plans)
     profile = {**measured, 'price_per_hour': args.price_per_hour, 'projection': projection, 'notes': notes}
     common.write_json(args.out, profile)
     for note in notes:

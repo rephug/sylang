@@ -1,0 +1,16 @@
+{
+ "answer_format": "json",
+ "arm": "json",
+ "batch_size": 16,
+ "data_version": "v1",
+ "dev_eval_examples": 200,
+ "epochs": 2,
+ "lr": 0.0002,
+ "max_length": 1024,
+ "model": null,
+ "name": "stage_d_1p7b_json_s0_n2000",
+ "seed": 0,
+ "stage": "D-1.7B",
+ "timeout_minutes": 90,
+ "train_size": 2000
+}

@@ -6,7 +6,7 @@ to a machine. Environment variables: `PILOT_TOKENIZER` (directory with the Qwen 
 `tokenizer.json` and `tokenizer_config.json`), `PILOT_MODEL` (directory with the base weights, or
 `tiny-random`), `SYLANG_PACKET` (the study packet, needed by `data.py` only, for the `english`
 rendering), `PILOT_ALLOW_DOWNLOAD=1` (the only way any script may download weights),
-`PILOT_PROVIDER_TOKEN` (provider API token, read by the stage scripts only, never written to a file).
+`PILOT_PROVIDER_TOKEN` (the provider API token for the owner's provider CLI; the stage scripts neither read nor write it, and `ledger.py` refuses any line containing its value).
 
 ## Data: `data/<version>/`
 
@@ -192,7 +192,14 @@ unless `PILOT_TOKENIZER`, `PILOT_MODEL`, `PILOT_PRICE_PER_HOUR`, `PILOT_PROVIDER
 or failure append a ledger `note` and continue with the next cell; run the evaluation and the
 analysis; append a ledger `stop` line; print the `verify_teardown.md` checklist. They never
 call a provider API: starting and stopping the instance is the owner's action, recorded in the
-ledger by hand with `ledger.py add`.
+ledger by hand with `ledger.py add`. Stage A runs `profile_gpu.py` on `configs/stage_a_profile.json` (with
+`--upload-cmd "$PILOT_UPLOAD_CMD"` when set), then, unless `STAGE_A_END_TO_END=0`, trains and evaluates
+the 500-case `sylang2` cell `stage_b_sylang2_s0_n500` end to end (the optional learning-curve point of
+stage B, skipped there once it exists), optionally the `english` zero-shot baseline (`STAGE_A_ZERO_SHOT=1`),
+and finally `ledger.py report --ceiling ${PILOT_CEILING:-100} --profile profile.json`, whose exit code the
+script returns: stage B is not started on a non-zero exit. The 1.7B extension has its own configs
+(`stage_d_1p7b_*`) and plan file (`plan_stage_d_1p7b.json`), projected with `profile_gpu.py --plan` after
+profiling the 1.7B weights; no stage script runs it.
 
 `smoke_cpu.sh`: generates a small dataset (`data.py --smoke`: 64 train cases per seed for 2
 seeds, 16 dev, 32 test), builds the tiny model, trains 20 steps for two arms, evaluates

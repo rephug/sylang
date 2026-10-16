@@ -60,7 +60,7 @@ Inference catalog only; no GPU rental or training. NVIDIA staff (2024-09-16): tr
 |---|---|---|---|---|---|---|
 | Modal, L4 24 GB ($0.7992/h) + 2 cores ($0.094/h) + 16 GiB ($0.128/h) = $1.021/h | $1.02 | $3.06 | $12.26 | $0 (within 1 TiB free) | $16.34 | $0.00 if all in one billing month ($30/month credit; card required) |
 | Modal, T4 16 GB ($0.5904/h + $0.222) | $0.81 | $2.44 | $9.75 | $0 | $13.00 | $0.00 |
-| Lightning, L4 24 GB ($0.79/h) | $0.79 | $2.37 | $9.48 | $1.00 (10 GB free, then $0.10/GB) | $17.64 | $0.00 with 5 + 25 one-off credits (card + phone); $12.64 with 5 credits only |
+| Lightning, L4 24 GB ($0.79/h) | $0.79 | $2.37 | $9.48 | $1.00 (10 GB free, then $0.10/GB) | $13.64 | $0.00 with 5 + 25 one-off credits (card + phone); $8.64 with 5 credits only |
 | Thunder, A6000 48 GB ($0.35/h, 6 vCPU/48 GB/100 GB incl.) | $0.35 | $1.05 | $4.20 | $1.00 (20 GB snapshot at $0.05/GB; no stop feature) | $6.60 | $6.60 (no credits) |
 | Runpod, RTX 4090 Community ($0.34/h) | $0.34 | $1.02 | $4.08 | $1.40 (network volume $0.07/GB) | $6.84 | $6.84 (prepaid; no credits). Secure 4090: $15.64. A6000 Community: $6.68 |
 | Vast.ai, RTX 4090 (~$0.43/h, tracker) | $0.43 | $1.29 | $5.16 | host-set; ~$2 assumed, unverified | ~$8.9 + bandwidth | ~$8.9 (prepaid) |

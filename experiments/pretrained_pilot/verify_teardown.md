@@ -78,7 +78,7 @@ When a token has been exposed anywhere, revoke it first and investigate second.
   billing. Stop the Studio explicitly in the console (Studio → Stop) and confirm that the status is
   "Stopped", then check `lightning` CLI output or the Studios page for anything still "Running".
 - **Storage above 10 GB bills daily**, including while the Studio is stopped. A stopped Studio with
-  the model weights (1.2 GB for the 0.6B, 3.4 GB for the 1.7B), the venv (several GB with the CUDA
+  the model weights (1.5 GB for the 0.6B, 4.1 GB for the 1.7B), the venv (several GB with the CUDA
   torch) and the data can exceed it: delete the Studio when the stage's results are safely copied,
   or record its size and daily price in the stage notes.
 - Check the **usage page** (Billing → Usage) for the GPU-hours and storage charged for the session,

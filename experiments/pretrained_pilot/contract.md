@@ -90,8 +90,9 @@ allows, after which the result stands as reported.
 
 Diagnosing a failure (stage B and C): a format fails only if its learning curve is flat or
 below the others at every size while at least one arm learns; if every arm is below 90% at
-8,000 items with training loss still falling, the model is undertrained (more items or epochs);
-if every arm fails and the zero-shot baseline is also at chance on `english`, suspect the
-pipeline (legend, chat template, decoding) before the model; if `english` and `json` learn and
+the largest training size run (8,000 items in the full plan) with training loss still falling, the
+model is undertrained (more items or epochs); if every arm fails and the zero-shot baseline is also
+at chance on `english`, suspect the pipeline (legend, chat template, decoding, grader) before the
+model; if `english` and `json` learn and
 the codes do not, and the gap shrinks with data, the result is a capacity/data question that
 warrants the 1.7B run; if the gap does not shrink, it is a format result.

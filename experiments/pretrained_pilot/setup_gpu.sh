@@ -3,7 +3,7 @@
 #
 #   1. a Python venv with requirements-gpu.txt (torch from the CUDA wheel index first);
 #   2. the model weights: downloaded with the Hugging Face CLI ONLY when PILOT_ALLOW_DOWNLOAD=1
-#      (Qwen/Qwen3-0.6B, Apache-2.0, about 1.2 GB of bf16 safetensors plus the tokenizer), or found
+#      (Qwen/Qwen3-0.6B, Apache-2.0, about 1.5 GB of bf16 safetensors plus the tokenizer), or found
 #      already under $PILOT_MODEL_ROOT (uploaded by the owner);
 #   3. the frozen dataset data/v1: unpacked from the owner's tarball (PILOT_DATA_TARBALL), never
 #      regenerated here, because data.py needs the study packet, which stays on the development
@@ -87,7 +87,7 @@ elif [ "${PILOT_ALLOW_DOWNLOAD:-0}" = 1 ]; then
   else
     "$VENV/bin/huggingface-cli" download "$HF_MODEL" --local-dir "$MODEL_DIR"
   fi
-  echo "downloaded $(du -sh "$MODEL_DIR" | cut -f1) ($HF_MODEL is Apache-2.0; about 1.2 GB for the 0.6B in bf16 safetensors)"
+  echo "downloaded $(du -sh "$MODEL_DIR" | cut -f1) ($HF_MODEL is Apache-2.0; about 1.5 GB for the 0.6B in bf16 safetensors)"
 else
   cat >&2 <<EOF
 $SCRIPT: no weights at $MODEL_DIR and PILOT_ALLOW_DOWNLOAD is not 1.

@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 # run_stage_a.sh - stage A of the pretrained pilot (interfaces.md, "Stage scripts" and "Profiling").
 #
-# Stage A measures the machine, it does not run experiments: profile_gpu.py with
+# Stage A measures the machine and proves the launch path; it runs no experiment cell of the
+# comparison (the 500-case sylang2 cell it trains is the optional learning-curve point of stage B,
+# skipped there once it exists): profile_gpu.py with
 # configs/stage_a_profile.json (model load, peak memory, training examples/s, generation items/s,
 # checkpoint size and upload time) writes profile.json with the projected cost of stages B and C at
 # $PILOT_PRICE_PER_HOUR; then `ledger.py report --ceiling $PILOT_CEILING --profile profile.json`
@@ -82,6 +84,41 @@ run_zero_shot() {  # run_zero_shot <config-name> <arm> <answer-format>: the untr
   DONE+=("$name")
 }
 
+run_end_to_end_cell() {  # run_end_to_end_cell <name>: one small real cell, trained and evaluated, to prove the launch path
+  local name=$1 cfg="configs/$1.json" tmo minutes rc status
+  if [ ! -f "$cfg" ]; then ledger_note "cell $name: $cfg is missing; skipped" "$name"; FAILED+=("$name"); return 0; fi
+  if [ -f "results/$name/eval.json" ]; then banner "$name: already trained and evaluated; skipping"; SKIPPED+=("$name"); return 0; fi
+  tmo=$(cfg_timeout_seconds "$cfg"); minutes=$(cfg_get "$cfg" timeout_minutes)
+  status=$("$PYTHON" -c 'import json, sys; print(json.load(open(sys.argv[1])).get("status", ""))' "runs/$name/run.json" 2> /dev/null || echo none)
+  if [ "$status" != completed ]; then
+    local resume=()
+    if compgen -G "runs/$name/checkpoints/epoch*" > /dev/null; then resume=(--resume); fi
+    banner "$name: train_lora.py (timeout $minutes min${resume[0]:+; resuming})"
+    set +e
+    timeout --kill-after=60 "$tmo" "$PYTHON" train_lora.py --config "$cfg" --out "runs/$name" ${resume[0]:+"${resume[@]}"}
+    rc=$?
+    set -e
+    if [ "$rc" -eq 124 ] || [ "$rc" -eq 137 ]; then
+      ledger_note "$name: train_lora.py timed out after $minutes min (exit $rc)" "$name"; FAILED+=("$name"); return 0
+    elif [ "$rc" -ne 0 ]; then
+      ledger_note "$name: train_lora.py failed (exit $rc)" "$name"; FAILED+=("$name"); return 0
+    fi
+  fi
+  if [ ! -d "runs/$name/best" ]; then ledger_note "$name: runs/$name/best is missing; not evaluated" "$name"; FAILED+=("$name"); return 0; fi
+  banner "$name: evaluate.py --split test (timeout $minutes min)"
+  set +e
+  timeout --kill-after=60 "$tmo" "$PYTHON" evaluate.py --config "$cfg" --adapter "runs/$name/best" --split test \
+    --out "results/$name" --price-per-hour "$PILOT_PRICE_PER_HOUR" --latency-sample 50
+  rc=$?
+  set -e
+  if [ "$rc" -ne 0 ] || [ ! -f "results/$name/eval.json" ]; then
+    ledger_note "$name: evaluate.py failed or timed out (exit $rc)" "$name"; FAILED+=("$name"); return 0
+  fi
+  banner "$name: analyze.py -> analysis/stage_a/"
+  "$PYTHON" analyze.py --results "results/$name/" --out analysis/stage_a/ > /dev/null || ledger_note "$name: analyze.py failed" "$name"
+  DONE+=("$name")
+}
+
 package_results() {  # a tarball of everything worth keeping, uploaded with PILOT_UPLOAD_CMD when set
   local ts tarball paths=() p
   ts=$(date -u +%Y%m%dT%H%M%SZ)
@@ -141,8 +178,8 @@ TMO=$(cfg_timeout_seconds "$CFG")
 
 banner "stage $STAGE on $PILOT_PROVIDER/$PILOT_INSTANCE ($PILOT_GPU, \$$PILOT_PRICE_PER_HOUR/h); model $PILOT_MODEL"
 ledger_add --event start --provider "$PILOT_PROVIDER" --instance "$PILOT_INSTANCE" --gpu "$PILOT_GPU" \
-  --price-per-hour "$PILOT_PRICE_PER_HOUR" --stage "$STAGE" --run-names stage_a_profile \
-  --purpose "stage A: profile_gpu.py on the actual GPU, projected cost of stages B and C"
+  --price-per-hour "$PILOT_PRICE_PER_HOUR" --stage "$STAGE" --run-names stage_a_profile stage_b_sylang2_s0_n500 \
+  --purpose "stage A: profile_gpu.py on the actual GPU, one 500-case cell end to end, projected cost of stages B and C"
 trap finish EXIT
 
 PROFILE_ARGS=(--config "$CFG" --out profile.json --price-per-hour "$PILOT_PRICE_PER_HOUR")
@@ -161,6 +198,7 @@ else
   DONE+=(stage_a_profile)
 fi
 
+if [ "${STAGE_A_END_TO_END:-1}" = 1 ]; then run_end_to_end_cell stage_b_sylang2_s0_n500; fi   # the launch path, end to end
 if [ "${STAGE_A_ZERO_SHOT:-0}" = 1 ]; then run_zero_shot stage_b_english_s0_n2000 english json; fi
 
 REPORT_RC=0
