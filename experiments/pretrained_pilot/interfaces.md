@@ -1,0 +1,195 @@
+# File formats and interfaces of the pilot package
+
+`common.py` is the code form of this page; both are frozen together with `contract.md`. Every
+script takes paths and settings from the command line or a config file; nothing is hard-coded
+to a machine. Environment variables: `PILOT_TOKENIZER` (directory with the Qwen 3
+`tokenizer.json` and `tokenizer_config.json`), `PILOT_MODEL` (directory with the base weights, or
+`tiny-random`), `SYLANG_PACKET` (the study packet, needed by `data.py` only, for the `english`
+rendering), `PILOT_ALLOW_DOWNLOAD=1` (the only way any script may download weights),
+`PILOT_PROVIDER_TOKEN` (provider API token, read by the stage scripts only, never written to a file).
+
+## Data: `data/<version>/`
+
+| file | content |
+|---|---|
+| `legends.json` | `{"json": {arm: legend}, "bare": {arm: legend}}`: the system message per arm and answer format, 100–130 Qwen 3 tokens, arms matched within 15 tokens of each other (asserted by `data.py`) |
+| `cases_dev.jsonl`, `cases_test.jsonl`, `cases_train_s<seed>.jsonl` | one underlying case per line (arm-independent), see below |
+| `dev_<arm>.jsonl`, `test_<arm>.jsonl`, `train_s<seed>_<arm>.jsonl` | rendered examples, two per case (one per task), in case order: case 0 select, case 0 lookup, case 1 select, … |
+| `manifest.json` | `version`, `generator` (git commit, `study3`/`sylang_batch` file hashes), `seeds`, `sizes` (cases per split), `counts` (examples per file), `sha256` per file, `legend_tokens` per arm and format, `token_stats` (mean prompt tokens per arm, task, split; mean answer tokens), `heldout` (the wordings and feature pairs), `generated_at` |
+
+The nested prefix rule: the training stream of a seed holds `train_cases` cases; a config's
+`train_size` = N uses the examples whose `case_index` < N (`common.training_examples`). Dev and
+test are shared by all seeds.
+
+### Case line
+
+```
+{"case": "test-c00017", "case_index": 17, "split": "test", "panel": "iid", "k": 7,
+ "records": [{"subject": "ab12", "relation": "see", "object": "zq9", "polarity": "negative",
+              "tense": "past", "aspect": "simple", "evidence": "unspecified"}, ...],
+ "wording": {"select": 2, "lookup": 0}, "query": {"subject": "ab12", "object": "zq9"},
+ "heldout_wording": false, "heldout_pair": false}
+```
+
+`panel` is `iid` for train and dev; one of `iid`, `wording`, `pair`, `long` for test. `wording`
+indexes the task's wording list (0–3 trained, 4–5 held out). `query` is the lookup pair, drawn
+uniformly among the case's records with the case's own random stream. Records sharing a
+subject are adjacent (contract), and no (subject, object) pair repeats within a case.
+
+### Example line (one per case and task, identical `answer` bytes across arms)
+
+```
+{"id": "test-c00017-select", "case": "test-c00017", "case_index": 17, "split": "test",
+ "panel": "iid", "task": "select", "arm": "sylang2", "k": 7, "max_id_len": 5, "n_negative": 2,
+ "wording": 2, "heldout_wording": false, "heldout_pair": false,
+ "records": "ab12\tSp\tzq9\n...",                       # the rendering, ends with "\n"
+ "instruction": {"json": "List [subject,object] of each negative record in order; [] if none.",
+                 "bare": "..."},                           # no trailing newline
+ "answer": {"json": "[[\"ab12\",\"zq9\"]]", "bare": "ab12 zq9"},
+ "query": {"subject": "ab12", "object": "zq9"}}           # lookup examples only
+```
+
+Prompt assembly (`common.py`): user message = `records` + `instruction[answer_format]`; the
+full prompt string is `PROMPT_TEMPLATE` with the arm's legend as the system message; the
+training target is `answer[answer_format]` + `<|im_end|>`. The retry request is the same
+prompt with `FORMAT_REMINDER[(task, answer_format)]` appended to the user message on a new line.
+
+Bare answers: *select* = `subject object` pairs in record order joined by single spaces, or the
+word `none`; *lookup* = `relation polarity`.
+
+## Grader: `grader.py`
+
+`grade(task, answer_format, expected: str, output: str) -> dict` with keys `correct` (bool),
+`invalid` (bool: the output could not be parsed into the task's shape), `reason` (short
+string: `ok`, `parse`, `shape`, `wrong`, `extra_text`, …). Parsing is strict: for `json` the
+whole output (after stripping whitespace) must be exactly one JSON value of the right shape;
+trailing prose is `invalid`. Equality is exact on the canonical value (list of pairs; object
+with exactly the two keys), not on the output bytes, so `[["a", "b"]]` with spaces is accepted.
+
+## Configs: `configs/<name>.json`
+
+A JSON object whose keys are a subset of `common.DEFAULT_CONFIG`; `name` defaults to the file
+stem. `model` is `tiny-random` or a local directory; `train_size` counts cases; `tasks` is the
+task mix; `answer_format` selects the instruction/answer/legend variant; `max_steps` caps the
+optimizer steps (smoke tests).
+
+## Training: `train_lora.py --config C --out runs/<name>`
+
+Writes `runs/<name>/`:
+
+| file | content |
+|---|---|
+| `run.json` | the record below, rewritten at every checkpoint |
+| `checkpoints/epoch<N>/` | PEFT adapter (`adapter_model.safetensors`, `adapter_config.json`) plus `trainer_state.pt` (optimizer, scheduler, RNG, step) for resumption |
+| `best/` | copy of the dev-selected adapter |
+| `train_log.jsonl` | one line per logging step: `step`, `epoch`, `loss`, `lr`, `examples_seen`, `tokens_seen`, `seconds` |
+
+`run.json`:
+
+```
+{"name": ..., "config": {...}, "status": "running|completed|failed|timeout", "error": null,
+ "git_commit": ..., "started_at": ..., "finished_at": ..., "seconds": ...,
+ "device": "cuda", "gpu_name": ..., "dtype": "bfloat16", "model_path": ..., "model_params": ...,
+ "trainable_params": ..., "examples": {"train": N, "dropped_too_long": M, "dev_eval": D},
+ "steps": S, "epochs_done": E, "examples_seen": ..., "tokens_seen": ...,
+ "train_loss": [{"epoch": 1, "mean_loss": ...}, ...],
+ "dev": [{"epoch": 1, "accuracy": ..., "invalid_rate": ..., "by_task": {...}, "seconds": ...}, ...],
+ "selected_epoch": 2, "peak_memory_bytes": ..., "checkpoint_bytes": ..., "resumed_from": null}
+```
+
+`--resume` continues from the last complete `checkpoints/epoch<N>/`. Every exception is
+caught and recorded (`status: failed`) before re-raising; the stage scripts' `timeout` is
+recorded by the scripts as `status: timeout` in the ledger (the process cannot record it).
+
+## Evaluation: `evaluate.py --config C --adapter runs/<name>/best|none --split test|dev --out results/<name>`
+
+`--adapter none` is the zero-shot baseline (legend, no training). Writes `results/<name>/`:
+
+| file | content |
+|---|---|
+| `eval.json` | aggregates below |
+| `items.jsonl` | one line per example; no prompt text, no outputs (synthetic ids only in `id`) |
+
+`items.jsonl` line:
+
+```
+{"id": ..., "panel": ..., "task": ..., "k": 7, "max_id_len": 5, "n_negative": 2,
+ "heldout_wording": false, "heldout_pair": false,
+ "correct_first": true, "invalid_first": false, "retried": false, "correct_final": true,
+ "invalid_final": false, "reason_first": "ok", "reason_final": "ok",
+ "tokens": {"system": 112, "records": 60, "instruction": 18, "template": 13, "prompt_total": 203,
+            "output_first": 11, "output_retry": 0, "prompt_retry": 0},
+ "latency_s": 0.41, "latency_mode": "batched|single", "convert_in_s": ..., "convert_out_s": ...}
+```
+
+`eval.json`:
+
+```
+{"name": ..., "config": {...}, "adapter": ..., "split": ..., "model_path": ..., "git_commit": ...,
+ "device": ..., "dtype": ..., "started_at": ..., "seconds": ..., "generation": {"greedy": true,
+ "max_new_tokens": {...}, "batch_size": ...}, "n_items": ...,
+ "panels": {"<panel>": {"<task>": {"n": ..., "acc_first": ..., "acc_final": ..., "invalid_first": ...,
+                                    "invalid_final": ..., "retry_rate": ...}, "all": {...}}, "all": {...}},
+ "tokens": {"per_request_mean": {"system": ..., "records": ..., "instruction": ..., "template": ...,
+                                 "prompt_total": ..., "output": ...},
+            "totals": {"uncached": ..., "cached": ..., "output": ..., "requests": ..., "retries": ...}},
+ "latency": {"batched_items_per_s": ..., "single": {"n": ..., "mean_s": ..., "p50_s": ..., "p95_s": ...}},
+ "conversion": {"in_mean_s": ..., "out_mean_s": ...},
+ "cost": {"price_per_hour": ..., "gpu_seconds": ..., "per_correct_final": ..., "per_item": ...}}
+```
+
+`cached` counts the system message once per 100 requests (contract); `uncached` counts every
+token of every request including retries. `--price-per-hour` (default 0) fills `cost`.
+`--latency-sample N` measures N items one at a time (`latency_mode: single`); the rest are
+batched and carry the batch's wall-clock divided by the batch size.
+
+## Analysis: `analyze.py --results results/*/ --out analysis/`
+
+Groups result directories by `(model, arm, seed, train_size, answer_format, split)` from each
+`eval.json`'s config. Writes `analysis/summary.md` and `analysis/summary.json` with: accuracy
+tables per panel and task; the contrasts `arm − english`, `sylang2g − sylang2`, `sylang2 −
+json` per panel, task and train size with the 90% cluster bootstrap (seeds then items, 2,000
+resamples, seed 0), the per-item-only interval, and the verdict `non-inferior | inferior |
+superior | inconclusive` under δ = 3 (contract) — or `exploratory (1 seed): no decision` when
+only one seed is present; learning curves (accuracy vs train size); token, latency and cost
+tables; the retry rates. `--delta` and `--resamples` override the defaults and the overrides
+are printed in the output.
+
+## Profiling: `profile.py --config C --out profile.json [--price-per-hour P] [--upload-cmd '...']`
+
+Measures, on the current machine: model load seconds, parameter count, peak memory, training
+examples/s and tokens/s over `--train-steps` (default 30) steps with the config's batch, dev
+generation items/s over `--gen-items` (default 64), checkpoint save seconds and bytes, and the
+upload seconds if `--upload-cmd` is given (a shell command receiving the checkpoint path).
+Writes `profile.json` with those numbers and, for the cell lists in `configs/plan_stage_b.json`
+and `configs/plan_stage_c.json`, the projected seconds and cost of each stage at the given
+price with a 1.5× contingency (failed runs and retries), under `projection`.
+
+## Ledger: `ledger.py`
+
+`ledger.jsonl` (append-only, committed) lines:
+
+```
+{"ts": ..., "event": "start|stop|note|balance", "provider": ..., "instance": ..., "gpu": ...,
+ "price_per_hour": ..., "stage": "A|B|C", "purpose": ..., "run_names": [...],
+ "measured_spend": ..., "balance_after": ..., "note": ...}
+```
+
+`ledger.py add --event ... --provider ... [...]` appends; `ledger.py report --ceiling 100`
+prints the total measured spend, spend per stage, the number of completed experiments (result
+directories with `eval.json`), dollars per completed experiment, and exits non-zero when the
+spend or the projection in `profile.json` exceeds the ceiling.
+
+## Stage scripts
+
+`run_stage_a.sh`, `run_stage_b.sh`, `run_stage_c.sh`: `set -euo pipefail`; refuse to start
+unless `PILOT_TOKENIZER`, `PILOT_MODEL` and `PILOT_PRICE_PER_HOUR` are set; append a ledger
+`start` line; run each cell under `timeout` with the config's `timeout_minutes`; on timeout
+or failure append a ledger `note` and continue with the next cell; run the evaluation and the
+analysis; append a ledger `stop` line; print the `verify_teardown.md` checklist. They never
+call a provider API: starting and stopping the instance is the owner's action, recorded in the
+ledger by hand with `ledger.py add`.
+
+`smoke_cpu.sh`: generates a small dataset (`data.py --smoke`: 64 train cases per seed for 2
+seeds, 16 dev, 32 test), builds the tiny model, trains 20 steps for two arms, evaluates
+zero-shot and trained, runs the analysis; exits non-zero on any failure.
