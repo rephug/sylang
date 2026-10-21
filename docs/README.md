@@ -6,6 +6,8 @@ The current executable experiment is `core-v0.1`:
 - [Evaluation and comprehension interface](evaluation.md)
 - [Measured baseline results](baseline-results.md)
 - [Technical review, 2026-10-02](research/technical-review-2026-10-02.md)
+- [Diffusion models and Sylang: theory and test plan, 2026-10-20](research/diffusion-sylang-2026-10-20.md)
+- [Executed CPU oracle experiments: masking, fusion and refinement](research/cpu-diffusion-oracle-2026-10-20.md)
 - [Decisions and unresolved scope](decisions.md)
 
 The older tokenizer and research documents indexed below are historical proposals.
