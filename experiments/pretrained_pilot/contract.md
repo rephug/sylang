@@ -65,7 +65,11 @@ generator commit; a version directory is frozen: `data.py` refuses to regenerate
 Deterministic. *select*: parse JSON; must be a list of 2-element string lists; exact match of
 the ordered list of pairs. *lookup*: parse JSON; must be an object with exactly `relation` and
 `polarity`; exact match. Any parse failure or shape violation is a wrong answer and is counted
-separately as `invalid`. Per-item flags are stored. `test_grader.py` feeds corrupted outputs
+separately as `invalid`. **Amendment 2026-10-22, before any GPU run**: one Markdown code fence
+wrapping the whole output (```` ```json … ``` ````) is removed before parsing and counted as `fenced`
+(reported per arm as a rate and in output tokens); the real-weights CPU smoke showed Qwen3-0.6B
+fencing every zero-shot answer, and fencing is a chat habit, not a reading error. Prose outside the
+fence is still `invalid`. Per-item flags are stored. `test_grader.py` feeds corrupted outputs
 (dropped pair, swapped identifiers, invented pair, reordered pairs, wrong polarity, missing key,
 extra key, malformed JSON, trailing prose) and asserts each is rejected.
 

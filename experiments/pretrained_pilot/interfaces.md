@@ -63,7 +63,8 @@ word `none`; *lookup* = `relation polarity`.
 
 `grade(task, answer_format, expected: str, output: str) -> dict` with keys `correct` (bool),
 `invalid` (bool: the output could not be parsed into the task's shape), `reason` (short
-string: `ok`, `parse`, `shape`, `wrong`, `extra_text`, …). Parsing is strict: for `json` the
+string: `ok`, `parse`, `shape`, `wrong`, `extra_text`, …) and `fenced` (bool: the whole output was
+wrapped in one Markdown code fence, which is stripped before parsing; contract amendment of 2026-10-22). Parsing is strict: for `json` the
 whole output (after stripping whitespace) must be exactly one JSON value of the right shape;
 trailing prose is `invalid`. Equality is exact on the canonical value (list of pairs; object
 with exactly the two keys), not on the output bytes, so `[["a", "b"]]` with spaces is accepted.
@@ -120,7 +121,7 @@ recorded by the scripts as `status: timeout` in the ledger (the process cannot r
 {"id": ..., "panel": ..., "task": ..., "k": 7, "max_id_len": 5, "n_negative": 2,
  "heldout_wording": false, "heldout_pair": false,
  "correct_first": true, "invalid_first": false, "retried": false, "correct_final": true,
- "invalid_final": false, "reason_first": "ok", "reason_final": "ok",
+ "invalid_final": false, "reason_first": "ok", "reason_final": "ok", "fenced_first": false, "fenced_final": false,
  "tokens": {"system": 112, "records": 60, "instruction": 18, "template": 13, "prompt_total": 203,
             "output_first": 11, "output_retry": 0, "prompt_retry": 0},
  "latency_s": 0.41, "latency_mode": "batched|single", "convert_in_s": ..., "tokenize_s": ..., "convert_out_s": ...}
@@ -133,7 +134,7 @@ recorded by the scripts as `status: timeout` in the ledger (the process cannot r
  "device": ..., "dtype": ..., "started_at": ..., "seconds": ..., "generation": {"greedy": true,
  "max_new_tokens": {...}, "batch_size": ...}, "n_items": ...,
  "panels": {"<panel>": {"<task>": {"n": ..., "acc_first": ..., "acc_final": ..., "invalid_first": ...,
-                                    "invalid_final": ..., "retry_rate": ...}, "all": {...}}, "all": {...}},
+                                    "invalid_final": ..., "retry_rate": ..., "fenced_rate": ...}, "all": {...}}, "all": {...}},
  "tokens": {"per_request_mean": {"system": ..., "records": ..., "instruction": ..., "template": ...,
                                  "prompt_total": ..., "output": ...},
             "totals": {"uncached": ..., "cached": ..., "output": ..., "requests": ..., "retries": ...}},

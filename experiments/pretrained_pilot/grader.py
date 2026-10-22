@@ -114,13 +114,25 @@ def _parse_bare(task, text):
     return (tokens[0], tokens[1]), 'ok'
 
 
+_FENCE = re.compile(r'\A```[A-Za-z0-9_-]*[ \t]*\r?\n(.*?)\r?\n?```\Z', re.S)
+
+
+def unfence(text: str) -> tuple[str, bool]:
+    """Strip one Markdown code fence wrapping the whole output (```json ... ```), a chat-model habit
+    tolerated by the pre-registration amendment of 2026-10-22; returns (inner text, fenced)."""
+    m = _FENCE.match(text.strip())
+    return (m.group(1).strip(), True) if m else (text, False)
+
+
 def parse(task, answer_format, text):
-    """Canonical value of an answer text, or ``(None, reason)`` when it is invalid."""
+    """Canonical value of an answer text, or ``(None, reason)`` when it is invalid. A single code
+    fence around the whole output is removed first (see ``unfence``)."""
     if task not in TASKS:
         raise ValueError(f'task must be one of {TASKS}, not {task!r}')
     if answer_format not in ANSWER_FORMATS:
         raise ValueError(f'answer_format must be one of {ANSWER_FORMATS}, not {answer_format!r}')
     text = text.strip() if isinstance(text, str) else ''
+    text, _ = unfence(text)
     if not text:
         return None, 'empty'
     return (_parse_json if answer_format == 'json' else _parse_bare)(task, text)
@@ -131,12 +143,13 @@ def grade(task: str, answer_format: str, expected: str, output: str) -> dict:
     want, reason = parse(task, answer_format, expected)
     if want is None:
         raise ValueError(f'expected answer is not a canonical {task}/{answer_format} answer ({reason}): {expected!r}')
+    fenced = unfence(output.strip() if isinstance(output, str) else '')[1]
     got, reason = parse(task, answer_format, output)
     if got is None:
-        return {'correct': False, 'invalid': True, 'reason': reason}
+        return {'correct': False, 'invalid': True, 'reason': reason, 'fenced': fenced}
     if got == want:
-        return {'correct': True, 'invalid': False, 'reason': 'ok'}
-    return {'correct': False, 'invalid': False, 'reason': 'wrong'}
+        return {'correct': True, 'invalid': False, 'reason': 'ok', 'fenced': fenced}
+    return {'correct': False, 'invalid': False, 'reason': 'wrong', 'fenced': fenced}
 
 
 # ---------------------------------------------------------------------------

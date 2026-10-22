@@ -23,12 +23,14 @@ LOOKUP_BARE = 'help negative'
 class GraderTestCase(unittest.TestCase):
     def ok(self, task, fmt, expected, output):
         result = grader.grade(task, fmt, expected, output)
-        self.assertEqual(result, {'correct': True, 'invalid': False, 'reason': 'ok'}, (task, fmt, output))
+        self.assertEqual({k: result[k] for k in ('correct', 'invalid', 'reason')},
+                         {'correct': True, 'invalid': False, 'reason': 'ok'}, (task, fmt, output))
 
     def wrong(self, task, fmt, expected, output):
         """A valid answer with a different value: correct False, invalid False."""
         result = grader.grade(task, fmt, expected, output)
-        self.assertEqual(result, {'correct': False, 'invalid': False, 'reason': 'wrong'}, (task, fmt, output))
+        self.assertEqual({k: result[k] for k in ('correct', 'invalid', 'reason')},
+                         {'correct': False, 'invalid': False, 'reason': 'wrong'}, (task, fmt, output))
 
     def invalid(self, task, fmt, expected, output, reason=None):
         """An output that is not an answer of the task's shape: correct False, invalid True."""
@@ -85,7 +87,7 @@ class SelectJson(GraderTestCase):
         self.invalid(self.task, self.fmt, self.expected, 'The negated records are [["ab12","zq9"],["x9","yy88"]]',
                      'extra_text')
         self.invalid(self.task, self.fmt, self.expected, 'Answer:\n[["ab12","zq9"],["x9","yy88"]]')
-        self.invalid(self.task, self.fmt, self.expected, '```json\n[["ab12","zq9"],["x9","yy88"]]\n```')
+        self.invalid(self.task, self.fmt, self.expected, 'Here is the answer:\n[["ab12","zq9"],["x9","yy88"]]')
 
     def test_empty_output(self):
         for output in ('', '   ', '\n\n', None):
@@ -241,7 +243,7 @@ class LookupJson(GraderTestCase):
     def test_leading_prose(self):
         self.invalid(self.task, self.fmt, self.expected, 'The record is {"relation":"help","polarity":"negative"}',
                      'extra_text')
-        self.invalid(self.task, self.fmt, self.expected, '```json\n{"relation":"help","polarity":"negative"}\n```')
+        self.invalid(self.task, self.fmt, self.expected, 'Here is the answer:\n{"relation":"help","polarity":"negative"}')
 
     def test_empty_output(self):
         for output in ('', '\n', None):
@@ -315,6 +317,39 @@ class Arguments(unittest.TestCase):
             grader.grade('count', 'json', '[]', '[]')
         with self.assertRaises(ValueError):
             grader.grade('select', 'xml', '[]', '[]')
+
+
+class FenceTolerance(unittest.TestCase):
+    """Amendment of 2026-10-22: one code fence around the whole output is tolerated and flagged."""
+
+    def test_fenced_correct_select(self):
+        g = grader.grade('select', 'json', '[["ab1","c2d"]]', '```json\n[["ab1", "c2d"]]\n```')
+        self.assertTrue(g['correct']); self.assertFalse(g['invalid']); self.assertTrue(g['fenced'])
+
+    def test_fenced_correct_lookup_bare_fence(self):
+        g = grader.grade('lookup', 'json', '{"relation":"help","polarity":"negative"}',
+                         '```\n{"relation": "help", "polarity": "negative"}\n```')
+        self.assertTrue(g['correct']); self.assertTrue(g['fenced'])
+
+    def test_fenced_wrong_is_wrong_not_invalid(self):
+        g = grader.grade('select', 'json', '[["ab1","c2d"]]', '```json\n[["ab1", "zz9"]]\n```')
+        self.assertFalse(g['correct']); self.assertFalse(g['invalid']); self.assertTrue(g['fenced'])
+
+    def test_fence_with_prose_outside_is_invalid(self):
+        g = grader.grade('select', 'json', '[["ab1","c2d"]]', 'Here you go:\n```json\n[["ab1", "c2d"]]\n```')
+        self.assertTrue(g['invalid']); self.assertFalse(g['fenced'])
+
+    def test_unterminated_fence_is_invalid(self):
+        g = grader.grade('select', 'json', '[["ab1","c2d"]]', '```json\n[["ab1", "c2d"]]')
+        self.assertTrue(g['invalid'])
+
+    def test_unfenced_has_flag_false(self):
+        g = grader.grade('select', 'json', '[]', '[]')
+        self.assertTrue(g['correct']); self.assertFalse(g['fenced'])
+
+    def test_fenced_empty_is_empty(self):
+        g = grader.grade('select', 'json', '[]', '```json\n\n```')
+        self.assertTrue(g['invalid']); self.assertEqual(g['reason'], 'empty')
 
 
 if __name__ == '__main__':

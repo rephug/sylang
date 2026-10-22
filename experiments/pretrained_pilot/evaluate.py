@@ -229,7 +229,7 @@ def _rate(items, key):
 def panel_block(items: list[dict]) -> dict:
     return {'n': len(items), 'acc_first': _rate(items, 'correct_first'), 'acc_final': _rate(items, 'correct_final'),
             'invalid_first': _rate(items, 'invalid_first'), 'invalid_final': _rate(items, 'invalid_final'),
-            'retry_rate': _rate(items, 'retried')}
+            'retry_rate': _rate(items, 'retried'), 'fenced_rate': _rate(items, 'fenced_final')}
 
 
 def panel_stats(items: list[dict]) -> dict:
@@ -362,6 +362,7 @@ def main(argv=None) -> None:
                       'heldout_wording': ex['heldout_wording'], 'heldout_pair': ex['heldout_pair'],
                       'correct_first': None, 'invalid_first': None, 'retried': False,
                       'correct_final': None, 'invalid_final': None, 'reason_first': None, 'reason_final': None,
+                      'fenced_first': False, 'fenced_final': False,
                       'tokens': {**parts, 'output_first': 0, 'output_retry': 0, 'prompt_retry': 0},
                       'latency_s': 0.0, 'latency_mode': mode, 'convert_in_s': codec_s,
                       'tokenize_s': tokenize, 'convert_out_s': 0.0})
@@ -394,7 +395,9 @@ def main(argv=None) -> None:
         ex, it = examples[req['index']], items[req['index']]
         r = grade_request(req, ex, 'first')
         it['correct_first'], it['invalid_first'], it['reason_first'] = bool(r['correct']), bool(r['invalid']), r['reason']
+        it['fenced_first'] = bool(r.get('fenced', False))
         it['correct_final'], it['invalid_final'], it['reason_final'] = it['correct_first'], it['invalid_first'], it['reason_first']
+        it['fenced_final'] = it['fenced_first']
         if req['mode'] == 'single':
             single_first_latency.append((ex['task'], req['latency_s']))
         if it['invalid_first']:
@@ -414,6 +417,7 @@ def main(argv=None) -> None:
             ex, it = examples[req['index']], items[req['index']]
             r = grade_request(req, ex, 'retry')
             it['correct_final'], it['invalid_final'], it['reason_final'] = bool(r['correct']), bool(r['invalid']), r['reason']
+            it['fenced_final'] = bool(r.get('fenced', False))
     if dump is not None:
         dump.close()
 
