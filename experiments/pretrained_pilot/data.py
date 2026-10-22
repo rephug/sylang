@@ -731,7 +731,7 @@ def check(args) -> int:
                 for fmt in common.ANSWER_FORMATS:
                     result = grader.grade(task, fmt, row['answer'][fmt], row['answer'][fmt])
                     graded += 1
-                    if result != {'correct': True, 'invalid': False, 'reason': 'ok'}:
+                    if not (result['correct'] and not result['invalid'] and result['reason'] == 'ok'):
                         problem(f'{name} {row["id"]} {fmt}: self-grade {result}')
             these = [(r['id'], r['answer']) for r in rows]
             if answers is not None and these != answers:

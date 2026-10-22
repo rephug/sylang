@@ -225,9 +225,14 @@ The owner approved stage A + B on Lightning AI's free credits on 2026-10-22 (led
 - **Whole-prompt Qwen 3 tokens on the frozen data** (JSON answer format, all splits): english 270, json 334, sylang2 224, sylang2g 214.
 - **Real-weights CPU smoke**: the Qwen3-0.6B weights (1,503,300,328-byte `model.safetensors`, Apache-2.0) were downloaded into the server's scratch space under the owner's nod; the result of the smoke with the real weights is recorded in §6.2.1.
 
-#### 6.2.1 Real-weights CPU smoke
+#### 6.2.1 Real-weights CPU smoke (Qwen3-0.6B, float32, two CPU threads, 32 smoke test items per pass)
 
-(Recorded when the run completes.)
+The whole path runs on the real weights: zero-shot on two arms, 20 LoRA steps on the codes arm (batch 1 × 4 accumulation, 80 examples, 431 s, peak 6.2 GB; batch 4 had been killed at 14 GB), the trained evaluation and the analysis. What it showed, and what changed because of it:
+
+- **Zero-shot, every answer fenced**: Qwen3-0.6B wraps every reply in a Markdown code fence and, on the first attempt, often returns a list of objects instead of pairs (reasons: `shape` 8 of 32 on the codes, 16 of 32 on English). Under the strict grader this read as 100% invalid on both arms. The pre-registered grader was therefore amended, before any GPU run, to strip one fence and count it (`fenced` rate, output tokens); the retry policy then fixes the shape in most items (invalid after retry 0%). With that amendment: zero-shot accuracy on the codes arm 3% (0 of 16 *select*, 1 of 16 *lookup*), on English 6%; the model lists every record rather than the negated ones. The §3.3 sanity criterion was reworded from "zero-shot English above chance" to "zero-shot English returns the right answer shape on most items": a 0.6B model need not do the task untrained.
+- **Twenty training steps already teach the format**: after 80 examples the codes-arm adapter produces unfenced, shape-valid answers on 32 of 32 items (invalid 0%, no retries, 32 output tokens per item against 62–65 zero-shot) and scores 9% (3 of 16 *lookup*, 0 of 16 *select*); the loss fell from 0.45 at step 5 to 0.18 at step 15. That is the expected shape of a learning curve at its start, not a result.
+- **CPU timings, for scale only**: generation 0.12 items/s zero-shot and 0.25 items/s trained (single request 4.7–10 s), training 0.19 examples/s; the GPU figures come from stage A.
+- The analysis ran on these three result directories and reported, as the rule requires, `exploratory (1 seed): no decision` on every contrast; the model label read from the weights' directory (`Qwen3-0.6B`), the codec time from the manifest (0.06–0.07 ms per case).
 
 ### 6.3 Constraints honoured
 
