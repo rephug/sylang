@@ -291,7 +291,8 @@ def accuracy_rows(cells: dict) -> list[dict]:
                          'acc_first_mean': _mean([b['acc_first'] for b in blocks]),
                          'invalid_first_mean': _mean([b['invalid_first'] for b in blocks]),
                          'invalid_final_mean': _mean([b['invalid_final'] for b in blocks]),
-                         'retry_rate_mean': _mean([b['retry_rate'] for b in blocks])})
+                         'retry_rate_mean': _mean([b['retry_rate'] for b in blocks]),
+                         'fenced_rate_mean': _mean([b.get('fenced_rate') for b in blocks if b.get('fenced_rate') is not None])})
     return rows
 
 
@@ -474,9 +475,9 @@ def write_summary_md(path: Path, settings: dict, results: list[dict], acc_rows, 
         if r['panel'] == 'all':
             body.append([r['split'], r['model'], r['answer_format'], r['train_size'], r['arm'], r['task'], r['n_seeds'],
                          f_pct(r['retry_rate_mean']), f_pct(r['invalid_first_mean']), f_pct(r['invalid_final_mean']),
-                         f_pct(r['acc_first_mean']), f_pct(r['acc_final_mean'])])
+                         f_pct(r.get('fenced_rate_mean')), f_pct(r['acc_first_mean']), f_pct(r['acc_final_mean'])])
     out.append(md_table(['split', 'model', 'format', 'train_size', 'arm', 'task', 'seeds', 'retry rate', 'invalid first',
-                         'invalid final', 'acc first', 'acc final'], body))
+                         'invalid final', 'fenced final', 'acc first', 'acc final'], body))
 
     out.append('\n## Tokens (mean per request over every request incl. retries; totals summed over the evaluation; mean over seeds)\n')
     out.append(md_table(['split', 'model', 'format', 'train_size', 'arm', 'seeds', 'system', 'records', 'instruction', 'template',

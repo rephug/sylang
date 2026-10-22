@@ -171,7 +171,7 @@ resamples, seed 0), the per-item-only interval, and the verdict `non-inferior | 
 superior | inconclusive` under δ = 3 (contract), issued only with three or more shared seeds
 (`MIN_DECISION_SEEDS = 3`); with fewer the verdict is `exploratory (1 seed): no decision` or
 `exploratory (2 seeds): no decision`; the secondary `correct_first` contrasts carry intervals only; learning curves (accuracy vs train size); token, latency and cost
-tables; the retry rates. `--delta` and `--resamples` override the defaults and the overrides
+tables; the retry, invalid and fenced-output rates. `--delta` and `--resamples` override the defaults and the overrides
 are printed in the output.
 
 ## Profiling: `profile_gpu.py --config C --out profile.json [--price-per-hour P] [--upload-cmd '...']`
