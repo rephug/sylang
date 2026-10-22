@@ -1,0 +1,12 @@
+torch 2.6.0+cpu
+[PASS] causality[train path, last 96 positions]: {'max_change_before_edit': 0.0}
+[PASS] visibility[train path]: {'query': 368, 'blind_positions': [], 'min_change': 0.051302433013916016}
+[PASS] causality[eval path, last 96 positions]: {'max_change_before_edit': 0.0}
+[PASS] visibility[eval path]: {'query': 368, 'blind_positions': [], 'min_change': 0.051302433013916016}
+[PASS] train_vs_eval_path: {'max_logit_diff': 2.6702880859375e-05, 'same_argmax_at_query': True}
+[PASS] gradient_reach: {'prompt_positions': 1456, 'zero_gradient_positions': 0, 'example': None}
+[PASS] parameter_gradients: {'zero_or_none_grad': [], 'not_in_optimizer': [], 'frozen': []}
+[PASS] oracle_labels: {'loss_next_token_oracle': 0.0, 'loss_echo_oracle': 53.68421173095703, 'loss_wrong_final_token': 6.315789699554443}
+[PASS] checkpoint_roundtrip: {'max_logit_diff_after_load': 0.0, 'fresh_vs_trained_diff': 85.09874725341797}
+[PASS] decoder_consistency: {'checked': 4, 'mismatches': []}
+[PASS] padding_invariance: {'max_logit_diff': 1.52587890625e-05, 'padded_width': 384, 'alone_width': 363}

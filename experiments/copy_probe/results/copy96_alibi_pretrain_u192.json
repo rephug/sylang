@@ -1,0 +1,56 @@
+{
+  "overrides": {
+    "init": "fresh",
+    "breadth": 96,
+    "updates": 192,
+    "seed": 0,
+    "position": "alibi"
+  },
+  "exposures_per_row": 4,
+  "items_seen": 768,
+  "bytes_seen": 9600,
+  "train_seconds": 3.19,
+  "loss_first_last": [
+    5.900289535522461,
+    0.8934224247932434
+  ],
+  "checkpoint_sha256": "4fc34fad33e9c0c9b72258e1f40ca55aba7af64eb509bee223b4066a795a5a12",
+  "final": {
+    "seen": {
+      "n": 96,
+      "copy_exact": 14,
+      "none_exact": 96,
+      "byte_correct": [
+        67,
+        45,
+        18
+      ],
+      "wrong_that_are_training_ids": 14,
+      "wrong": 82
+    },
+    "heldout_legacy12": {
+      "n": 12,
+      "copy_exact": 2,
+      "none_exact": 12,
+      "byte_correct": [
+        9,
+        7,
+        2
+      ],
+      "wrong_that_are_training_ids": 1,
+      "wrong": 10
+    },
+    "heldout_fresh108": {
+      "n": 108,
+      "copy_exact": 9,
+      "none_exact": 108,
+      "byte_correct": [
+        73,
+        40,
+        13
+      ],
+      "wrong_that_are_training_ids": 26,
+      "wrong": 99
+    }
+  }
+}

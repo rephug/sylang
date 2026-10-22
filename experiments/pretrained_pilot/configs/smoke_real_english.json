@@ -1,0 +1,17 @@
+{
+ "arm": "english",
+ "batch_size": 1,
+ "data_version": "smoke",
+ "dev_eval_examples": 8,
+ "epochs": 1,
+ "grad_accum": 4,
+ "lr": 0.0002,
+ "max_length": 512,
+ "max_steps": 20,
+ "model": null,
+ "name": "smoke_real_english",
+ "seed": 0,
+ "stage": "smoke-real",
+ "timeout_minutes": 120,
+ "train_size": 64
+}

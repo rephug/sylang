@@ -1,0 +1,411 @@
+{
+  "file": "codes-fresh-k12345678-u10000-b8-lr0.001-s2-alibi-v2-devbest.pt",
+  "sha256": "7d6187172bba867f769983435c04160a65854e2b6ae03865364cd4088c39c031",
+  "arm": "codes",
+  "panels": {
+    "combo": {
+      "n": 256,
+      "exact": 0.9766,
+      "invalid_json": 0,
+      "per_record": {
+        "K=1 / negative": {
+          "correct": 19,
+          "n": 19,
+          "rate": 1.0
+        },
+        "K=1 / positive": {
+          "correct": 13,
+          "n": 13,
+          "rate": 1.0
+        },
+        "K=2 / negative": {
+          "correct": 26,
+          "n": 26,
+          "rate": 1.0
+        },
+        "K=2 / positive": {
+          "correct": 38,
+          "n": 38,
+          "rate": 1.0
+        },
+        "K=3 / negative": {
+          "correct": 45,
+          "n": 45,
+          "rate": 1.0
+        },
+        "K=3 / positive": {
+          "correct": 51,
+          "n": 51,
+          "rate": 1.0
+        },
+        "K=4 / negative": {
+          "correct": 61,
+          "n": 61,
+          "rate": 1.0
+        },
+        "K=4 / positive": {
+          "correct": 67,
+          "n": 67,
+          "rate": 1.0
+        },
+        "K=5 / negative": {
+          "correct": 77,
+          "n": 77,
+          "rate": 1.0
+        },
+        "K=5 / positive": {
+          "correct": 83,
+          "n": 83,
+          "rate": 1.0
+        },
+        "K=6 / negative": {
+          "correct": 96,
+          "n": 96,
+          "rate": 1.0
+        },
+        "K=6 / positive": {
+          "correct": 96,
+          "n": 96,
+          "rate": 1.0
+        },
+        "K=7 / negative": {
+          "correct": 110,
+          "n": 112,
+          "rate": 0.9821
+        },
+        "K=7 / positive": {
+          "correct": 112,
+          "n": 112,
+          "rate": 1.0
+        },
+        "K=8 / negative": {
+          "correct": 120,
+          "n": 126,
+          "rate": 0.9524
+        },
+        "K=8 / positive": {
+          "correct": 130,
+          "n": 130,
+          "rate": 1.0
+        },
+        "combination=contain+future / negative": {
+          "correct": 165,
+          "n": 170,
+          "rate": 0.9706
+        },
+        "combination=contain+future / positive": {
+          "correct": 166,
+          "n": 166,
+          "rate": 1.0
+        },
+        "combination=help+completed / negative": {
+          "correct": 70,
+          "n": 70,
+          "rate": 1.0
+        },
+        "combination=help+completed / positive": {
+          "correct": 68,
+          "n": 68,
+          "rate": 1.0
+        },
+        "combination=trained / negative": {
+          "correct": 319,
+          "n": 322,
+          "rate": 0.9907
+        },
+        "combination=trained / positive": {
+          "correct": 356,
+          "n": 356,
+          "rate": 1.0
+        },
+        "record=held-out / negative": {
+          "correct": 235,
+          "n": 240,
+          "rate": 0.9792
+        },
+        "record=held-out / positive": {
+          "correct": 234,
+          "n": 234,
+          "rate": 1.0
+        },
+        "record=trained / negative": {
+          "correct": 319,
+          "n": 322,
+          "rate": 0.9907
+        },
+        "record=trained / positive": {
+          "correct": 356,
+          "n": 356,
+          "rate": 1.0
+        }
+      },
+      "per_answer": {
+        "K=1": {
+          "correct": 32,
+          "n": 32,
+          "rate": 1.0
+        },
+        "K=2": {
+          "correct": 32,
+          "n": 32,
+          "rate": 1.0
+        },
+        "K=3": {
+          "correct": 32,
+          "n": 32,
+          "rate": 1.0
+        },
+        "K=4": {
+          "correct": 32,
+          "n": 32,
+          "rate": 1.0
+        },
+        "K=5": {
+          "correct": 32,
+          "n": 32,
+          "rate": 1.0
+        },
+        "K=6": {
+          "correct": 32,
+          "n": 32,
+          "rate": 1.0
+        },
+        "K=7": {
+          "correct": 30,
+          "n": 32,
+          "rate": 0.9375
+        },
+        "K=8": {
+          "correct": 28,
+          "n": 32,
+          "rate": 0.875
+        },
+        "combination=contain+future": {
+          "correct": 155,
+          "n": 159,
+          "rate": 0.9748
+        },
+        "combination=help+completed": {
+          "correct": 95,
+          "n": 97,
+          "rate": 0.9794
+        },
+        "held-out record is negative": {
+          "correct": 120,
+          "n": 125,
+          "rate": 0.96
+        },
+        "held-out record is positive": {
+          "correct": 130,
+          "n": 131,
+          "rate": 0.9924
+        }
+      },
+      "error_kinds": {
+        "copy": 6
+      }
+    },
+    "both": {
+      "n": 256,
+      "exact": 0.9844,
+      "invalid_json": 0,
+      "per_record": {
+        "K=1 / negative": {
+          "correct": 18,
+          "n": 18,
+          "rate": 1.0
+        },
+        "K=1 / positive": {
+          "correct": 14,
+          "n": 14,
+          "rate": 1.0
+        },
+        "K=2 / negative": {
+          "correct": 31,
+          "n": 31,
+          "rate": 1.0
+        },
+        "K=2 / positive": {
+          "correct": 33,
+          "n": 33,
+          "rate": 1.0
+        },
+        "K=3 / negative": {
+          "correct": 49,
+          "n": 49,
+          "rate": 1.0
+        },
+        "K=3 / positive": {
+          "correct": 47,
+          "n": 47,
+          "rate": 1.0
+        },
+        "K=4 / negative": {
+          "correct": 60,
+          "n": 60,
+          "rate": 1.0
+        },
+        "K=4 / positive": {
+          "correct": 68,
+          "n": 68,
+          "rate": 1.0
+        },
+        "K=5 / negative": {
+          "correct": 89,
+          "n": 89,
+          "rate": 1.0
+        },
+        "K=5 / positive": {
+          "correct": 71,
+          "n": 71,
+          "rate": 1.0
+        },
+        "K=6 / negative": {
+          "correct": 94,
+          "n": 94,
+          "rate": 1.0
+        },
+        "K=6 / positive": {
+          "correct": 98,
+          "n": 98,
+          "rate": 1.0
+        },
+        "K=7 / negative": {
+          "correct": 115,
+          "n": 116,
+          "rate": 0.9914
+        },
+        "K=7 / positive": {
+          "correct": 108,
+          "n": 108,
+          "rate": 1.0
+        },
+        "K=8 / negative": {
+          "correct": 114,
+          "n": 119,
+          "rate": 0.958
+        },
+        "K=8 / positive": {
+          "correct": 137,
+          "n": 137,
+          "rate": 1.0
+        },
+        "combination=contain+future / negative": {
+          "correct": 164,
+          "n": 165,
+          "rate": 0.9939
+        },
+        "combination=contain+future / positive": {
+          "correct": 157,
+          "n": 157,
+          "rate": 1.0
+        },
+        "combination=help+completed / negative": {
+          "correct": 66,
+          "n": 66,
+          "rate": 1.0
+        },
+        "combination=help+completed / positive": {
+          "correct": 65,
+          "n": 65,
+          "rate": 1.0
+        },
+        "combination=trained / negative": {
+          "correct": 340,
+          "n": 345,
+          "rate": 0.9855
+        },
+        "combination=trained / positive": {
+          "correct": 354,
+          "n": 354,
+          "rate": 1.0
+        },
+        "record=held-out / negative": {
+          "correct": 230,
+          "n": 231,
+          "rate": 0.9957
+        },
+        "record=held-out / positive": {
+          "correct": 222,
+          "n": 222,
+          "rate": 1.0
+        },
+        "record=trained / negative": {
+          "correct": 340,
+          "n": 345,
+          "rate": 0.9855
+        },
+        "record=trained / positive": {
+          "correct": 354,
+          "n": 354,
+          "rate": 1.0
+        }
+      },
+      "per_answer": {
+        "K=1": {
+          "correct": 32,
+          "n": 32,
+          "rate": 1.0
+        },
+        "K=2": {
+          "correct": 32,
+          "n": 32,
+          "rate": 1.0
+        },
+        "K=3": {
+          "correct": 32,
+          "n": 32,
+          "rate": 1.0
+        },
+        "K=4": {
+          "correct": 32,
+          "n": 32,
+          "rate": 1.0
+        },
+        "K=5": {
+          "correct": 32,
+          "n": 32,
+          "rate": 1.0
+        },
+        "K=6": {
+          "correct": 32,
+          "n": 32,
+          "rate": 1.0
+        },
+        "K=7": {
+          "correct": 31,
+          "n": 32,
+          "rate": 0.9688
+        },
+        "K=8": {
+          "correct": 29,
+          "n": 32,
+          "rate": 0.9062
+        },
+        "combination=contain+future": {
+          "correct": 159,
+          "n": 163,
+          "rate": 0.9755
+        },
+        "combination=help+completed": {
+          "correct": 93,
+          "n": 93,
+          "rate": 1.0
+        },
+        "held-out record is negative": {
+          "correct": 129,
+          "n": 132,
+          "rate": 0.9773
+        },
+        "held-out record is positive": {
+          "correct": 123,
+          "n": 124,
+          "rate": 0.9919
+        }
+      },
+      "error_kinds": {
+        "copy": 4
+      }
+    }
+  }
+}

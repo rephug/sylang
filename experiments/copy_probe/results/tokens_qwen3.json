@@ -1,0 +1,2727 @@
+{
+  "tokenizer": {
+    "name": "Qwen3 (Qwen/Qwen3-0.6B tokenizer.json)",
+    "file": "tokenizer.json",
+    "sha256_prefix16": "aeb13307a71acd8f",
+    "vocab_size": 151669,
+    "add_special_tokens": false
+  },
+  "config": {
+    "split": "test",
+    "seed": 11,
+    "items_per_k": 64,
+    "k_values": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "mixes": {
+      "mix_1_8": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "mix_1_4": [
+        1,
+        2,
+        3,
+        4
+      ]
+    },
+    "instruction_bytes": 68,
+    "instruction_tokens": 17,
+    "identical_items_across_arms": true
+  },
+  "arms": {
+    "english_natural": {
+      "description": "controlled English, no filler (Renderer.natural_prompt)",
+      "by_k": {
+        "1": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 40.656,
+            "instruction": 68.0,
+            "prompt": 108.656,
+            "answer": 8.297
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 16.875,
+            "instruction": 17.0,
+            "prompt": 33.875,
+            "answer": 5.359
+          },
+          "tokens_per_record": 16.875,
+          "bytes_per_record": 40.656,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.361,
+          "identifier_byte_fraction_of_records": 0.156,
+          "non_identifier_tokens_per_record": 10.875,
+          "answer": {
+            "n_empty": 33,
+            "n_nonempty": 31,
+            "tokens_mean": 5.359,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 10.0,
+            "bytes_nonempty_mean": 15.0,
+            "negatives_mean": 0.484
+          }
+        },
+        "2": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 82.703,
+            "instruction": 68.0,
+            "prompt": 150.703,
+            "answer": 14.781
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 34.016,
+            "instruction": 17.0,
+            "prompt": 51.016,
+            "answer": 9.531
+          },
+          "tokens_per_record": 17.008,
+          "bytes_per_record": 41.352,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.355,
+          "identifier_byte_fraction_of_records": 0.149,
+          "non_identifier_tokens_per_record": 11.008,
+          "answer": {
+            "n_empty": 14,
+            "n_nonempty": 50,
+            "tokens_mean": 9.531,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 11.92,
+            "bytes_nonempty_mean": 18.36,
+            "negatives_mean": 0.969
+          }
+        },
+        "3": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 124.078,
+            "instruction": 68.0,
+            "prompt": 192.078,
+            "answer": 21.906
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 50.969,
+            "instruction": 17.0,
+            "prompt": 67.969,
+            "answer": 13.75
+          },
+          "tokens_per_record": 16.99,
+          "bytes_per_record": 41.359,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.354,
+          "identifier_byte_fraction_of_records": 0.147,
+          "non_identifier_tokens_per_record": 10.99,
+          "answer": {
+            "n_empty": 8,
+            "n_nonempty": 56,
+            "tokens_mean": 13.75,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 15.571,
+            "bytes_nonempty_mean": 24.75,
+            "negatives_mean": 1.484
+          }
+        },
+        "4": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 165.875,
+            "instruction": 68.0,
+            "prompt": 233.875,
+            "answer": 29.922
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 68.078,
+            "instruction": 17.0,
+            "prompt": 85.078,
+            "answer": 18.453
+          },
+          "tokens_per_record": 17.02,
+          "bytes_per_record": 41.469,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.353,
+          "identifier_byte_fraction_of_records": 0.146,
+          "non_identifier_tokens_per_record": 11.02,
+          "answer": {
+            "n_empty": 3,
+            "n_nonempty": 61,
+            "tokens_mean": 18.453,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 19.311,
+            "bytes_nonempty_mean": 31.295,
+            "negatives_mean": 2.062
+          }
+        },
+        "5": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 205.156,
+            "instruction": 68.0,
+            "prompt": 273.156,
+            "answer": 37.109
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 84.781,
+            "instruction": 17.0,
+            "prompt": 101.781,
+            "answer": 22.609
+          },
+          "tokens_per_record": 16.956,
+          "bytes_per_record": 41.031,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.355,
+          "identifier_byte_fraction_of_records": 0.148,
+          "non_identifier_tokens_per_record": 10.956,
+          "answer": {
+            "n_empty": 1,
+            "n_nonempty": 63,
+            "tokens_mean": 22.609,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 22.952,
+            "bytes_nonempty_mean": 37.667,
+            "negatives_mean": 2.578
+          }
+        },
+        "6": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 246.391,
+            "instruction": 68.0,
+            "prompt": 314.391,
+            "answer": 44.109
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 101.734,
+            "instruction": 17.0,
+            "prompt": 118.734,
+            "answer": 26.609
+          },
+          "tokens_per_record": 16.956,
+          "bytes_per_record": 41.065,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.355,
+          "identifier_byte_fraction_of_records": 0.148,
+          "non_identifier_tokens_per_record": 10.956,
+          "answer": {
+            "n_empty": 1,
+            "n_nonempty": 63,
+            "tokens_mean": 26.609,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 27.016,
+            "bytes_nonempty_mean": 44.778,
+            "negatives_mean": 3.078
+          }
+        },
+        "7": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 286.281,
+            "instruction": 68.0,
+            "prompt": 354.281,
+            "answer": 51.312
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 118.422,
+            "instruction": 17.0,
+            "prompt": 135.422,
+            "answer": 30.75
+          },
+          "tokens_per_record": 16.917,
+          "bytes_per_record": 40.897,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.355,
+          "identifier_byte_fraction_of_records": 0.148,
+          "non_identifier_tokens_per_record": 10.917,
+          "answer": {
+            "n_empty": 0,
+            "n_nonempty": 64,
+            "tokens_mean": 30.75,
+            "tokens_empty_mean": null,
+            "tokens_nonempty_mean": 30.75,
+            "bytes_nonempty_mean": 51.312,
+            "negatives_mean": 3.594
+          }
+        },
+        "8": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 329.297,
+            "instruction": 68.0,
+            "prompt": 397.297,
+            "answer": 59.188
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 135.688,
+            "instruction": 17.0,
+            "prompt": 152.688,
+            "answer": 35.25
+          },
+          "tokens_per_record": 16.961,
+          "bytes_per_record": 41.162,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.354,
+          "identifier_byte_fraction_of_records": 0.147,
+          "non_identifier_tokens_per_record": 10.961,
+          "answer": {
+            "n_empty": 0,
+            "n_nonempty": 64,
+            "tokens_mean": 35.25,
+            "tokens_empty_mean": null,
+            "tokens_nonempty_mean": 35.25,
+            "bytes_nonempty_mean": 59.188,
+            "negatives_mean": 4.156
+          }
+        }
+      },
+      "mix_1_8": {
+        "n_items": 512,
+        "bytes": {
+          "header": 0.0,
+          "records": 185.055,
+          "instruction": 68.0,
+          "prompt": 253.055,
+          "answer": 33.328
+        },
+        "tokens": {
+          "header": 0.0,
+          "records": 76.32,
+          "instruction": 17.0,
+          "prompt": 93.32,
+          "answer": 20.289
+        },
+        "tokens_per_record": 16.96,
+        "bytes_per_record": 41.124,
+        "identifier_tokens_per_record": 6.0,
+        "identifier_bytes_per_record": 6.0,
+        "identifier_token_fraction_of_records": 0.355,
+        "identifier_byte_fraction_of_records": 0.149,
+        "non_identifier_tokens_per_record": 10.96,
+        "answer": {
+          "n_empty": 60,
+          "n_nonempty": 452,
+          "tokens_mean": 20.289,
+          "tokens_empty_mean": 1.0,
+          "tokens_nonempty_mean": 22.85,
+          "bytes_nonempty_mean": 37.487,
+          "negatives_mean": 2.301
+        }
+      },
+      "mix_1_4": {
+        "n_items": 256,
+        "bytes": {
+          "header": 0.0,
+          "records": 103.328,
+          "instruction": 68.0,
+          "prompt": 171.328,
+          "answer": 18.727
+        },
+        "tokens": {
+          "header": 0.0,
+          "records": 42.484,
+          "instruction": 17.0,
+          "prompt": 59.484,
+          "answer": 11.773
+        },
+        "tokens_per_record": 16.973,
+        "bytes_per_record": 41.209,
+        "identifier_tokens_per_record": 6.0,
+        "identifier_bytes_per_record": 6.0,
+        "identifier_token_fraction_of_records": 0.356,
+        "identifier_byte_fraction_of_records": 0.15,
+        "non_identifier_tokens_per_record": 10.973,
+        "answer": {
+          "n_empty": 58,
+          "n_nonempty": 198,
+          "tokens_mean": 11.773,
+          "tokens_empty_mean": 1.0,
+          "tokens_nonempty_mean": 14.929,
+          "bytes_nonempty_mean": 23.626,
+          "negatives_mean": 1.25
+        }
+      }
+    },
+    "codes": {
+      "description": "current Sylang codes with the 35-byte batch header",
+      "by_k": {
+        "1": {
+          "n_items": 64,
+          "bytes": {
+            "header": 35.0,
+            "records": 11.953,
+            "instruction": 68.0,
+            "prompt": 114.953,
+            "answer": 8.297
+          },
+          "tokens": {
+            "header": 15.0,
+            "records": 9.125,
+            "instruction": 17.0,
+            "prompt": 41.125,
+            "answer": 5.359
+          },
+          "tokens_per_record": 9.125,
+          "bytes_per_record": 11.953,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.66,
+          "identifier_byte_fraction_of_records": 0.504,
+          "non_identifier_tokens_per_record": 3.125,
+          "answer": {
+            "n_empty": 33,
+            "n_nonempty": 31,
+            "tokens_mean": 5.359,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 10.0,
+            "bytes_nonempty_mean": 15.0,
+            "negatives_mean": 0.484
+          }
+        },
+        "2": {
+          "n_items": 64,
+          "bytes": {
+            "header": 35.0,
+            "records": 23.984,
+            "instruction": 68.0,
+            "prompt": 126.984,
+            "answer": 14.781
+          },
+          "tokens": {
+            "header": 15.0,
+            "records": 18.25,
+            "instruction": 17.0,
+            "prompt": 50.25,
+            "answer": 9.531
+          },
+          "tokens_per_record": 9.125,
+          "bytes_per_record": 11.992,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.659,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 3.125,
+          "answer": {
+            "n_empty": 14,
+            "n_nonempty": 50,
+            "tokens_mean": 9.531,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 11.92,
+            "bytes_nonempty_mean": 18.36,
+            "negatives_mean": 0.969
+          }
+        },
+        "3": {
+          "n_items": 64,
+          "bytes": {
+            "header": 35.0,
+            "records": 36.0,
+            "instruction": 68.0,
+            "prompt": 139.0,
+            "answer": 21.906
+          },
+          "tokens": {
+            "header": 15.0,
+            "records": 27.406,
+            "instruction": 17.0,
+            "prompt": 59.406,
+            "answer": 13.75
+          },
+          "tokens_per_record": 9.135,
+          "bytes_per_record": 12.0,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.658,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 3.135,
+          "answer": {
+            "n_empty": 8,
+            "n_nonempty": 56,
+            "tokens_mean": 13.75,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 15.571,
+            "bytes_nonempty_mean": 24.75,
+            "negatives_mean": 1.484
+          }
+        },
+        "4": {
+          "n_items": 64,
+          "bytes": {
+            "header": 35.0,
+            "records": 47.984,
+            "instruction": 68.0,
+            "prompt": 150.984,
+            "answer": 29.922
+          },
+          "tokens": {
+            "header": 15.0,
+            "records": 36.594,
+            "instruction": 17.0,
+            "prompt": 68.594,
+            "answer": 18.453
+          },
+          "tokens_per_record": 9.148,
+          "bytes_per_record": 11.996,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.657,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 3.148,
+          "answer": {
+            "n_empty": 3,
+            "n_nonempty": 61,
+            "tokens_mean": 18.453,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 19.311,
+            "bytes_nonempty_mean": 31.295,
+            "negatives_mean": 2.062
+          }
+        },
+        "5": {
+          "n_items": 64,
+          "bytes": {
+            "header": 35.0,
+            "records": 59.984,
+            "instruction": 68.0,
+            "prompt": 162.984,
+            "answer": 37.109
+          },
+          "tokens": {
+            "header": 15.0,
+            "records": 45.75,
+            "instruction": 17.0,
+            "prompt": 77.75,
+            "answer": 22.609
+          },
+          "tokens_per_record": 9.15,
+          "bytes_per_record": 11.997,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.656,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 3.15,
+          "answer": {
+            "n_empty": 1,
+            "n_nonempty": 63,
+            "tokens_mean": 22.609,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 22.952,
+            "bytes_nonempty_mean": 37.667,
+            "negatives_mean": 2.578
+          }
+        },
+        "6": {
+          "n_items": 64,
+          "bytes": {
+            "header": 35.0,
+            "records": 72.016,
+            "instruction": 68.0,
+            "prompt": 175.016,
+            "answer": 44.109
+          },
+          "tokens": {
+            "header": 15.0,
+            "records": 54.891,
+            "instruction": 17.0,
+            "prompt": 86.891,
+            "answer": 26.609
+          },
+          "tokens_per_record": 9.148,
+          "bytes_per_record": 12.003,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.656,
+          "identifier_byte_fraction_of_records": 0.5,
+          "non_identifier_tokens_per_record": 3.148,
+          "answer": {
+            "n_empty": 1,
+            "n_nonempty": 63,
+            "tokens_mean": 26.609,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 27.016,
+            "bytes_nonempty_mean": 44.778,
+            "negatives_mean": 3.078
+          }
+        },
+        "7": {
+          "n_items": 64,
+          "bytes": {
+            "header": 35.0,
+            "records": 83.906,
+            "instruction": 68.0,
+            "prompt": 186.906,
+            "answer": 51.312
+          },
+          "tokens": {
+            "header": 15.0,
+            "records": 64.0,
+            "instruction": 17.0,
+            "prompt": 96.0,
+            "answer": 30.75
+          },
+          "tokens_per_record": 9.143,
+          "bytes_per_record": 11.987,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.657,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 3.143,
+          "answer": {
+            "n_empty": 0,
+            "n_nonempty": 64,
+            "tokens_mean": 30.75,
+            "tokens_empty_mean": null,
+            "tokens_nonempty_mean": 30.75,
+            "bytes_nonempty_mean": 51.312,
+            "negatives_mean": 3.594
+          }
+        },
+        "8": {
+          "n_items": 64,
+          "bytes": {
+            "header": 35.0,
+            "records": 95.969,
+            "instruction": 68.0,
+            "prompt": 198.969,
+            "answer": 59.188
+          },
+          "tokens": {
+            "header": 15.0,
+            "records": 73.203,
+            "instruction": 17.0,
+            "prompt": 105.203,
+            "answer": 35.25
+          },
+          "tokens_per_record": 9.15,
+          "bytes_per_record": 11.996,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.656,
+          "identifier_byte_fraction_of_records": 0.5,
+          "non_identifier_tokens_per_record": 3.15,
+          "answer": {
+            "n_empty": 0,
+            "n_nonempty": 64,
+            "tokens_mean": 35.25,
+            "tokens_empty_mean": null,
+            "tokens_nonempty_mean": 35.25,
+            "bytes_nonempty_mean": 59.188,
+            "negatives_mean": 4.156
+          }
+        }
+      },
+      "mix_1_8": {
+        "n_items": 512,
+        "bytes": {
+          "header": 35.0,
+          "records": 53.975,
+          "instruction": 68.0,
+          "prompt": 156.975,
+          "answer": 33.328
+        },
+        "tokens": {
+          "header": 15.0,
+          "records": 41.152,
+          "instruction": 17.0,
+          "prompt": 73.152,
+          "answer": 20.289
+        },
+        "tokens_per_record": 9.141,
+        "bytes_per_record": 11.99,
+        "identifier_tokens_per_record": 6.0,
+        "identifier_bytes_per_record": 6.0,
+        "identifier_token_fraction_of_records": 0.657,
+        "identifier_byte_fraction_of_records": 0.501,
+        "non_identifier_tokens_per_record": 3.141,
+        "answer": {
+          "n_empty": 60,
+          "n_nonempty": 452,
+          "tokens_mean": 20.289,
+          "tokens_empty_mean": 1.0,
+          "tokens_nonempty_mean": 22.85,
+          "bytes_nonempty_mean": 37.487,
+          "negatives_mean": 2.301
+        }
+      },
+      "mix_1_4": {
+        "n_items": 256,
+        "bytes": {
+          "header": 35.0,
+          "records": 29.98,
+          "instruction": 68.0,
+          "prompt": 132.98,
+          "answer": 18.727
+        },
+        "tokens": {
+          "header": 15.0,
+          "records": 22.844,
+          "instruction": 17.0,
+          "prompt": 54.844,
+          "answer": 11.773
+        },
+        "tokens_per_record": 9.133,
+        "bytes_per_record": 11.985,
+        "identifier_tokens_per_record": 6.0,
+        "identifier_bytes_per_record": 6.0,
+        "identifier_token_fraction_of_records": 0.658,
+        "identifier_byte_fraction_of_records": 0.502,
+        "non_identifier_tokens_per_record": 3.133,
+        "answer": {
+          "n_empty": 58,
+          "n_nonempty": 198,
+          "tokens_mean": 11.773,
+          "tokens_empty_mean": 1.0,
+          "tokens_nonempty_mean": 14.929,
+          "bytes_nonempty_mean": 23.626,
+          "negatives_mean": 1.25
+        }
+      }
+    },
+    "words": {
+      "description": "Sylang words with the 35-byte batch header",
+      "by_k": {
+        "1": {
+          "n_items": 64,
+          "bytes": {
+            "header": 35.0,
+            "records": 34.031,
+            "instruction": 68.0,
+            "prompt": 137.031,
+            "answer": 8.297
+          },
+          "tokens": {
+            "header": 15.0,
+            "records": 11.078,
+            "instruction": 17.0,
+            "prompt": 43.078,
+            "answer": 5.359
+          },
+          "tokens_per_record": 11.078,
+          "bytes_per_record": 34.031,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.548,
+          "identifier_byte_fraction_of_records": 0.19,
+          "non_identifier_tokens_per_record": 5.078,
+          "answer": {
+            "n_empty": 33,
+            "n_nonempty": 31,
+            "tokens_mean": 5.359,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 10.0,
+            "bytes_nonempty_mean": 15.0,
+            "negatives_mean": 0.484
+          }
+        },
+        "2": {
+          "n_items": 64,
+          "bytes": {
+            "header": 35.0,
+            "records": 68.734,
+            "instruction": 68.0,
+            "prompt": 171.734,
+            "answer": 14.781
+          },
+          "tokens": {
+            "header": 15.0,
+            "records": 22.156,
+            "instruction": 17.0,
+            "prompt": 54.156,
+            "answer": 9.531
+          },
+          "tokens_per_record": 11.078,
+          "bytes_per_record": 34.367,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.544,
+          "identifier_byte_fraction_of_records": 0.179,
+          "non_identifier_tokens_per_record": 5.078,
+          "answer": {
+            "n_empty": 14,
+            "n_nonempty": 50,
+            "tokens_mean": 9.531,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 11.92,
+            "bytes_nonempty_mean": 18.36,
+            "negatives_mean": 0.969
+          }
+        },
+        "3": {
+          "n_items": 64,
+          "bytes": {
+            "header": 35.0,
+            "records": 103.766,
+            "instruction": 68.0,
+            "prompt": 206.766,
+            "answer": 21.906
+          },
+          "tokens": {
+            "header": 15.0,
+            "records": 33.328,
+            "instruction": 17.0,
+            "prompt": 65.328,
+            "answer": 13.75
+          },
+          "tokens_per_record": 11.109,
+          "bytes_per_record": 34.589,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.542,
+          "identifier_byte_fraction_of_records": 0.178,
+          "non_identifier_tokens_per_record": 5.109,
+          "answer": {
+            "n_empty": 8,
+            "n_nonempty": 56,
+            "tokens_mean": 13.75,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 15.571,
+            "bytes_nonempty_mean": 24.75,
+            "negatives_mean": 1.484
+          }
+        },
+        "4": {
+          "n_items": 64,
+          "bytes": {
+            "header": 35.0,
+            "records": 139.141,
+            "instruction": 68.0,
+            "prompt": 242.141,
+            "answer": 29.922
+          },
+          "tokens": {
+            "header": 15.0,
+            "records": 44.422,
+            "instruction": 17.0,
+            "prompt": 76.422,
+            "answer": 18.453
+          },
+          "tokens_per_record": 11.105,
+          "bytes_per_record": 34.785,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.542,
+          "identifier_byte_fraction_of_records": 0.176,
+          "non_identifier_tokens_per_record": 5.105,
+          "answer": {
+            "n_empty": 3,
+            "n_nonempty": 61,
+            "tokens_mean": 18.453,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 19.311,
+            "bytes_nonempty_mean": 31.295,
+            "negatives_mean": 2.062
+          }
+        },
+        "5": {
+          "n_items": 64,
+          "bytes": {
+            "header": 35.0,
+            "records": 173.766,
+            "instruction": 68.0,
+            "prompt": 276.766,
+            "answer": 37.109
+          },
+          "tokens": {
+            "header": 15.0,
+            "records": 55.516,
+            "instruction": 17.0,
+            "prompt": 87.516,
+            "answer": 22.609
+          },
+          "tokens_per_record": 11.103,
+          "bytes_per_record": 34.753,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.542,
+          "identifier_byte_fraction_of_records": 0.175,
+          "non_identifier_tokens_per_record": 5.103,
+          "answer": {
+            "n_empty": 1,
+            "n_nonempty": 63,
+            "tokens_mean": 22.609,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 22.952,
+            "bytes_nonempty_mean": 37.667,
+            "negatives_mean": 2.578
+          }
+        },
+        "6": {
+          "n_items": 64,
+          "bytes": {
+            "header": 35.0,
+            "records": 208.594,
+            "instruction": 68.0,
+            "prompt": 311.594,
+            "answer": 44.109
+          },
+          "tokens": {
+            "header": 15.0,
+            "records": 66.656,
+            "instruction": 17.0,
+            "prompt": 98.656,
+            "answer": 26.609
+          },
+          "tokens_per_record": 11.109,
+          "bytes_per_record": 34.766,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.541,
+          "identifier_byte_fraction_of_records": 0.175,
+          "non_identifier_tokens_per_record": 5.109,
+          "answer": {
+            "n_empty": 1,
+            "n_nonempty": 63,
+            "tokens_mean": 26.609,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 27.016,
+            "bytes_nonempty_mean": 44.778,
+            "negatives_mean": 3.078
+          }
+        },
+        "7": {
+          "n_items": 64,
+          "bytes": {
+            "header": 35.0,
+            "records": 243.391,
+            "instruction": 68.0,
+            "prompt": 346.391,
+            "answer": 51.312
+          },
+          "tokens": {
+            "header": 15.0,
+            "records": 77.734,
+            "instruction": 17.0,
+            "prompt": 109.734,
+            "answer": 30.75
+          },
+          "tokens_per_record": 11.105,
+          "bytes_per_record": 34.77,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.541,
+          "identifier_byte_fraction_of_records": 0.174,
+          "non_identifier_tokens_per_record": 5.105,
+          "answer": {
+            "n_empty": 0,
+            "n_nonempty": 64,
+            "tokens_mean": 30.75,
+            "tokens_empty_mean": null,
+            "tokens_nonempty_mean": 30.75,
+            "bytes_nonempty_mean": 51.312,
+            "negatives_mean": 3.594
+          }
+        },
+        "8": {
+          "n_items": 64,
+          "bytes": {
+            "header": 35.0,
+            "records": 279.172,
+            "instruction": 68.0,
+            "prompt": 382.172,
+            "answer": 59.188
+          },
+          "tokens": {
+            "header": 15.0,
+            "records": 88.984,
+            "instruction": 17.0,
+            "prompt": 120.984,
+            "answer": 35.25
+          },
+          "tokens_per_record": 11.123,
+          "bytes_per_record": 34.896,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.54,
+          "identifier_byte_fraction_of_records": 0.173,
+          "non_identifier_tokens_per_record": 5.123,
+          "answer": {
+            "n_empty": 0,
+            "n_nonempty": 64,
+            "tokens_mean": 35.25,
+            "tokens_empty_mean": null,
+            "tokens_nonempty_mean": 35.25,
+            "bytes_nonempty_mean": 59.188,
+            "negatives_mean": 4.156
+          }
+        }
+      },
+      "mix_1_8": {
+        "n_items": 512,
+        "bytes": {
+          "header": 35.0,
+          "records": 156.324,
+          "instruction": 68.0,
+          "prompt": 259.324,
+          "answer": 33.328
+        },
+        "tokens": {
+          "header": 15.0,
+          "records": 49.984,
+          "instruction": 17.0,
+          "prompt": 81.984,
+          "answer": 20.289
+        },
+        "tokens_per_record": 11.101,
+        "bytes_per_record": 34.62,
+        "identifier_tokens_per_record": 6.0,
+        "identifier_bytes_per_record": 6.0,
+        "identifier_token_fraction_of_records": 0.542,
+        "identifier_byte_fraction_of_records": 0.178,
+        "non_identifier_tokens_per_record": 5.101,
+        "answer": {
+          "n_empty": 60,
+          "n_nonempty": 452,
+          "tokens_mean": 20.289,
+          "tokens_empty_mean": 1.0,
+          "tokens_nonempty_mean": 22.85,
+          "bytes_nonempty_mean": 37.487,
+          "negatives_mean": 2.301
+        }
+      },
+      "mix_1_4": {
+        "n_items": 256,
+        "bytes": {
+          "header": 35.0,
+          "records": 86.418,
+          "instruction": 68.0,
+          "prompt": 189.418,
+          "answer": 18.727
+        },
+        "tokens": {
+          "header": 15.0,
+          "records": 27.746,
+          "instruction": 17.0,
+          "prompt": 59.746,
+          "answer": 11.773
+        },
+        "tokens_per_record": 11.093,
+        "bytes_per_record": 34.443,
+        "identifier_tokens_per_record": 6.0,
+        "identifier_bytes_per_record": 6.0,
+        "identifier_token_fraction_of_records": 0.544,
+        "identifier_byte_fraction_of_records": 0.181,
+        "non_identifier_tokens_per_record": 5.093,
+        "answer": {
+          "n_empty": 58,
+          "n_nonempty": 198,
+          "tokens_mean": 11.773,
+          "tokens_empty_mean": 1.0,
+          "tokens_nonempty_mean": 14.929,
+          "bytes_nonempty_mean": 23.626,
+          "negatives_mean": 1.25
+        }
+      }
+    },
+    "compact_tab": {
+      "description": "codes records subj<TAB>code<TAB>obj, no header",
+      "by_k": {
+        "1": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 11.953,
+            "instruction": 68.0,
+            "prompt": 79.953,
+            "answer": 8.297
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 9.125,
+            "instruction": 17.0,
+            "prompt": 26.125,
+            "answer": 5.359
+          },
+          "tokens_per_record": 9.125,
+          "bytes_per_record": 11.953,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.66,
+          "identifier_byte_fraction_of_records": 0.504,
+          "non_identifier_tokens_per_record": 3.125,
+          "answer": {
+            "n_empty": 33,
+            "n_nonempty": 31,
+            "tokens_mean": 5.359,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 10.0,
+            "bytes_nonempty_mean": 15.0,
+            "negatives_mean": 0.484
+          }
+        },
+        "2": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 23.984,
+            "instruction": 68.0,
+            "prompt": 91.984,
+            "answer": 14.781
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 18.25,
+            "instruction": 17.0,
+            "prompt": 35.25,
+            "answer": 9.531
+          },
+          "tokens_per_record": 9.125,
+          "bytes_per_record": 11.992,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.659,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 3.125,
+          "answer": {
+            "n_empty": 14,
+            "n_nonempty": 50,
+            "tokens_mean": 9.531,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 11.92,
+            "bytes_nonempty_mean": 18.36,
+            "negatives_mean": 0.969
+          }
+        },
+        "3": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 36.0,
+            "instruction": 68.0,
+            "prompt": 104.0,
+            "answer": 21.906
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 27.406,
+            "instruction": 17.0,
+            "prompt": 44.406,
+            "answer": 13.75
+          },
+          "tokens_per_record": 9.135,
+          "bytes_per_record": 12.0,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.658,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 3.135,
+          "answer": {
+            "n_empty": 8,
+            "n_nonempty": 56,
+            "tokens_mean": 13.75,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 15.571,
+            "bytes_nonempty_mean": 24.75,
+            "negatives_mean": 1.484
+          }
+        },
+        "4": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 47.984,
+            "instruction": 68.0,
+            "prompt": 115.984,
+            "answer": 29.922
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 36.594,
+            "instruction": 17.0,
+            "prompt": 53.594,
+            "answer": 18.453
+          },
+          "tokens_per_record": 9.148,
+          "bytes_per_record": 11.996,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.657,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 3.148,
+          "answer": {
+            "n_empty": 3,
+            "n_nonempty": 61,
+            "tokens_mean": 18.453,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 19.311,
+            "bytes_nonempty_mean": 31.295,
+            "negatives_mean": 2.062
+          }
+        },
+        "5": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 59.984,
+            "instruction": 68.0,
+            "prompt": 127.984,
+            "answer": 37.109
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 45.75,
+            "instruction": 17.0,
+            "prompt": 62.75,
+            "answer": 22.609
+          },
+          "tokens_per_record": 9.15,
+          "bytes_per_record": 11.997,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.656,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 3.15,
+          "answer": {
+            "n_empty": 1,
+            "n_nonempty": 63,
+            "tokens_mean": 22.609,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 22.952,
+            "bytes_nonempty_mean": 37.667,
+            "negatives_mean": 2.578
+          }
+        },
+        "6": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 72.016,
+            "instruction": 68.0,
+            "prompt": 140.016,
+            "answer": 44.109
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 54.891,
+            "instruction": 17.0,
+            "prompt": 71.891,
+            "answer": 26.609
+          },
+          "tokens_per_record": 9.148,
+          "bytes_per_record": 12.003,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.656,
+          "identifier_byte_fraction_of_records": 0.5,
+          "non_identifier_tokens_per_record": 3.148,
+          "answer": {
+            "n_empty": 1,
+            "n_nonempty": 63,
+            "tokens_mean": 26.609,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 27.016,
+            "bytes_nonempty_mean": 44.778,
+            "negatives_mean": 3.078
+          }
+        },
+        "7": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 83.906,
+            "instruction": 68.0,
+            "prompt": 151.906,
+            "answer": 51.312
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 64.0,
+            "instruction": 17.0,
+            "prompt": 81.0,
+            "answer": 30.75
+          },
+          "tokens_per_record": 9.143,
+          "bytes_per_record": 11.987,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.657,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 3.143,
+          "answer": {
+            "n_empty": 0,
+            "n_nonempty": 64,
+            "tokens_mean": 30.75,
+            "tokens_empty_mean": null,
+            "tokens_nonempty_mean": 30.75,
+            "bytes_nonempty_mean": 51.312,
+            "negatives_mean": 3.594
+          }
+        },
+        "8": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 95.969,
+            "instruction": 68.0,
+            "prompt": 163.969,
+            "answer": 59.188
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 73.203,
+            "instruction": 17.0,
+            "prompt": 90.203,
+            "answer": 35.25
+          },
+          "tokens_per_record": 9.15,
+          "bytes_per_record": 11.996,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.656,
+          "identifier_byte_fraction_of_records": 0.5,
+          "non_identifier_tokens_per_record": 3.15,
+          "answer": {
+            "n_empty": 0,
+            "n_nonempty": 64,
+            "tokens_mean": 35.25,
+            "tokens_empty_mean": null,
+            "tokens_nonempty_mean": 35.25,
+            "bytes_nonempty_mean": 59.188,
+            "negatives_mean": 4.156
+          }
+        }
+      },
+      "mix_1_8": {
+        "n_items": 512,
+        "bytes": {
+          "header": 0.0,
+          "records": 53.975,
+          "instruction": 68.0,
+          "prompt": 121.975,
+          "answer": 33.328
+        },
+        "tokens": {
+          "header": 0.0,
+          "records": 41.152,
+          "instruction": 17.0,
+          "prompt": 58.152,
+          "answer": 20.289
+        },
+        "tokens_per_record": 9.141,
+        "bytes_per_record": 11.99,
+        "identifier_tokens_per_record": 6.0,
+        "identifier_bytes_per_record": 6.0,
+        "identifier_token_fraction_of_records": 0.657,
+        "identifier_byte_fraction_of_records": 0.501,
+        "non_identifier_tokens_per_record": 3.141,
+        "answer": {
+          "n_empty": 60,
+          "n_nonempty": 452,
+          "tokens_mean": 20.289,
+          "tokens_empty_mean": 1.0,
+          "tokens_nonempty_mean": 22.85,
+          "bytes_nonempty_mean": 37.487,
+          "negatives_mean": 2.301
+        }
+      },
+      "mix_1_4": {
+        "n_items": 256,
+        "bytes": {
+          "header": 0.0,
+          "records": 29.98,
+          "instruction": 68.0,
+          "prompt": 97.98,
+          "answer": 18.727
+        },
+        "tokens": {
+          "header": 0.0,
+          "records": 22.844,
+          "instruction": 17.0,
+          "prompt": 39.844,
+          "answer": 11.773
+        },
+        "tokens_per_record": 9.133,
+        "bytes_per_record": 11.985,
+        "identifier_tokens_per_record": 6.0,
+        "identifier_bytes_per_record": 6.0,
+        "identifier_token_fraction_of_records": 0.658,
+        "identifier_byte_fraction_of_records": 0.502,
+        "non_identifier_tokens_per_record": 3.133,
+        "answer": {
+          "n_empty": 58,
+          "n_nonempty": 198,
+          "tokens_mean": 11.773,
+          "tokens_empty_mean": 1.0,
+          "tokens_nonempty_mean": 14.929,
+          "bytes_nonempty_mean": 23.626,
+          "negatives_mean": 1.25
+        }
+      }
+    },
+    "compact_space": {
+      "description": "codes records \"subj code obj\", no header",
+      "by_k": {
+        "1": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 11.953,
+            "instruction": 68.0,
+            "prompt": 79.953,
+            "answer": 8.297
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 8.875,
+            "instruction": 17.0,
+            "prompt": 25.875,
+            "answer": 5.359
+          },
+          "tokens_per_record": 8.875,
+          "bytes_per_record": 11.953,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.679,
+          "identifier_byte_fraction_of_records": 0.504,
+          "non_identifier_tokens_per_record": 2.875,
+          "answer": {
+            "n_empty": 33,
+            "n_nonempty": 31,
+            "tokens_mean": 5.359,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 10.0,
+            "bytes_nonempty_mean": 15.0,
+            "negatives_mean": 0.484
+          }
+        },
+        "2": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 23.984,
+            "instruction": 68.0,
+            "prompt": 91.984,
+            "answer": 14.781
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 17.812,
+            "instruction": 17.0,
+            "prompt": 34.812,
+            "answer": 9.531
+          },
+          "tokens_per_record": 8.906,
+          "bytes_per_record": 11.992,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.675,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 2.906,
+          "answer": {
+            "n_empty": 14,
+            "n_nonempty": 50,
+            "tokens_mean": 9.531,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 11.92,
+            "bytes_nonempty_mean": 18.36,
+            "negatives_mean": 0.969
+          }
+        },
+        "3": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 36.0,
+            "instruction": 68.0,
+            "prompt": 104.0,
+            "answer": 21.906
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 26.766,
+            "instruction": 17.0,
+            "prompt": 43.766,
+            "answer": 13.75
+          },
+          "tokens_per_record": 8.922,
+          "bytes_per_record": 12.0,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.674,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 2.922,
+          "answer": {
+            "n_empty": 8,
+            "n_nonempty": 56,
+            "tokens_mean": 13.75,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 15.571,
+            "bytes_nonempty_mean": 24.75,
+            "negatives_mean": 1.484
+          }
+        },
+        "4": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 47.984,
+            "instruction": 68.0,
+            "prompt": 115.984,
+            "answer": 29.922
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 35.641,
+            "instruction": 17.0,
+            "prompt": 52.641,
+            "answer": 18.453
+          },
+          "tokens_per_record": 8.91,
+          "bytes_per_record": 11.996,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.674,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 2.91,
+          "answer": {
+            "n_empty": 3,
+            "n_nonempty": 61,
+            "tokens_mean": 18.453,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 19.311,
+            "bytes_nonempty_mean": 31.295,
+            "negatives_mean": 2.062
+          }
+        },
+        "5": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 59.984,
+            "instruction": 68.0,
+            "prompt": 127.984,
+            "answer": 37.109
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 44.531,
+            "instruction": 17.0,
+            "prompt": 61.531,
+            "answer": 22.609
+          },
+          "tokens_per_record": 8.906,
+          "bytes_per_record": 11.997,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.674,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 2.906,
+          "answer": {
+            "n_empty": 1,
+            "n_nonempty": 63,
+            "tokens_mean": 22.609,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 22.952,
+            "bytes_nonempty_mean": 37.667,
+            "negatives_mean": 2.578
+          }
+        },
+        "6": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 72.016,
+            "instruction": 68.0,
+            "prompt": 140.016,
+            "answer": 44.109
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 53.453,
+            "instruction": 17.0,
+            "prompt": 70.453,
+            "answer": 26.609
+          },
+          "tokens_per_record": 8.909,
+          "bytes_per_record": 12.003,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.674,
+          "identifier_byte_fraction_of_records": 0.5,
+          "non_identifier_tokens_per_record": 2.909,
+          "answer": {
+            "n_empty": 1,
+            "n_nonempty": 63,
+            "tokens_mean": 26.609,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 27.016,
+            "bytes_nonempty_mean": 44.778,
+            "negatives_mean": 3.078
+          }
+        },
+        "7": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 83.906,
+            "instruction": 68.0,
+            "prompt": 151.906,
+            "answer": 51.312
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 62.375,
+            "instruction": 17.0,
+            "prompt": 79.375,
+            "answer": 30.75
+          },
+          "tokens_per_record": 8.911,
+          "bytes_per_record": 11.987,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.674,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 2.911,
+          "answer": {
+            "n_empty": 0,
+            "n_nonempty": 64,
+            "tokens_mean": 30.75,
+            "tokens_empty_mean": null,
+            "tokens_nonempty_mean": 30.75,
+            "bytes_nonempty_mean": 51.312,
+            "negatives_mean": 3.594
+          }
+        },
+        "8": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 95.969,
+            "instruction": 68.0,
+            "prompt": 163.969,
+            "answer": 59.188
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 71.344,
+            "instruction": 17.0,
+            "prompt": 88.344,
+            "answer": 35.25
+          },
+          "tokens_per_record": 8.918,
+          "bytes_per_record": 11.996,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.673,
+          "identifier_byte_fraction_of_records": 0.5,
+          "non_identifier_tokens_per_record": 2.918,
+          "answer": {
+            "n_empty": 0,
+            "n_nonempty": 64,
+            "tokens_mean": 35.25,
+            "tokens_empty_mean": null,
+            "tokens_nonempty_mean": 35.25,
+            "bytes_nonempty_mean": 59.188,
+            "negatives_mean": 4.156
+          }
+        }
+      },
+      "mix_1_8": {
+        "n_items": 512,
+        "bytes": {
+          "header": 0.0,
+          "records": 53.975,
+          "instruction": 68.0,
+          "prompt": 121.975,
+          "answer": 33.328
+        },
+        "tokens": {
+          "header": 0.0,
+          "records": 40.1,
+          "instruction": 17.0,
+          "prompt": 57.1,
+          "answer": 20.289
+        },
+        "tokens_per_record": 8.907,
+        "bytes_per_record": 11.99,
+        "identifier_tokens_per_record": 6.0,
+        "identifier_bytes_per_record": 6.0,
+        "identifier_token_fraction_of_records": 0.675,
+        "identifier_byte_fraction_of_records": 0.501,
+        "non_identifier_tokens_per_record": 2.907,
+        "answer": {
+          "n_empty": 60,
+          "n_nonempty": 452,
+          "tokens_mean": 20.289,
+          "tokens_empty_mean": 1.0,
+          "tokens_nonempty_mean": 22.85,
+          "bytes_nonempty_mean": 37.487,
+          "negatives_mean": 2.301
+        }
+      },
+      "mix_1_4": {
+        "n_items": 256,
+        "bytes": {
+          "header": 0.0,
+          "records": 29.98,
+          "instruction": 68.0,
+          "prompt": 97.98,
+          "answer": 18.727
+        },
+        "tokens": {
+          "header": 0.0,
+          "records": 22.273,
+          "instruction": 17.0,
+          "prompt": 39.273,
+          "answer": 11.773
+        },
+        "tokens_per_record": 8.903,
+        "bytes_per_record": 11.985,
+        "identifier_tokens_per_record": 6.0,
+        "identifier_bytes_per_record": 6.0,
+        "identifier_token_fraction_of_records": 0.676,
+        "identifier_byte_fraction_of_records": 0.502,
+        "non_identifier_tokens_per_record": 2.903,
+        "answer": {
+          "n_empty": 58,
+          "n_nonempty": 198,
+          "tokens_mean": 11.773,
+          "tokens_empty_mean": 1.0,
+          "tokens_nonempty_mean": 14.929,
+          "bytes_nonempty_mean": 23.626,
+          "negatives_mean": 1.25
+        }
+      }
+    },
+    "compact_comma": {
+      "description": "codes records \"subj,code,obj\", no header",
+      "by_k": {
+        "1": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 11.953,
+            "instruction": 68.0,
+            "prompt": 79.953,
+            "answer": 8.297
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 9.172,
+            "instruction": 17.0,
+            "prompt": 26.172,
+            "answer": 5.359
+          },
+          "tokens_per_record": 9.172,
+          "bytes_per_record": 11.953,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.657,
+          "identifier_byte_fraction_of_records": 0.504,
+          "non_identifier_tokens_per_record": 3.172,
+          "answer": {
+            "n_empty": 33,
+            "n_nonempty": 31,
+            "tokens_mean": 5.359,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 10.0,
+            "bytes_nonempty_mean": 15.0,
+            "negatives_mean": 0.484
+          }
+        },
+        "2": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 23.984,
+            "instruction": 68.0,
+            "prompt": 91.984,
+            "answer": 14.781
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 18.344,
+            "instruction": 17.0,
+            "prompt": 35.344,
+            "answer": 9.531
+          },
+          "tokens_per_record": 9.172,
+          "bytes_per_record": 11.992,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.655,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 3.172,
+          "answer": {
+            "n_empty": 14,
+            "n_nonempty": 50,
+            "tokens_mean": 9.531,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 11.92,
+            "bytes_nonempty_mean": 18.36,
+            "negatives_mean": 0.969
+          }
+        },
+        "3": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 36.0,
+            "instruction": 68.0,
+            "prompt": 104.0,
+            "answer": 21.906
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 27.641,
+            "instruction": 17.0,
+            "prompt": 44.641,
+            "answer": 13.75
+          },
+          "tokens_per_record": 9.214,
+          "bytes_per_record": 12.0,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.652,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 3.214,
+          "answer": {
+            "n_empty": 8,
+            "n_nonempty": 56,
+            "tokens_mean": 13.75,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 15.571,
+            "bytes_nonempty_mean": 24.75,
+            "negatives_mean": 1.484
+          }
+        },
+        "4": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 47.984,
+            "instruction": 68.0,
+            "prompt": 115.984,
+            "answer": 29.922
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 36.875,
+            "instruction": 17.0,
+            "prompt": 53.875,
+            "answer": 18.453
+          },
+          "tokens_per_record": 9.219,
+          "bytes_per_record": 11.996,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.651,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 3.219,
+          "answer": {
+            "n_empty": 3,
+            "n_nonempty": 61,
+            "tokens_mean": 18.453,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 19.311,
+            "bytes_nonempty_mean": 31.295,
+            "negatives_mean": 2.062
+          }
+        },
+        "5": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 59.984,
+            "instruction": 68.0,
+            "prompt": 127.984,
+            "answer": 37.109
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 46.109,
+            "instruction": 17.0,
+            "prompt": 63.109,
+            "answer": 22.609
+          },
+          "tokens_per_record": 9.222,
+          "bytes_per_record": 11.997,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.651,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 3.222,
+          "answer": {
+            "n_empty": 1,
+            "n_nonempty": 63,
+            "tokens_mean": 22.609,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 22.952,
+            "bytes_nonempty_mean": 37.667,
+            "negatives_mean": 2.578
+          }
+        },
+        "6": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 72.016,
+            "instruction": 68.0,
+            "prompt": 140.016,
+            "answer": 44.109
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 55.375,
+            "instruction": 17.0,
+            "prompt": 72.375,
+            "answer": 26.609
+          },
+          "tokens_per_record": 9.229,
+          "bytes_per_record": 12.003,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.65,
+          "identifier_byte_fraction_of_records": 0.5,
+          "non_identifier_tokens_per_record": 3.229,
+          "answer": {
+            "n_empty": 1,
+            "n_nonempty": 63,
+            "tokens_mean": 26.609,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 27.016,
+            "bytes_nonempty_mean": 44.778,
+            "negatives_mean": 3.078
+          }
+        },
+        "7": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 83.906,
+            "instruction": 68.0,
+            "prompt": 151.906,
+            "answer": 51.312
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 64.578,
+            "instruction": 17.0,
+            "prompt": 81.578,
+            "answer": 30.75
+          },
+          "tokens_per_record": 9.225,
+          "bytes_per_record": 11.987,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.651,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 3.225,
+          "answer": {
+            "n_empty": 0,
+            "n_nonempty": 64,
+            "tokens_mean": 30.75,
+            "tokens_empty_mean": null,
+            "tokens_nonempty_mean": 30.75,
+            "bytes_nonempty_mean": 51.312,
+            "negatives_mean": 3.594
+          }
+        },
+        "8": {
+          "n_items": 64,
+          "bytes": {
+            "header": 0.0,
+            "records": 95.969,
+            "instruction": 68.0,
+            "prompt": 163.969,
+            "answer": 59.188
+          },
+          "tokens": {
+            "header": 0.0,
+            "records": 73.891,
+            "instruction": 17.0,
+            "prompt": 90.891,
+            "answer": 35.25
+          },
+          "tokens_per_record": 9.236,
+          "bytes_per_record": 11.996,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.65,
+          "identifier_byte_fraction_of_records": 0.5,
+          "non_identifier_tokens_per_record": 3.236,
+          "answer": {
+            "n_empty": 0,
+            "n_nonempty": 64,
+            "tokens_mean": 35.25,
+            "tokens_empty_mean": null,
+            "tokens_nonempty_mean": 35.25,
+            "bytes_nonempty_mean": 59.188,
+            "negatives_mean": 4.156
+          }
+        }
+      },
+      "mix_1_8": {
+        "n_items": 512,
+        "bytes": {
+          "header": 0.0,
+          "records": 53.975,
+          "instruction": 68.0,
+          "prompt": 121.975,
+          "answer": 33.328
+        },
+        "tokens": {
+          "header": 0.0,
+          "records": 41.498,
+          "instruction": 17.0,
+          "prompt": 58.498,
+          "answer": 20.289
+        },
+        "tokens_per_record": 9.211,
+        "bytes_per_record": 11.99,
+        "identifier_tokens_per_record": 6.0,
+        "identifier_bytes_per_record": 6.0,
+        "identifier_token_fraction_of_records": 0.652,
+        "identifier_byte_fraction_of_records": 0.501,
+        "non_identifier_tokens_per_record": 3.211,
+        "answer": {
+          "n_empty": 60,
+          "n_nonempty": 452,
+          "tokens_mean": 20.289,
+          "tokens_empty_mean": 1.0,
+          "tokens_nonempty_mean": 22.85,
+          "bytes_nonempty_mean": 37.487,
+          "negatives_mean": 2.301
+        }
+      },
+      "mix_1_4": {
+        "n_items": 256,
+        "bytes": {
+          "header": 0.0,
+          "records": 29.98,
+          "instruction": 68.0,
+          "prompt": 97.98,
+          "answer": 18.727
+        },
+        "tokens": {
+          "header": 0.0,
+          "records": 23.008,
+          "instruction": 17.0,
+          "prompt": 40.008,
+          "answer": 11.773
+        },
+        "tokens_per_record": 9.194,
+        "bytes_per_record": 11.985,
+        "identifier_tokens_per_record": 6.0,
+        "identifier_bytes_per_record": 6.0,
+        "identifier_token_fraction_of_records": 0.654,
+        "identifier_byte_fraction_of_records": 0.502,
+        "non_identifier_tokens_per_record": 3.194,
+        "answer": {
+          "n_empty": 58,
+          "n_nonempty": 198,
+          "tokens_mean": 11.773,
+          "tokens_empty_mean": 1.0,
+          "tokens_nonempty_mean": 14.929,
+          "bytes_nonempty_mean": 23.626,
+          "negatives_mean": 1.25
+        }
+      }
+    },
+    "compact_count": {
+      "description": "codes tab records with a one-line header holding only the record count",
+      "by_k": {
+        "1": {
+          "n_items": 64,
+          "bytes": {
+            "header": 2.0,
+            "records": 11.953,
+            "instruction": 68.0,
+            "prompt": 81.953,
+            "answer": 8.297
+          },
+          "tokens": {
+            "header": 2.0,
+            "records": 9.125,
+            "instruction": 17.0,
+            "prompt": 28.125,
+            "answer": 5.359
+          },
+          "tokens_per_record": 9.125,
+          "bytes_per_record": 11.953,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.66,
+          "identifier_byte_fraction_of_records": 0.504,
+          "non_identifier_tokens_per_record": 3.125,
+          "answer": {
+            "n_empty": 33,
+            "n_nonempty": 31,
+            "tokens_mean": 5.359,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 10.0,
+            "bytes_nonempty_mean": 15.0,
+            "negatives_mean": 0.484
+          }
+        },
+        "2": {
+          "n_items": 64,
+          "bytes": {
+            "header": 2.0,
+            "records": 23.984,
+            "instruction": 68.0,
+            "prompt": 93.984,
+            "answer": 14.781
+          },
+          "tokens": {
+            "header": 2.0,
+            "records": 18.25,
+            "instruction": 17.0,
+            "prompt": 37.25,
+            "answer": 9.531
+          },
+          "tokens_per_record": 9.125,
+          "bytes_per_record": 11.992,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.659,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 3.125,
+          "answer": {
+            "n_empty": 14,
+            "n_nonempty": 50,
+            "tokens_mean": 9.531,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 11.92,
+            "bytes_nonempty_mean": 18.36,
+            "negatives_mean": 0.969
+          }
+        },
+        "3": {
+          "n_items": 64,
+          "bytes": {
+            "header": 2.0,
+            "records": 36.0,
+            "instruction": 68.0,
+            "prompt": 106.0,
+            "answer": 21.906
+          },
+          "tokens": {
+            "header": 2.0,
+            "records": 27.406,
+            "instruction": 17.0,
+            "prompt": 46.406,
+            "answer": 13.75
+          },
+          "tokens_per_record": 9.135,
+          "bytes_per_record": 12.0,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.658,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 3.135,
+          "answer": {
+            "n_empty": 8,
+            "n_nonempty": 56,
+            "tokens_mean": 13.75,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 15.571,
+            "bytes_nonempty_mean": 24.75,
+            "negatives_mean": 1.484
+          }
+        },
+        "4": {
+          "n_items": 64,
+          "bytes": {
+            "header": 2.0,
+            "records": 47.984,
+            "instruction": 68.0,
+            "prompt": 117.984,
+            "answer": 29.922
+          },
+          "tokens": {
+            "header": 2.0,
+            "records": 36.594,
+            "instruction": 17.0,
+            "prompt": 55.594,
+            "answer": 18.453
+          },
+          "tokens_per_record": 9.148,
+          "bytes_per_record": 11.996,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.657,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 3.148,
+          "answer": {
+            "n_empty": 3,
+            "n_nonempty": 61,
+            "tokens_mean": 18.453,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 19.311,
+            "bytes_nonempty_mean": 31.295,
+            "negatives_mean": 2.062
+          }
+        },
+        "5": {
+          "n_items": 64,
+          "bytes": {
+            "header": 2.0,
+            "records": 59.984,
+            "instruction": 68.0,
+            "prompt": 129.984,
+            "answer": 37.109
+          },
+          "tokens": {
+            "header": 2.0,
+            "records": 45.75,
+            "instruction": 17.0,
+            "prompt": 64.75,
+            "answer": 22.609
+          },
+          "tokens_per_record": 9.15,
+          "bytes_per_record": 11.997,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.656,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 3.15,
+          "answer": {
+            "n_empty": 1,
+            "n_nonempty": 63,
+            "tokens_mean": 22.609,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 22.952,
+            "bytes_nonempty_mean": 37.667,
+            "negatives_mean": 2.578
+          }
+        },
+        "6": {
+          "n_items": 64,
+          "bytes": {
+            "header": 2.0,
+            "records": 72.016,
+            "instruction": 68.0,
+            "prompt": 142.016,
+            "answer": 44.109
+          },
+          "tokens": {
+            "header": 2.0,
+            "records": 54.891,
+            "instruction": 17.0,
+            "prompt": 73.891,
+            "answer": 26.609
+          },
+          "tokens_per_record": 9.148,
+          "bytes_per_record": 12.003,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.656,
+          "identifier_byte_fraction_of_records": 0.5,
+          "non_identifier_tokens_per_record": 3.148,
+          "answer": {
+            "n_empty": 1,
+            "n_nonempty": 63,
+            "tokens_mean": 26.609,
+            "tokens_empty_mean": 1.0,
+            "tokens_nonempty_mean": 27.016,
+            "bytes_nonempty_mean": 44.778,
+            "negatives_mean": 3.078
+          }
+        },
+        "7": {
+          "n_items": 64,
+          "bytes": {
+            "header": 2.0,
+            "records": 83.906,
+            "instruction": 68.0,
+            "prompt": 153.906,
+            "answer": 51.312
+          },
+          "tokens": {
+            "header": 2.0,
+            "records": 64.0,
+            "instruction": 17.0,
+            "prompt": 83.0,
+            "answer": 30.75
+          },
+          "tokens_per_record": 9.143,
+          "bytes_per_record": 11.987,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.657,
+          "identifier_byte_fraction_of_records": 0.501,
+          "non_identifier_tokens_per_record": 3.143,
+          "answer": {
+            "n_empty": 0,
+            "n_nonempty": 64,
+            "tokens_mean": 30.75,
+            "tokens_empty_mean": null,
+            "tokens_nonempty_mean": 30.75,
+            "bytes_nonempty_mean": 51.312,
+            "negatives_mean": 3.594
+          }
+        },
+        "8": {
+          "n_items": 64,
+          "bytes": {
+            "header": 2.0,
+            "records": 95.969,
+            "instruction": 68.0,
+            "prompt": 165.969,
+            "answer": 59.188
+          },
+          "tokens": {
+            "header": 2.0,
+            "records": 73.203,
+            "instruction": 17.0,
+            "prompt": 92.203,
+            "answer": 35.25
+          },
+          "tokens_per_record": 9.15,
+          "bytes_per_record": 11.996,
+          "identifier_tokens_per_record": 6.0,
+          "identifier_bytes_per_record": 6.0,
+          "identifier_token_fraction_of_records": 0.656,
+          "identifier_byte_fraction_of_records": 0.5,
+          "non_identifier_tokens_per_record": 3.15,
+          "answer": {
+            "n_empty": 0,
+            "n_nonempty": 64,
+            "tokens_mean": 35.25,
+            "tokens_empty_mean": null,
+            "tokens_nonempty_mean": 35.25,
+            "bytes_nonempty_mean": 59.188,
+            "negatives_mean": 4.156
+          }
+        }
+      },
+      "mix_1_8": {
+        "n_items": 512,
+        "bytes": {
+          "header": 2.0,
+          "records": 53.975,
+          "instruction": 68.0,
+          "prompt": 123.975,
+          "answer": 33.328
+        },
+        "tokens": {
+          "header": 2.0,
+          "records": 41.152,
+          "instruction": 17.0,
+          "prompt": 60.152,
+          "answer": 20.289
+        },
+        "tokens_per_record": 9.141,
+        "bytes_per_record": 11.99,
+        "identifier_tokens_per_record": 6.0,
+        "identifier_bytes_per_record": 6.0,
+        "identifier_token_fraction_of_records": 0.657,
+        "identifier_byte_fraction_of_records": 0.501,
+        "non_identifier_tokens_per_record": 3.141,
+        "answer": {
+          "n_empty": 60,
+          "n_nonempty": 452,
+          "tokens_mean": 20.289,
+          "tokens_empty_mean": 1.0,
+          "tokens_nonempty_mean": 22.85,
+          "bytes_nonempty_mean": 37.487,
+          "negatives_mean": 2.301
+        }
+      },
+      "mix_1_4": {
+        "n_items": 256,
+        "bytes": {
+          "header": 2.0,
+          "records": 29.98,
+          "instruction": 68.0,
+          "prompt": 99.98,
+          "answer": 18.727
+        },
+        "tokens": {
+          "header": 2.0,
+          "records": 22.844,
+          "instruction": 17.0,
+          "prompt": 41.844,
+          "answer": 11.773
+        },
+        "tokens_per_record": 9.133,
+        "bytes_per_record": 11.985,
+        "identifier_tokens_per_record": 6.0,
+        "identifier_bytes_per_record": 6.0,
+        "identifier_token_fraction_of_records": 0.658,
+        "identifier_byte_fraction_of_records": 0.502,
+        "non_identifier_tokens_per_record": 3.133,
+        "answer": {
+          "n_empty": 58,
+          "n_nonempty": 198,
+          "tokens_mean": 11.773,
+          "tokens_empty_mean": 1.0,
+          "tokens_nonempty_mean": 14.929,
+          "bytes_nonempty_mean": 23.626,
+          "negatives_mean": 1.25
+        }
+      }
+    }
+  },
+  "break_even_vs_english_natural": {
+    "codes": {
+      "tokens": {
+        "first_k_cheaper": 2,
+        "cheaper_at_every_k": false,
+        "linear_fit": {
+          "reference_a_b": [
+            17.103,
+            16.937
+          ],
+          "arm_a_b": [
+            31.961,
+            9.154
+          ],
+          "break_even_k": 1.909
+        },
+        "margin_by_k_reference_minus_arm": {
+          "1": -7.25,
+          "2": 0.766,
+          "3": 8.563,
+          "4": 16.484,
+          "5": 24.031,
+          "6": 31.843,
+          "7": 39.422,
+          "8": 47.485
+        }
+      },
+      "bytes": {
+        "first_k_cheaper": 2,
+        "cheaper_at_every_k": false,
+        "linear_fit": {
+          "reference_a_b": [
+            68.523,
+            41.007
+          ],
+          "arm_a_b": [
+            102.987,
+            11.997
+          ],
+          "break_even_k": 1.188
+        },
+        "margin_by_k_reference_minus_arm": {
+          "1": -6.297,
+          "2": 23.719,
+          "3": 53.078,
+          "4": 82.891,
+          "5": 110.172,
+          "6": 139.375,
+          "7": 167.375,
+          "8": 198.328
+        }
+      }
+    },
+    "words": {
+      "tokens": {
+        "first_k_cheaper": 3,
+        "cheaper_at_every_k": false,
+        "linear_fit": {
+          "reference_a_b": [
+            17.103,
+            16.937
+          ],
+          "arm_a_b": [
+            31.932,
+            11.123
+          ],
+          "break_even_k": 2.55
+        },
+        "margin_by_k_reference_minus_arm": {
+          "1": -9.203,
+          "2": -3.14,
+          "3": 2.641,
+          "4": 8.656,
+          "5": 14.265,
+          "6": 20.078,
+          "7": 25.688,
+          "8": 31.704
+        }
+      },
+      "bytes": {
+        "first_k_cheaper": 6,
+        "cheaper_at_every_k": false,
+        "linear_fit": {
+          "reference_a_b": [
+            68.523,
+            41.007
+          ],
+          "arm_a_b": [
+            101.911,
+            34.981
+          ],
+          "break_even_k": 5.54
+        },
+        "margin_by_k_reference_minus_arm": {
+          "1": -28.375,
+          "2": -21.031,
+          "3": -14.688,
+          "4": -8.266,
+          "5": -3.61,
+          "6": 2.797,
+          "7": 7.89,
+          "8": 15.125
+        }
+      }
+    },
+    "compact_tab": {
+      "tokens": {
+        "first_k_cheaper": 1,
+        "cheaper_at_every_k": true,
+        "linear_fit": {
+          "reference_a_b": [
+            17.103,
+            16.937
+          ],
+          "arm_a_b": [
+            16.961,
+            9.154
+          ],
+          "break_even_k": -0.018
+        },
+        "margin_by_k_reference_minus_arm": {
+          "1": 7.75,
+          "2": 15.766,
+          "3": 23.563,
+          "4": 31.484,
+          "5": 39.031,
+          "6": 46.843,
+          "7": 54.422,
+          "8": 62.485
+        }
+      },
+      "bytes": {
+        "first_k_cheaper": 1,
+        "cheaper_at_every_k": true,
+        "linear_fit": {
+          "reference_a_b": [
+            68.523,
+            41.007
+          ],
+          "arm_a_b": [
+            67.987,
+            11.997
+          ],
+          "break_even_k": -0.018
+        },
+        "margin_by_k_reference_minus_arm": {
+          "1": 28.703,
+          "2": 58.719,
+          "3": 88.078,
+          "4": 117.891,
+          "5": 145.172,
+          "6": 174.375,
+          "7": 202.375,
+          "8": 233.328
+        }
+      }
+    },
+    "compact_space": {
+      "tokens": {
+        "first_k_cheaper": 1,
+        "cheaper_at_every_k": true,
+        "linear_fit": {
+          "reference_a_b": [
+            17.103,
+            16.937
+          ],
+          "arm_a_b": [
+            16.972,
+            8.917
+          ],
+          "break_even_k": -0.016
+        },
+        "margin_by_k_reference_minus_arm": {
+          "1": 8.0,
+          "2": 16.204,
+          "3": 24.203,
+          "4": 32.437,
+          "5": 40.25,
+          "6": 48.281,
+          "7": 56.047,
+          "8": 64.344
+        }
+      },
+      "bytes": {
+        "first_k_cheaper": 1,
+        "cheaper_at_every_k": true,
+        "linear_fit": {
+          "reference_a_b": [
+            68.523,
+            41.007
+          ],
+          "arm_a_b": [
+            67.987,
+            11.997
+          ],
+          "break_even_k": -0.018
+        },
+        "margin_by_k_reference_minus_arm": {
+          "1": 28.703,
+          "2": 58.719,
+          "3": 88.078,
+          "4": 117.891,
+          "5": 145.172,
+          "6": 174.375,
+          "7": 202.375,
+          "8": 233.328
+        }
+      }
+    },
+    "compact_comma": {
+      "tokens": {
+        "first_k_cheaper": 1,
+        "cheaper_at_every_k": true,
+        "linear_fit": {
+          "reference_a_b": [
+            17.103,
+            16.937
+          ],
+          "arm_a_b": [
+            16.892,
+            9.246
+          ],
+          "break_even_k": -0.027
+        },
+        "margin_by_k_reference_minus_arm": {
+          "1": 7.703,
+          "2": 15.672,
+          "3": 23.328,
+          "4": 31.203,
+          "5": 38.672,
+          "6": 46.359,
+          "7": 53.844,
+          "8": 61.797
+        }
+      },
+      "bytes": {
+        "first_k_cheaper": 1,
+        "cheaper_at_every_k": true,
+        "linear_fit": {
+          "reference_a_b": [
+            68.523,
+            41.007
+          ],
+          "arm_a_b": [
+            67.987,
+            11.997
+          ],
+          "break_even_k": -0.018
+        },
+        "margin_by_k_reference_minus_arm": {
+          "1": 28.703,
+          "2": 58.719,
+          "3": 88.078,
+          "4": 117.891,
+          "5": 145.172,
+          "6": 174.375,
+          "7": 202.375,
+          "8": 233.328
+        }
+      }
+    },
+    "compact_count": {
+      "tokens": {
+        "first_k_cheaper": 1,
+        "cheaper_at_every_k": true,
+        "linear_fit": {
+          "reference_a_b": [
+            17.103,
+            16.937
+          ],
+          "arm_a_b": [
+            18.961,
+            9.154
+          ],
+          "break_even_k": 0.239
+        },
+        "margin_by_k_reference_minus_arm": {
+          "1": 5.75,
+          "2": 13.766,
+          "3": 21.563,
+          "4": 29.484,
+          "5": 37.031,
+          "6": 44.843,
+          "7": 52.422,
+          "8": 60.485
+        }
+      },
+      "bytes": {
+        "first_k_cheaper": 1,
+        "cheaper_at_every_k": true,
+        "linear_fit": {
+          "reference_a_b": [
+            68.523,
+            41.007
+          ],
+          "arm_a_b": [
+            69.987,
+            11.997
+          ],
+          "break_even_k": 0.05
+        },
+        "margin_by_k_reference_minus_arm": {
+          "1": 26.703,
+          "2": 56.719,
+          "3": 86.078,
+          "4": 115.891,
+          "5": 143.172,
+          "6": 172.375,
+          "7": 200.375,
+          "8": 231.328
+        }
+      }
+    }
+  },
+  "notes": {
+    "lean_answer_format": {
+      "format": "space-separated 'subj obj' pairs on one line, e.g. 'h0z r5f' per negative record",
+      "example_tokens": 6,
+      "tokens_per_negative_record_mean": 6.0,
+      "bytes_per_negative_record_mean": 7.457,
+      "json_tokens_per_negative_record_mean": 9.085,
+      "json_bytes_per_negative_record_mean": 14.543,
+      "json_empty_answer_tokens": 1,
+      "json_empty_answer_bytes": 2,
+      "single_identifier_tokens": 3,
+      "n_nonempty_items": 452,
+      "used_elsewhere": false
+    },
+    "section_check": {
+      "n_prompts": 3584,
+      "standalone_vs_offset_mismatches": 0
+    },
+    "gemma3": "Gemma 3 tokenizer is gated on the Hub and was unavailable; only Qwen 3 is counted.",
+    "content": "aggregate numbers only; synthetic identifiers are not stored"
+  }
+}

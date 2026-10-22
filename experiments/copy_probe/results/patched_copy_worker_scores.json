@@ -1,0 +1,10 @@
+{
+  "summary": "Patched COPY worker (fresh initialisation), 192 updates x 4 rows, scored by the packet gate.",
+  "held_out_copy_exact": "12/12",
+  "held_out_bytes_correct": "36/36",
+  "held_out_none_exact": "12/12",
+  "seen_copy_exact": "12/12",
+  "contrasts_passed": "10/10",
+  "strict_gate": true,
+  "note": "Aggregates only, in this file's own format. The packet scorer's record, its per-contrast rows, case names and identifiers are not published."
+}
