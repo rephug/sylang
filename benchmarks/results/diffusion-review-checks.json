@@ -1,0 +1,379 @@
+{
+  "schema": "sylang-diffusion-review-checks-v1",
+  "tokenizer": "qwen3",
+  "methodology": {
+    "model_training": false,
+    "neural_inference": false,
+    "rounds": "Exact expectations for named idealized samplers on the fixed public canvas; not inference steps or latency. Threshold rounds are means over valid outputs only.",
+    "version_tag": "Only the codec's mandatory prefixes 'Sylang core-v0.1: ' and 'M0.1:' are removed; bodies are retokenized.",
+    "concise_english": "Labels unquoted, version tag removed, unspecified evidence unmarked, other evidence as Directly/Reportedly/Presumably. Injective on this world only; not a codec."
+  },
+  "version_tag_split": {
+    "independent_864": {
+      "records": 864,
+      "tokens": {
+        "english": {
+          "with_tag": 18240,
+          "without_tag": 10464
+        },
+        "m": {
+          "with_tag": 14688,
+          "without_tag": 11232
+        }
+      },
+      "m_over_english_with_tag": 0.8052631578947368,
+      "m_over_english_without_tag": 1.073394495412844
+    },
+    "smoke_suite_33": {
+      "records": 33,
+      "tokens": {
+        "english": {
+          "with_tag": 1166,
+          "without_tag": 869
+        },
+        "m": {
+          "with_tag": 1030,
+          "without_tag": 898
+        }
+      },
+      "m_over_english_with_tag": 0.8833619210977701,
+      "m_over_english_without_tag": 1.0333716915995397
+    }
+  },
+  "baseline_lengths_independent_864": {
+    "english_codec": {
+      "mean_tokens": 21.11111111111111,
+      "min_tokens": 19,
+      "max_tokens": 23
+    },
+    "english_body_without_version_tag": {
+      "mean_tokens": 12.11111111111111,
+      "min_tokens": 10,
+      "max_tokens": 14
+    },
+    "english_concise": {
+      "mean_tokens": 7.861111111111111,
+      "min_tokens": 4,
+      "max_tokens": 10
+    },
+    "json_named_codec": {
+      "mean_tokens": 46.833333333333336,
+      "min_tokens": 46,
+      "max_tokens": 48
+    },
+    "json_tuple_words": {
+      "mean_tokens": 15.833333333333334,
+      "min_tokens": 15,
+      "max_tokens": 17
+    },
+    "json_tuple_m_codes": {
+      "mean_tokens": 14.5,
+      "min_tokens": 14,
+      "max_tokens": 15
+    },
+    "m_codec": {
+      "mean_tokens": 17.0,
+      "min_tokens": 17,
+      "max_tokens": 17
+    },
+    "m_body_without_version_tag": {
+      "mean_tokens": 13.0,
+      "min_tokens": 13,
+      "max_tokens": 13
+    }
+  },
+  "label_sensitivity_fixed_canvas": {
+    "A/B": {
+      "english": {
+        "mean_tokens": 21.11111111111111,
+        "forward": {
+          "mean": 4.694444444444445,
+          "worst": 6
+        },
+        "reverse": {
+          "mean": 6.0,
+          "worst": 8
+        },
+        "one_round_valid_support": 2.2043297543777237e-05
+      },
+      "json": {
+        "mean_tokens": 46.833333333333336,
+        "forward": {
+          "mean": 3.0,
+          "worst": 3
+        },
+        "reverse": {
+          "mean": 3.5,
+          "worst": 4
+        },
+        "one_round_valid_support": 0.007211172077427289
+      },
+      "m": {
+        "mean_tokens": 17.0,
+        "forward": {
+          "mean": 1.0,
+          "worst": 1
+        },
+        "reverse": {
+          "mean": 1.0,
+          "worst": 1
+        },
+        "one_round_valid_support": 1.0
+      }
+    },
+    "Priya/Fatima": {
+      "english": {
+        "mean_tokens": 23.11111111111111,
+        "forward": {
+          "mean": 5.694444444444445,
+          "worst": 7
+        },
+        "reverse": {
+          "mean": 6.5,
+          "worst": 8
+        },
+        "one_round_valid_support": 1.032213749231871e-06
+      },
+      "json": {
+        "mean_tokens": 48.833333333333336,
+        "forward": {
+          "mean": 3.0,
+          "worst": 3
+        },
+        "reverse": {
+          "mean": 3.5,
+          "worst": 4
+        },
+        "one_round_valid_support": 0.0018027930193568235
+      },
+      "m": {
+        "mean_tokens": 19.0,
+        "forward": {
+          "mean": 2.0,
+          "worst": 2
+        },
+        "reverse": {
+          "mean": 2.0,
+          "worst": 2
+        },
+        "one_round_valid_support": 0.2500000000000015
+      }
+    },
+    "Priya/Xiomara": {
+      "english": {
+        "mean_tokens": 24.11111111111111,
+        "forward": {
+          "mean": 6.694444444444445,
+          "worst": 8
+        },
+        "reverse": {
+          "mean": 8.75462962962963,
+          "worst": 12
+        },
+        "one_round_valid_support": 6.026894839287568e-08
+      },
+      "json": {
+        "mean_tokens": 49.833333333333336,
+        "forward": {
+          "mean": 5.0,
+          "worst": 5
+        },
+        "reverse": {
+          "mean": 6.25,
+          "worst": 8
+        },
+        "one_round_valid_support": 2.678543631778618e-12
+      },
+      "m": {
+        "mean_tokens": 20.0,
+        "forward": {
+          "mean": 3.0,
+          "worst": 3
+        },
+        "reverse": {
+          "mean": 3.25,
+          "worst": 4
+        },
+        "one_round_valid_support": 1.7315149307251132e-05
+      }
+    }
+  },
+  "drop_one_meaning_fixed_canvas": {
+    "meanings": 863,
+    "total_correlation_bits": 0.0016591258619058635,
+    "m": {
+      "forward": {
+        "mean": 2.8006952491309387,
+        "worst": 7
+      },
+      "reverse": {
+        "mean": 2.376593279258401,
+        "worst": 7
+      },
+      "one_round_valid_support": 0.9988585933707375
+    }
+  },
+  "confidence_threshold_sampler_fixed_canvas": {
+    "independent_864": {
+      "tau_0.5": {
+        "english": {
+          "tau": 0.5,
+          "valid_mass": 0.018873472783210523,
+          "mean_rounds_given_valid": 3.872473712523382,
+          "worst_rounds": 5
+        },
+        "json": {
+          "tau": 0.5,
+          "valid_mass": 0.10150891632373109,
+          "mean_rounds_given_valid": 3.996621621621622,
+          "worst_rounds": 4
+        },
+        "m": {
+          "tau": 0.5,
+          "valid_mass": 1.00000000000001,
+          "mean_rounds_given_valid": 5.0,
+          "worst_rounds": 5
+        }
+      },
+      "tau_0.7": {
+        "english": {
+          "tau": 0.7,
+          "valid_mass": 0.7640321819315896,
+          "mean_rounds_given_valid": 7.437883543451942,
+          "worst_rounds": 10
+        },
+        "json": {
+          "tau": 0.7,
+          "valid_mass": 0.5093333333333321,
+          "mean_rounds_given_valid": 8.678010471204184,
+          "worst_rounds": 10
+        },
+        "m": {
+          "tau": 0.7,
+          "valid_mass": 1.00000000000001,
+          "mean_rounds_given_valid": 7.0,
+          "worst_rounds": 7
+        }
+      },
+      "tau_0.9": {
+        "english": {
+          "tau": 0.9,
+          "valid_mass": 0.9999999999999997,
+          "mean_rounds_given_valid": 8.694444444444445,
+          "worst_rounds": 11
+        },
+        "json": {
+          "tau": 0.9,
+          "valid_mass": 0.9999999999999989,
+          "mean_rounds_given_valid": 8.833333333333332,
+          "worst_rounds": 10
+        },
+        "m": {
+          "tau": 0.9,
+          "valid_mass": 1.00000000000001,
+          "mean_rounds_given_valid": 7.0,
+          "worst_rounds": 7
+        }
+      }
+    },
+    "correlated_18": {
+      "tau_0.5": {
+        "english": {
+          "tau": 0.5,
+          "valid_mass": 0.046656337806666205,
+          "mean_rounds_given_valid": 2.1728276920366,
+          "worst_rounds": 3
+        },
+        "json": {
+          "tau": 0.5,
+          "valid_mass": 0.04486739826246,
+          "mean_rounds_given_valid": 2.0,
+          "worst_rounds": 2
+        },
+        "m": {
+          "tau": 0.5,
+          "valid_mass": 0.5000000000000001,
+          "mean_rounds_given_valid": 3.5,
+          "worst_rounds": 4
+        }
+      },
+      "tau_0.7": {
+        "english": {
+          "tau": 0.7,
+          "valid_mass": 0.5177606107093286,
+          "mean_rounds_given_valid": 5.697509744096224,
+          "worst_rounds": 8
+        },
+        "json": {
+          "tau": 0.7,
+          "valid_mass": 0.5093333333333333,
+          "mean_rounds_given_valid": 5.679755671902269,
+          "worst_rounds": 7
+        },
+        "m": {
+          "tau": 0.7,
+          "valid_mass": 1.0000000000000002,
+          "mean_rounds_given_valid": 4.666666666666667,
+          "worst_rounds": 5
+        }
+      },
+      "tau_0.9": {
+        "english": {
+          "tau": 0.9,
+          "valid_mass": 0.9999999999999999,
+          "mean_rounds_given_valid": 6.5,
+          "worst_rounds": 9
+        },
+        "json": {
+          "tau": 0.9,
+          "valid_mass": 1.0000000000000002,
+          "mean_rounds_given_valid": 5.833333333333333,
+          "worst_rounds": 7
+        },
+        "m": {
+          "tau": 0.9,
+          "valid_mass": 1.0000000000000002,
+          "mean_rounds_given_valid": 4.666666666666667,
+          "worst_rounds": 5
+        }
+      }
+    }
+  },
+  "max_uncertain_token_marginals_independent_864": {
+    "english": [
+      0.9444444444444444,
+      0.75,
+      0.6388888888888888
+    ],
+    "json": [
+      0.8333333333333334,
+      0.6666666666666666,
+      0.5
+    ],
+    "m": [
+      0.5,
+      0.3333333333333333,
+      0.25
+    ]
+  },
+  "single_token_substitutions_independent_864": {
+    "english": {
+      "substitutions": 25128,
+      "silent_valid_other_meaning": 4848,
+      "detectable_invalid": 20280,
+      "detectable_fraction": 0.8070678127984718
+    },
+    "json": {
+      "substitutions": 11664,
+      "silent_valid_other_meaning": 7056,
+      "detectable_invalid": 4608,
+      "detectable_fraction": 0.3950617283950617
+    },
+    "m": {
+      "substitutions": 10368,
+      "silent_valid_other_meaning": 10368,
+      "detectable_invalid": 0,
+      "detectable_fraction": 0.0
+    }
+  }
+}
