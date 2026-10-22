@@ -5,6 +5,7 @@
  "data_version": "v1",
  "dev_eval_examples": 200,
  "epochs": 2,
+ "grad_accum": 1,
  "lr": 0.0002,
  "max_length": 1024,
  "model": null,

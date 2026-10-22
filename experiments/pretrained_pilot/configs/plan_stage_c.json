@@ -281,7 +281,7 @@
    "train_size": 2000
   }
  ],
- "description": "Stage C: seeds 1 and 2 of every arm at 2,000 cases (seed 0 comes from stage B), and the bare answer format for english and sylang2 at seeds 0-2; zero-shot baselines for the bare format.",
+ "description": "Stage C: seeds 1 and 2 of every arm at 2,000 cases and 2 epochs (seed 0 comes from stage B), and the bare answer format for english and sylang2 at seeds 0-2; zero-shot baselines for the bare format.",
  "format": "cells[]: one training cell each: train_cases (nested prefix of the seed stream), train_examples (= train_cases x 2 tasks), epochs, batch_size, optimizer_steps, dev_evals (= epochs; one dev generation pass per epoch end), dev_eval_items, eval_items (two tasks x 1,000 test cases), timeout_minutes, optional (true: run only when STAGE_B_CURVES=1). zero_shot[]: generation-only baselines of eval_items each. totals: sums over the required cells; totals_with_optional: over every cell.",
  "stage": "C",
  "tasks": [

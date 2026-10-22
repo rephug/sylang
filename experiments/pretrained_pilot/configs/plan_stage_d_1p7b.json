@@ -1,6 +1,4 @@
 {
- "stage": "D-1.7B",
- "description": "Qwen3-1.7B extension, run only under the capacity trigger of contract.md: sylang2 and json x seeds 0-2 x 2,000 cases, same recipe as stage C. Project it with profile_gpu.py --plan stage_d_1p7b=plan_stage_d_1p7b.json after profiling the 1.7B weights.",
  "cells": [
   {
    "answer_format": "json",
@@ -123,28 +121,46 @@
    "train_size": 2000
   }
  ],
- "zero_shot": [
-  {
-   "name": "zeroshot_1p7b_sylang2_json",
-   "config": "configs/stage_d_1p7b_sylang2_s0_n2000.json",
-   "arm": "sylang2",
-   "answer_format": "json",
-   "adapter": "none",
-   "eval_items": 2000
-  },
-  {
-   "name": "zeroshot_1p7b_json_json",
-   "config": "configs/stage_d_1p7b_json_s0_n2000.json",
-   "arm": "json",
-   "answer_format": "json",
-   "adapter": "none",
-   "eval_items": 2000
-  }
+ "description": "Qwen3-1.7B extension, run only under the capacity trigger of contract.md: sylang2 and json x seeds 0-2 x 2,000 cases, same recipe as stage C. Project it with profile_gpu.py --plan stage_d_1p7b=plan_stage_d_1p7b.json after profiling the 1.7B weights.",
+ "format": "cells[]: one training cell each: train_cases (nested prefix of the seed stream), train_examples (= train_cases x 2 tasks), epochs, batch_size, optimizer_steps, dev_evals (= epochs; one dev generation pass per epoch end), dev_eval_items, eval_items (two tasks x 1,000 test cases), timeout_minutes, optional (true: run only when STAGE_B_CURVES=1). zero_shot[]: generation-only baselines of eval_items each. totals: sums over the required cells; totals_with_optional: over every cell.",
+ "stage": "D-1.7B",
+ "tasks": [
+  "select",
+  "lookup"
  ],
+ "test_cases": 1000,
  "totals": {
   "cells": 6,
-  "train_examples": 24000,
+  "dev_eval_items": 2400,
+  "eval_items": 16000,
   "optimizer_steps": 3000,
-  "eval_items": 16000
- }
+  "train_example_passes": 48000,
+  "train_examples": 24000
+ },
+ "totals_with_optional": {
+  "cells": 6,
+  "dev_eval_items": 2400,
+  "eval_items": 16000,
+  "optimizer_steps": 3000,
+  "train_example_passes": 48000,
+  "train_examples": 24000
+ },
+ "zero_shot": [
+  {
+   "adapter": "none",
+   "answer_format": "json",
+   "arm": "sylang2",
+   "config": "configs/stage_d_1p7b_sylang2_s0_n2000.json",
+   "eval_items": 2000,
+   "name": "zeroshot_1p7b_sylang2_json"
+  },
+  {
+   "adapter": "none",
+   "answer_format": "json",
+   "arm": "json",
+   "config": "configs/stage_d_1p7b_json_s0_n2000.json",
+   "eval_items": 2000,
+   "name": "zeroshot_1p7b_json_json"
+  }
+ ]
 }

@@ -72,7 +72,9 @@ with exactly the two keys), not on the output bytes, so `[["a", "b"]]` with spac
 ## Configs: `configs/<name>.json`
 
 A JSON object whose keys are a subset of `common.DEFAULT_CONFIG`; `name` defaults to the file
-stem. `model` is `tiny-random` or a local directory; `train_size` counts cases; `tasks` is the
+stem. Every config and plan file is produced by `configs/gen_configs.py` from one table (stage A profile, stage B, stage C,
+the 1.7B stage D, the CPU smokes); its options regenerate the stage-C variants (`--stage-c-train-size 8000`,
+`--stage-c-epochs 3`) and the memory fallback (`--batch-size 8 --grad-accum 2`, same effective batch). `model` is `tiny-random` or a local directory; `train_size` counts cases; `tasks` is the
 task mix; `answer_format` selects the instruction/answer/legend variant; `max_steps` caps the
 optimizer steps (smoke tests).
 
