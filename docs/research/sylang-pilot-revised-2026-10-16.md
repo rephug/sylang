@@ -217,13 +217,27 @@ Thirty findings were raised, six were refuted by the second reader, twenty-four 
 
 The minor ones (fixed): the pair-panel lookup query now names the forced held-out record (otherwise 57% of those queries would have hit trained pairs and diluted the panel); the grouped arm's legend is now token-identical to the ungrouped arm's (it was 6 tokens longer, a fixed cost against the candidate); a frozen dataset version is never overwritten without `--force`; the manifest records a digest of the packet modules that render English; the profiler no longer stores the upload command or its output (a credential risk) and profiles the longest arm so the projection is conservative, writes its measurement before projecting, validates the plan files before any GPU time, counts both model loads, and prints the cells its projection predicts to exceed their timeout; the evaluator warms up before timing, samples single-request latency from both tasks, and decodes with the same rule as dev selection; resumed runs no longer duplicate log lines; the stage-A ceiling check counts the session's own elapsed spend; an upload failure can be recorded in the ledger; the upload command's arguments are not echoed into logs; the secondary (before-retry) table carries no verdict column.
 
-### 6.2 Constraints honoured
+### 6.2 Status after the owner's approval (2026-10-22)
+
+The owner approved stage A + B on Lightning AI's free credits on 2026-10-22 (ledger note of that date). Done on the server since, all free:
+
+- **The frozen dataset `v1`** (seeds 0, 1, 2; 8,000 train cases per seed, 400 dev, 1,000 test; four arms): 27 files, 203 MB, generated in 357 s, `data.py --check` clean (26 hashes, 406,400 self-graded answers, every pair-panel lookup query held out, packet renderer digests matching). Its manifest is committed as `experiments/pretrained_pilot/data_v1_manifest.json` (hashes and digests only). The upload tarball is `experiments/pretrained_pilot/data/pilot_data_v1.tgz` on the server (19.2 MB, SHA-256 `927255bec5f2ef959f8fe9d952fdf94678b734ae4c7e7d7d66a35221dc149e0a`); `setup_gpu.sh` verifies every unpacked file against the manifest.
+- **Whole-prompt Qwen 3 tokens on the frozen data** (JSON answer format, all splits): english 270, json 334, sylang2 224, sylang2g 214.
+- **Real-weights CPU smoke**: the Qwen3-0.6B weights (1,503,300,328-byte `model.safetensors`, Apache-2.0) were downloaded into the server's scratch space under the owner's nod; the result of the smoke with the real weights is recorded in §6.2.1.
+
+#### 6.2.1 Real-weights CPU smoke
+
+(Recorded when the run completes.)
+
+### 6.3 Constraints honoured
 
 Git history unchanged (no squash, no force-push); no paid hosted-model calls; no rental; no paid training; no new output format adopted (the bare answer is a stage-C factor only); the session is not archived; private packet material stays out of every committed file and every result (identifiers in the package are synthetic; the packet is read only by `data.py`, on the server, whose renderer produces the English arm's sentences, and those rendered sentences exist only in the git-ignored dataset that is uploaded to the rented machine).
 
 ---
 
 ## 7. The exact next approval needed
+
+**Update 2026-10-22: this approval was given.** What remains is the owner's part of §5.1 (the stage scripts never touch a provider): create the Lightning AI account, report the credit balance and the GPU eligibility the console shows, upload `pilot_data_v1.tgz` and the package, run `setup_gpu.sh` on the L4 Studio, then `run_stage_a.sh`; stage B only after the stage-A projection passes the ceiling check. The original text follows.
 
 **Approve stage A + B of §3.2 on Lightning AI's free credits, with these terms:** Qwen3-0.6B weights downloaded on the rented machine only; the dataset generated on the server and uploaded; stage A run first and stopped; stage B started only if `profile_gpu.py`'s projection of stages B and C with the 1.5× contingency fits inside the ceiling (`ledger.py report --ceiling 100 --profile profile.json` exits 0; with `PILOT_CEILING=35` the owner can hold stage B to the 35% rule of §3.3) and the owner confirms the Studio's credit balance; no card added before the stage-B readout; the Studio stopped after each stage and `verify_teardown.md` completed; everything recorded in `ledger.jsonl`. Expected out-of-pocket cost: **US$0**; ceiling: US$100 all-in; the one thing the owner must do before the approval can be sized is create the account and report the credit balance and GPU eligibility the console actually shows; the remaining setup steps (§5.1, items 2–5) follow once the approval stands.
 

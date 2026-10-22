@@ -1,0 +1,883 @@
+{
+ "cases_disjoint": true,
+ "counts": {
+  "dev_english.jsonl": 800,
+  "dev_json.jsonl": 800,
+  "dev_sylang2.jsonl": 800,
+  "dev_sylang2g.jsonl": 800,
+  "test_english.jsonl": 2000,
+  "test_json.jsonl": 2000,
+  "test_sylang2.jsonl": 2000,
+  "test_sylang2g.jsonl": 2000,
+  "train_s0_english.jsonl": 16000,
+  "train_s0_json.jsonl": 16000,
+  "train_s0_sylang2.jsonl": 16000,
+  "train_s0_sylang2g.jsonl": 16000,
+  "train_s1_english.jsonl": 16000,
+  "train_s1_json.jsonl": 16000,
+  "train_s1_sylang2.jsonl": 16000,
+  "train_s1_sylang2g.jsonl": 16000,
+  "train_s2_english.jsonl": 16000,
+  "train_s2_json.jsonl": 16000,
+  "train_s2_sylang2.jsonl": 16000,
+  "train_s2_sylang2g.jsonl": 16000
+ },
+ "duplicate_redraws": 0,
+ "generated_at": "2026-10-22T09:06:12Z",
+ "generator": {
+  "git_commit": "932d405b82915c73c01d4309aaa1497a1ef448c7",
+  "packet_english_renderer_sha256": [
+   "5668e0813cf39aa145022d27f3765e604b864a58220d7df6e47fc6e4bb931540",
+   "ed23724e0c5daa3107c33992ed7cb9d2a3d4a4c12bfbb0085ffd53a01ad3bfd2"
+  ],
+  "sha256": {
+   "data.py": "679403c9f474b07076cf13b4f78024e3d7a4b00cea3265b1f0dc9c62bb37cbec",
+   "language.py": "95d488bf4d6cf16d3e017f69c2f41f4a67c603de721f29eeda85d59f1b6277fc",
+   "study3.py": "0fb12650ab52f0654945b8ca16197d08bb3142ffbd0a4ed45f9895f807b8e44f",
+   "sylang_batch.py": "530beeb556f2bf5158abbf237478a02d2789f95799cda6cc5183cde7ca9f5de4"
+  }
+ },
+ "heldout": {
+  "feature_pairs": [
+   [
+    "contain",
+    "future"
+   ],
+   [
+    "help",
+    "completed"
+   ]
+  ],
+  "k_long": [
+   13,
+   14,
+   15,
+   16
+  ],
+  "wording_indices": [
+   4,
+   5
+  ],
+  "wordings": {
+   "lookup": {
+    "bare": [
+     "Find the record about \"{subject}\" and \"{object}\" and report its relation and polarity as two words separated by a space.",
+     "For the pair \"{subject}\" and \"{object}\", state the relation and the polarity of their record as two words with a space between them."
+    ],
+    "json": [
+     "Find the record about \"{subject}\" and \"{object}\" and report its relation and polarity as a JSON object with the keys relation and polarity.",
+     "For the pair \"{subject}\" and \"{object}\", state the relation and the polarity of their record in JSON with the keys relation and polarity."
+    ]
+   },
+   "select": {
+    "bare": [
+     "Give the negative records as space-separated subject object pairs in their original order, or none if there are none.",
+     "For each negated record, in order, emit subject object separated by a space; emit none if no record is negated."
+    ],
+    "json": [
+     "Give the negative records as a JSON list of [subject,object] pairs in their original order, or [] if there are none.",
+     "For each negated record, in order, emit [subject,object]; emit [] if no record is negated."
+    ]
+   }
+  }
+ },
+ "legend_token_range": [
+  100,
+  130
+ ],
+ "legend_tokens": {
+  "bare": {
+   "english": 107,
+   "json": 105,
+   "sylang2": 110,
+   "sylang2g": 110
+  },
+  "json": {
+   "english": 118,
+   "json": 116,
+   "sylang2": 121,
+   "sylang2g": 121
+  }
+ },
+ "parameters": {
+  "id_lengths": [
+   2,
+   3,
+   4,
+   5
+  ],
+  "k_long": [
+   13,
+   14,
+   15,
+   16
+  ],
+  "k_train": [
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11,
+   12
+  ],
+  "p_object_reuse": 0.2,
+  "p_reuse": 0.5,
+  "reserved_identifiers": [
+   "if",
+   "none"
+  ],
+  "trained_wording_indices": [
+   0,
+   1,
+   2,
+   3
+  ]
+ },
+ "render_seconds": {
+  "english": {
+   "dev": {
+    "max": 0.00030224700000758276,
+    "mean": 8.671541999980548e-05,
+    "n": 400,
+    "p95": 0.0001643020000017259
+   },
+   "test": {
+    "max": 0.0008683970000049612,
+    "mean": 6.32968090003203e-05,
+    "n": 1000,
+    "p95": 0.00011904699999831792
+   },
+   "train": {
+    "max": 0.20123777800000653,
+    "mean": 8.971329833313509e-05,
+    "n": 24000,
+    "p95": 0.00020665100004180204
+   }
+  },
+  "json": {
+   "dev": {
+    "max": 0.00013016600001947154,
+    "mean": 2.3746187500748305e-05,
+    "n": 400,
+    "p95": 4.166200000099707e-05
+   },
+   "test": {
+    "max": 0.00014747299999839925,
+    "mean": 3.064019200027701e-05,
+    "n": 1000,
+    "p95": 5.8535999983178044e-05
+   },
+   "train": {
+    "max": 0.1576657009999849,
+    "mean": 3.57105097915742e-05,
+    "n": 24000,
+    "p95": 5.858299999772498e-05
+   }
+  },
+  "sylang2": {
+   "dev": {
+    "max": 0.00018913800002451353,
+    "mean": 6.394236999923919e-05,
+    "n": 400,
+    "p95": 0.00011198100000342492
+   },
+   "test": {
+    "max": 0.0002875289999906272,
+    "mean": 7.765699200058407e-05,
+    "n": 1000,
+    "p95": 0.0001447790000099758
+   },
+   "train": {
+    "max": 0.1822152800000083,
+    "mean": 8.490257691679778e-05,
+    "n": 24000,
+    "p95": 0.00015668399998958193
+   }
+  },
+  "sylang2g": {
+   "dev": {
+    "max": 0.00019648400001415212,
+    "mean": 7.090883249993851e-05,
+    "n": 400,
+    "p95": 0.00012272499998289277
+   },
+   "test": {
+    "max": 0.0003552510000019993,
+    "mean": 9.32843289993457e-05,
+    "n": 1000,
+    "p95": 0.00017538500000569002
+   },
+   "train": {
+    "max": 0.0034907280000311403,
+    "mean": 8.059562654182765e-05,
+    "n": 24000,
+    "p95": 0.00015720800001872703
+   }
+  }
+ },
+ "rng": {
+  "scheme": "random.Random(\"<version>:<split>:<panel>:<seed|shared>\") per file and panel; see data.py",
+  "seeds": {
+   "cases_dev.jsonl:iid": "v1:dev:iid:shared",
+   "cases_test.jsonl:iid": "v1:test:iid:shared",
+   "cases_test.jsonl:long": "v1:test:long:shared",
+   "cases_test.jsonl:pair": "v1:test:pair:shared",
+   "cases_test.jsonl:wording": "v1:test:wording:shared",
+   "cases_train_s0.jsonl:iid": "v1:train:iid:0",
+   "cases_train_s1.jsonl:iid": "v1:train:iid:1",
+   "cases_train_s2.jsonl:iid": "v1:train:iid:2"
+  }
+ },
+ "seconds": 357.3,
+ "seeds": [
+  0,
+  1,
+  2
+ ],
+ "sha256": {
+  "cases_dev.jsonl": "84864542ab3d43e3aba6450f654a38c37c1f75be7f998f4bdc195efffff45359",
+  "cases_test.jsonl": "09600eba0f28987eb74d11488a88c3cbff6f6fa343c96a5f2dbb792e5b1070d8",
+  "cases_train_s0.jsonl": "6cd1e3e67bc4de1780da607931d0431e47e672a07f2afbbcb635314e73a4501e",
+  "cases_train_s1.jsonl": "f4c2741c80efff6d116ba87460b94ea02150e78e46362fc2888933720163f421",
+  "cases_train_s2.jsonl": "01bb227e8f3a660f52f1f4485d6b19f73a2ffd0374f4014d5a995dfc12304a7c",
+  "dev_english.jsonl": "5be3233187f1da5c8de467a2781d7aca5e71acfd64f13250b1e9f859afdfd254",
+  "dev_json.jsonl": "f8210217da9b2beb14ead84c4cc86017d39e2fc6f2a89d8f91b039f42b9e4042",
+  "dev_sylang2.jsonl": "34676a36e64fce739babcb851d0bceecdd108b8bdcea99d61cb0c2be070058f6",
+  "dev_sylang2g.jsonl": "de20eb3d659caf6662dea89f507ab496430463550efbd7a37eacb3749b88a77e",
+  "legends.json": "f20c397fe5e6d64f3165e1dbcf5ebf7e69cdd165227949c79c51904805c7d426",
+  "test_english.jsonl": "a93a258eb66f0018bbcd066dce720db6447c1d91e88413c8a48071f0618e1679",
+  "test_json.jsonl": "17e4672f9d52af53a74c08b6f829ae970f53cf87ff6a8a5b2ecfd1f6f7eddab5",
+  "test_sylang2.jsonl": "c8732004a703d400be2f9f02e96c0d277ba32c19039067210457147c7dd32490",
+  "test_sylang2g.jsonl": "dc8e625d067ef98adb4a0a769d314de56c187efb60ca9ca756a71e841d12d307",
+  "train_s0_english.jsonl": "c674feabc0b126957a3d1952616da77f961036da875fd34f8950f5bbbbcbf130",
+  "train_s0_json.jsonl": "aed8f872687f1417193be2a33f2cbad2cc318e128695133aa86039c156992d97",
+  "train_s0_sylang2.jsonl": "9a1e4f677186cb0eaca7f468fa76d1fad7b237827632214850ce22b247b1c049",
+  "train_s0_sylang2g.jsonl": "dd000a3543834b964b4ecff65d7b495039b9f92896c56398ab23cf989a86a1ed",
+  "train_s1_english.jsonl": "e521a156016ddd97bc36c68f188c0d6fdecebf0b5186806af7ed1d154bd1b30a",
+  "train_s1_json.jsonl": "0392e024cf7dd04092a9bbf611a2039e37db1b3132f346fadcd3ba8d1fbcdef5",
+  "train_s1_sylang2.jsonl": "f2a92fcba86d527e3eb8b2c0a7a52fa0a7a0870df80fba2a10bf7e7463a56ca5",
+  "train_s1_sylang2g.jsonl": "ce692d01d6afb36f044fa23a01c682efa00a9172d4dc8df8b739501503bc1acc",
+  "train_s2_english.jsonl": "238ed97c66d83ae010948a559d3cbc6a8ecdd0ea798554377b72e22346fa5ae8",
+  "train_s2_json.jsonl": "a617e94aae7957a4b8a148a7bcc70e211b0b25997d8302d49a55721b32c8541b",
+  "train_s2_sylang2.jsonl": "2bd0bd29b6f0c2fdf2a2be34b98bae92a9d5cbfebdb87bbdc4ecae984a70e336",
+  "train_s2_sylang2g.jsonl": "5cb16eebf40c6d14d1b7d1d390348880298d608f21daa5c23301253f8697cdbe"
+ },
+ "sizes": {
+  "cases_per_file": {
+   "cases_dev.jsonl": 400,
+   "cases_test.jsonl": 1000,
+   "cases_train_s0.jsonl": 8000,
+   "cases_train_s1.jsonl": 8000,
+   "cases_train_s2.jsonl": 8000
+  },
+  "dev": 400,
+  "test": 1000,
+  "test_panels": {
+   "iid": 480,
+   "long": 200,
+   "pair": 160,
+   "wording": 160
+  },
+  "train": 8000
+ },
+ "smoke": false,
+ "split_hashes": {
+  "cases_dev.jsonl": "ea483387c9e2901a5e3a8d8353880c0baf2be37664f809f41c939b16f6272aac",
+  "cases_test.jsonl": "5d049431c65abe3820ffbc5a75a8e07f8bc1ddbef5720ee2c7f5b5d76699b87d",
+  "cases_train_s0.jsonl": "f31a1eb942cd4dcc27ed28d26ea0f8d37e58e1a897e315ec4d20732126179438",
+  "cases_train_s1.jsonl": "883a18cc28904edf3bb3b91a8c26123bc2af540e1735a7d1100888c95216f1cf",
+  "cases_train_s2.jsonl": "f713a19b0aaa9dea237517e5a653ae1dcba9f5c65ee0bdc2934dca4b25f02b37"
+ },
+ "token_stats": {
+  "bare": {
+   "answer": {
+    "lookup": {
+     "dev": {
+      "mean": 2.0,
+      "n": 1600
+     },
+     "test": {
+      "mean": 2.0,
+      "n": 4000
+     },
+     "train": {
+      "mean": 2.0,
+      "n": 96000
+     }
+    },
+    "select": {
+     "dev": {
+      "mean": 17.92,
+      "n": 1600
+     },
+     "test": {
+      "mean": 23.14,
+      "n": 4000
+     },
+     "train": {
+      "mean": 18.86,
+      "n": 96000
+     }
+    }
+   },
+   "prompt": {
+    "english": {
+     "lookup": {
+      "dev": {
+       "instruction": 29.98,
+       "n": 400,
+       "prompt_total": 258.03,
+       "records": 104.05,
+       "system": 107.0,
+       "template": 17.0
+      },
+      "test": {
+       "instruction": 29.91,
+       "n": 1000,
+       "prompt_total": 286.39,
+       "records": 132.48,
+       "system": 107.0,
+       "template": 17.0
+      },
+      "train": {
+       "instruction": 29.77,
+       "n": 24000,
+       "prompt_total": 260.47,
+       "records": 106.69,
+       "system": 107.0,
+       "template": 17.0
+      }
+     },
+     "select": {
+      "dev": {
+       "instruction": 22.46,
+       "n": 400,
+       "prompt_total": 250.51,
+       "records": 104.05,
+       "system": 107.0,
+       "template": 17.0
+      },
+      "test": {
+       "instruction": 22.51,
+       "n": 1000,
+       "prompt_total": 278.98,
+       "records": 132.48,
+       "system": 107.0,
+       "template": 17.0
+      },
+      "train": {
+       "instruction": 22.26,
+       "n": 24000,
+       "prompt_total": 252.96,
+       "records": 106.69,
+       "system": 107.0,
+       "template": 17.0
+      }
+     }
+    },
+    "json": {
+     "lookup": {
+      "dev": {
+       "instruction": 29.98,
+       "n": 400,
+       "prompt_total": 319.08,
+       "records": 167.09,
+       "system": 105.0,
+       "template": 17.0
+      },
+      "test": {
+       "instruction": 29.91,
+       "n": 1000,
+       "prompt_total": 362.6,
+       "records": 210.69,
+       "system": 105.0,
+       "template": 17.0
+      },
+      "train": {
+       "instruction": 29.77,
+       "n": 24000,
+       "prompt_total": 323.43,
+       "records": 171.65,
+       "system": 105.0,
+       "template": 17.0
+      }
+     },
+     "select": {
+      "dev": {
+       "instruction": 22.46,
+       "n": 400,
+       "prompt_total": 311.56,
+       "records": 167.09,
+       "system": 105.0,
+       "template": 17.0
+      },
+      "test": {
+       "instruction": 22.51,
+       "n": 1000,
+       "prompt_total": 355.19,
+       "records": 210.69,
+       "system": 105.0,
+       "template": 17.0
+      },
+      "train": {
+       "instruction": 22.26,
+       "n": 24000,
+       "prompt_total": 315.92,
+       "records": 171.65,
+       "system": 105.0,
+       "template": 17.0
+      }
+     }
+    },
+    "sylang2": {
+     "lookup": {
+      "dev": {
+       "instruction": 29.98,
+       "n": 400,
+       "prompt_total": 213.83,
+       "records": 56.85,
+       "system": 110.0,
+       "template": 17.0
+      },
+      "test": {
+       "instruction": 29.91,
+       "n": 1000,
+       "prompt_total": 229.48,
+       "records": 72.57,
+       "system": 110.0,
+       "template": 17.0
+      },
+      "train": {
+       "instruction": 29.77,
+       "n": 24000,
+       "prompt_total": 215.28,
+       "records": 58.5,
+       "system": 110.0,
+       "template": 17.0
+      }
+     },
+     "select": {
+      "dev": {
+       "instruction": 22.46,
+       "n": 400,
+       "prompt_total": 206.31,
+       "records": 56.85,
+       "system": 110.0,
+       "template": 17.0
+      },
+      "test": {
+       "instruction": 22.51,
+       "n": 1000,
+       "prompt_total": 222.07,
+       "records": 72.57,
+       "system": 110.0,
+       "template": 17.0
+      },
+      "train": {
+       "instruction": 22.26,
+       "n": 24000,
+       "prompt_total": 207.77,
+       "records": 58.5,
+       "system": 110.0,
+       "template": 17.0
+      }
+     }
+    },
+    "sylang2g": {
+     "lookup": {
+      "dev": {
+       "instruction": 29.98,
+       "n": 400,
+       "prompt_total": 203.94,
+       "records": 46.96,
+       "system": 110.0,
+       "template": 17.0
+      },
+      "test": {
+       "instruction": 29.91,
+       "n": 1000,
+       "prompt_total": 216.48,
+       "records": 59.57,
+       "system": 110.0,
+       "template": 17.0
+      },
+      "train": {
+       "instruction": 29.77,
+       "n": 24000,
+       "prompt_total": 205.22,
+       "records": 48.45,
+       "system": 110.0,
+       "template": 17.0
+      }
+     },
+     "select": {
+      "dev": {
+       "instruction": 22.46,
+       "n": 400,
+       "prompt_total": 196.42,
+       "records": 46.96,
+       "system": 110.0,
+       "template": 17.0
+      },
+      "test": {
+       "instruction": 22.51,
+       "n": 1000,
+       "prompt_total": 209.07,
+       "records": 59.57,
+       "system": 110.0,
+       "template": 17.0
+      },
+      "train": {
+       "instruction": 22.26,
+       "n": 24000,
+       "prompt_total": 197.71,
+       "records": 48.45,
+       "system": 110.0,
+       "template": 17.0
+      }
+     }
+    }
+   },
+   "prompt_mean_by_arm": {
+    "english": {
+     "all": 257.69,
+     "lookup": 261.45,
+     "select": 253.94
+    },
+    "json": {
+     "all": 321.15,
+     "lookup": 324.9,
+     "select": 317.39
+    },
+    "sylang2": {
+     "all": 212.06,
+     "lookup": 215.81,
+     "select": 208.31
+    },
+    "sylang2g": {
+     "all": 201.89,
+     "lookup": 205.64,
+     "select": 198.14
+    }
+   }
+  },
+  "json": {
+   "answer": {
+    "lookup": {
+     "dev": {
+      "mean": 10.0,
+      "n": 1600
+     },
+     "test": {
+      "mean": 10.0,
+      "n": 4000
+     },
+     "train": {
+      "mean": 10.0,
+      "n": 96000
+     }
+    },
+    "select": {
+     "dev": {
+      "mean": 24.49,
+      "n": 1600
+     },
+     "test": {
+      "mean": 31.02,
+      "n": 4000
+     },
+     "train": {
+      "mean": 25.68,
+      "n": 96000
+     }
+    }
+   },
+   "prompt": {
+    "english": {
+     "lookup": {
+      "dev": {
+       "instruction": 32.76,
+       "n": 400,
+       "prompt_total": 271.8,
+       "records": 104.05,
+       "system": 118.0,
+       "template": 17.0
+      },
+      "test": {
+       "instruction": 32.7,
+       "n": 1000,
+       "prompt_total": 300.18,
+       "records": 132.48,
+       "system": 118.0,
+       "template": 17.0
+      },
+      "train": {
+       "instruction": 32.75,
+       "n": 24000,
+       "prompt_total": 274.45,
+       "records": 106.69,
+       "system": 118.0,
+       "template": 17.0
+      }
+     },
+     "select": {
+      "dev": {
+       "instruction": 22.27,
+       "n": 400,
+       "prompt_total": 261.31,
+       "records": 104.05,
+       "system": 118.0,
+       "template": 17.0
+      },
+      "test": {
+       "instruction": 22.55,
+       "n": 1000,
+       "prompt_total": 290.03,
+       "records": 132.48,
+       "system": 118.0,
+       "template": 17.0
+      },
+      "train": {
+       "instruction": 22.01,
+       "n": 24000,
+       "prompt_total": 263.7,
+       "records": 106.69,
+       "system": 118.0,
+       "template": 17.0
+      }
+     }
+    },
+    "json": {
+     "lookup": {
+      "dev": {
+       "instruction": 32.76,
+       "n": 400,
+       "prompt_total": 332.85,
+       "records": 167.09,
+       "system": 116.0,
+       "template": 17.0
+      },
+      "test": {
+       "instruction": 32.7,
+       "n": 1000,
+       "prompt_total": 376.38,
+       "records": 210.69,
+       "system": 116.0,
+       "template": 17.0
+      },
+      "train": {
+       "instruction": 32.75,
+       "n": 24000,
+       "prompt_total": 337.41,
+       "records": 171.65,
+       "system": 116.0,
+       "template": 17.0
+      }
+     },
+     "select": {
+      "dev": {
+       "instruction": 22.27,
+       "n": 400,
+       "prompt_total": 322.37,
+       "records": 167.09,
+       "system": 116.0,
+       "template": 17.0
+      },
+      "test": {
+       "instruction": 22.55,
+       "n": 1000,
+       "prompt_total": 366.24,
+       "records": 210.69,
+       "system": 116.0,
+       "template": 17.0
+      },
+      "train": {
+       "instruction": 22.01,
+       "n": 24000,
+       "prompt_total": 326.66,
+       "records": 171.65,
+       "system": 116.0,
+       "template": 17.0
+      }
+     }
+    },
+    "sylang2": {
+     "lookup": {
+      "dev": {
+       "instruction": 32.76,
+       "n": 400,
+       "prompt_total": 227.6,
+       "records": 56.85,
+       "system": 121.0,
+       "template": 17.0
+      },
+      "test": {
+       "instruction": 32.7,
+       "n": 1000,
+       "prompt_total": 243.27,
+       "records": 72.57,
+       "system": 121.0,
+       "template": 17.0
+      },
+      "train": {
+       "instruction": 32.75,
+       "n": 24000,
+       "prompt_total": 229.26,
+       "records": 58.5,
+       "system": 121.0,
+       "template": 17.0
+      }
+     },
+     "select": {
+      "dev": {
+       "instruction": 22.27,
+       "n": 400,
+       "prompt_total": 217.12,
+       "records": 56.85,
+       "system": 121.0,
+       "template": 17.0
+      },
+      "test": {
+       "instruction": 22.55,
+       "n": 1000,
+       "prompt_total": 233.12,
+       "records": 72.57,
+       "system": 121.0,
+       "template": 17.0
+      },
+      "train": {
+       "instruction": 22.01,
+       "n": 24000,
+       "prompt_total": 218.51,
+       "records": 58.5,
+       "system": 121.0,
+       "template": 17.0
+      }
+     }
+    },
+    "sylang2g": {
+     "lookup": {
+      "dev": {
+       "instruction": 32.76,
+       "n": 400,
+       "prompt_total": 217.72,
+       "records": 46.96,
+       "system": 121.0,
+       "template": 17.0
+      },
+      "test": {
+       "instruction": 32.7,
+       "n": 1000,
+       "prompt_total": 230.27,
+       "records": 59.57,
+       "system": 121.0,
+       "template": 17.0
+      },
+      "train": {
+       "instruction": 32.75,
+       "n": 24000,
+       "prompt_total": 219.2,
+       "records": 48.45,
+       "system": 121.0,
+       "template": 17.0
+      }
+     },
+     "select": {
+      "dev": {
+       "instruction": 22.27,
+       "n": 400,
+       "prompt_total": 207.23,
+       "records": 46.96,
+       "system": 121.0,
+       "template": 17.0
+      },
+      "test": {
+       "instruction": 22.55,
+       "n": 1000,
+       "prompt_total": 220.12,
+       "records": 59.57,
+       "system": 121.0,
+       "template": 17.0
+      },
+      "train": {
+       "instruction": 22.01,
+       "n": 24000,
+       "prompt_total": 208.45,
+       "records": 48.45,
+       "system": 121.0,
+       "template": 17.0
+      }
+     }
+    }
+   },
+   "prompt_mean_by_arm": {
+    "english": {
+     "all": 270.06,
+     "lookup": 275.42,
+     "select": 264.7
+    },
+    "json": {
+     "all": 333.51,
+     "lookup": 338.87,
+     "select": 328.15
+    },
+    "sylang2": {
+     "all": 224.42,
+     "lookup": 229.78,
+     "select": 219.06
+    },
+    "sylang2g": {
+     "all": 214.25,
+     "lookup": 219.61,
+     "select": 208.89
+    }
+   }
+  }
+ },
+ "token_stats_verified_against_common": 120,
+ "version": "v1",
+ "wordings": {
+  "lookup": {
+   "bare": [
+    "What is the relation between \"{subject}\" and \"{object}\"? Answer with the relation and the polarity separated by a space.",
+    "Give the relation and polarity of the record with subject \"{subject}\" and object \"{object}\" as two words: relation polarity.",
+    "Look up the record where \"{subject}\" is the subject and \"{object}\" is the object; return relation polarity as two space-separated words.",
+    "Which relation links \"{subject}\" to \"{object}\", and is it positive or negative? Reply with the relation and the polarity separated by one space.",
+    "Find the record about \"{subject}\" and \"{object}\" and report its relation and polarity as two words separated by a space.",
+    "For the pair \"{subject}\" and \"{object}\", state the relation and the polarity of their record as two words with a space between them."
+   ],
+   "json": [
+    "What is the relation between \"{subject}\" and \"{object}\"? Answer with a JSON object with the keys relation and polarity.",
+    "Give the relation and polarity of the record with subject \"{subject}\" and object \"{object}\" as a JSON object {\"relation\": ..., \"polarity\": ...}.",
+    "Look up the record where \"{subject}\" is the subject and \"{object}\" is the object; return {\"relation\": ..., \"polarity\": ...} as JSON.",
+    "Which relation links \"{subject}\" to \"{object}\", and is it positive or negative? Reply with a JSON object with the keys relation and polarity.",
+    "Find the record about \"{subject}\" and \"{object}\" and report its relation and polarity as a JSON object with the keys relation and polarity.",
+    "For the pair \"{subject}\" and \"{object}\", state the relation and the polarity of their record in JSON with the keys relation and polarity."
+   ]
+  },
+  "select": {
+   "bare": [
+    "List subject object of each negative record in order, space-separated; none if none.",
+    "Return the subject object pairs of the negated records, in order and space-separated, or none.",
+    "Which records are negative? Answer with the subject and object of each, space-separated, in record order, none if none.",
+    "Output the subject and object of every negated record as space-separated subject object pairs, in order; output none when there is none.",
+    "Give the negative records as space-separated subject object pairs in their original order, or none if there are none.",
+    "For each negated record, in order, emit subject object separated by a space; emit none if no record is negated."
+   ],
+   "json": [
+    "List [subject,object] of each negative record in order; [] if none.",
+    "Return the [subject,object] pairs of the negated records, in order, or [].",
+    "Which records are negative? Answer with a JSON list of [subject,object] in record order, [] if none.",
+    "Output the subject and object of every negated record as [subject,object] pairs, in order; output [] when there is none.",
+    "Give the negative records as a JSON list of [subject,object] pairs in their original order, or [] if there are none.",
+    "For each negated record, in order, emit [subject,object]; emit [] if no record is negated."
+   ]
+  }
+ }
+}
