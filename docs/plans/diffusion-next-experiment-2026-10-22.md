@@ -368,6 +368,7 @@ Decision order: preconditions → X0 → PROCEED → STOP → REVISE.
 **Labels.**
 - "Sylang-specific" only if T_M ≤ 0.90 x T_C and ≤ 0.90 x T_F, each with upper bound < 1.00, at non-inferior accuracy.
 - Otherwise "field-aligned, generic": the follow-up must include C or a JSON code tuple, and no Sylang-specific claim is made.
+- **Generic code wins, M does not.** If C or F meets S1-S3 against both E and J but M does not, the outcome is STOP for M (no Sylang credit) and H1-align is recorded as supported for the generic code. Any follow-up on C or F is a new, non-Sylang study that needs its own owner decision. If only F meets S1-S2, apply R3.
 
 **STOP.** No further diffusion work on M; publish the negative result.
 - **X0 (seed-0 futility):**

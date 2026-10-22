@@ -4,7 +4,7 @@
   "methodology": {
     "model_training": false,
     "neural_inference": false,
-    "rounds": "Exact expectations for named idealized samplers on the fixed public canvas; not inference steps or latency.",
+    "rounds": "Exact expectations for named idealized samplers on the fixed public canvas; not inference steps or latency. Threshold rounds are means over valid outputs only.",
     "version_tag": "Only the codec's mandatory prefixes 'Sylang core-v0.1: ' and 'M0.1:' are removed; bodies are retokenized.",
     "concise_english": "Labels unquoted, version tag removed, unspecified evidence unmarked, other evidence as Directly/Reportedly/Presumably. Injective on this world only; not a codec."
   },
@@ -215,45 +215,146 @@
   },
   "confidence_threshold_sampler_fixed_canvas": {
     "independent_864": {
-      "english": {
-        "tau": 0.9,
-        "valid_mass": 0.9999999999999997,
-        "mean_rounds_given_valid": 8.694444444444445,
-        "worst_rounds": 11
+      "tau_0.5": {
+        "english": {
+          "tau": 0.5,
+          "valid_mass": 0.018873472783210523,
+          "mean_rounds_given_valid": 3.872473712523382,
+          "worst_rounds": 5
+        },
+        "json": {
+          "tau": 0.5,
+          "valid_mass": 0.10150891632373109,
+          "mean_rounds_given_valid": 3.996621621621622,
+          "worst_rounds": 4
+        },
+        "m": {
+          "tau": 0.5,
+          "valid_mass": 1.00000000000001,
+          "mean_rounds_given_valid": 5.0,
+          "worst_rounds": 5
+        }
       },
-      "json": {
-        "tau": 0.9,
-        "valid_mass": 0.9999999999999989,
-        "mean_rounds_given_valid": 8.833333333333332,
-        "worst_rounds": 10
+      "tau_0.7": {
+        "english": {
+          "tau": 0.7,
+          "valid_mass": 0.7640321819315896,
+          "mean_rounds_given_valid": 7.437883543451942,
+          "worst_rounds": 10
+        },
+        "json": {
+          "tau": 0.7,
+          "valid_mass": 0.5093333333333321,
+          "mean_rounds_given_valid": 8.678010471204184,
+          "worst_rounds": 10
+        },
+        "m": {
+          "tau": 0.7,
+          "valid_mass": 1.00000000000001,
+          "mean_rounds_given_valid": 7.0,
+          "worst_rounds": 7
+        }
       },
-      "m": {
-        "tau": 0.9,
-        "valid_mass": 1.00000000000001,
-        "mean_rounds_given_valid": 7.0,
-        "worst_rounds": 7
+      "tau_0.9": {
+        "english": {
+          "tau": 0.9,
+          "valid_mass": 0.9999999999999997,
+          "mean_rounds_given_valid": 8.694444444444445,
+          "worst_rounds": 11
+        },
+        "json": {
+          "tau": 0.9,
+          "valid_mass": 0.9999999999999989,
+          "mean_rounds_given_valid": 8.833333333333332,
+          "worst_rounds": 10
+        },
+        "m": {
+          "tau": 0.9,
+          "valid_mass": 1.00000000000001,
+          "mean_rounds_given_valid": 7.0,
+          "worst_rounds": 7
+        }
       }
     },
     "correlated_18": {
-      "english": {
-        "tau": 0.9,
-        "valid_mass": 0.9999999999999999,
-        "mean_rounds_given_valid": 6.5,
-        "worst_rounds": 9
+      "tau_0.5": {
+        "english": {
+          "tau": 0.5,
+          "valid_mass": 0.046656337806666205,
+          "mean_rounds_given_valid": 2.1728276920366,
+          "worst_rounds": 3
+        },
+        "json": {
+          "tau": 0.5,
+          "valid_mass": 0.04486739826246,
+          "mean_rounds_given_valid": 2.0,
+          "worst_rounds": 2
+        },
+        "m": {
+          "tau": 0.5,
+          "valid_mass": 0.5000000000000001,
+          "mean_rounds_given_valid": 3.5,
+          "worst_rounds": 4
+        }
       },
-      "json": {
-        "tau": 0.9,
-        "valid_mass": 1.0000000000000002,
-        "mean_rounds_given_valid": 5.833333333333333,
-        "worst_rounds": 7
+      "tau_0.7": {
+        "english": {
+          "tau": 0.7,
+          "valid_mass": 0.5177606107093286,
+          "mean_rounds_given_valid": 5.697509744096224,
+          "worst_rounds": 8
+        },
+        "json": {
+          "tau": 0.7,
+          "valid_mass": 0.5093333333333333,
+          "mean_rounds_given_valid": 5.679755671902269,
+          "worst_rounds": 7
+        },
+        "m": {
+          "tau": 0.7,
+          "valid_mass": 1.0000000000000002,
+          "mean_rounds_given_valid": 4.666666666666667,
+          "worst_rounds": 5
+        }
       },
-      "m": {
-        "tau": 0.9,
-        "valid_mass": 1.0000000000000002,
-        "mean_rounds_given_valid": 4.666666666666667,
-        "worst_rounds": 5
+      "tau_0.9": {
+        "english": {
+          "tau": 0.9,
+          "valid_mass": 0.9999999999999999,
+          "mean_rounds_given_valid": 6.5,
+          "worst_rounds": 9
+        },
+        "json": {
+          "tau": 0.9,
+          "valid_mass": 1.0000000000000002,
+          "mean_rounds_given_valid": 5.833333333333333,
+          "worst_rounds": 7
+        },
+        "m": {
+          "tau": 0.9,
+          "valid_mass": 1.0000000000000002,
+          "mean_rounds_given_valid": 4.666666666666667,
+          "worst_rounds": 5
+        }
       }
     }
+  },
+  "max_uncertain_token_marginals_independent_864": {
+    "english": [
+      0.9444444444444444,
+      0.75,
+      0.6388888888888888
+    ],
+    "json": [
+      0.8333333333333334,
+      0.6666666666666666,
+      0.5
+    ],
+    "m": [
+      0.5,
+      0.3333333333333333,
+      0.25
+    ]
   },
   "single_token_substitutions_independent_864": {
     "english": {

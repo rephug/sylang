@@ -207,11 +207,24 @@ def threshold_rounds(oracle: FiniteOracle, tau: float) -> dict:
             "worst_rounds": max(finished)}
 
 
-def threshold_sampler(tau: float = 0.9) -> dict:
+def threshold_sampler(taus: tuple[float, ...] = (0.5, 0.7, 0.9)) -> dict:
     worlds = build_worlds()
-    return {world: {fmt: threshold_rounds(fixed_canvas_oracle(worlds[world], fmt), tau)
-                    for fmt in ("english", "json", "m")}
+    return {world: {f"tau_{tau}": {fmt: threshold_rounds(fixed_canvas_oracle(worlds[world], fmt), tau)
+                                    for fmt in ("english", "json", "m")}
+                    for tau in taus}
             for world in ("independent_864", "correlated_18")}
+
+
+def max_uncertain_marginals() -> dict:
+    """Largest exact token marginals below 1 on the fully erased fixed canvas."""
+    world = build_worlds()["independent_864"]
+    result = {}
+    for fmt in ("english", "json", "m"):
+        oracle = fixed_canvas_oracle(world, fmt)
+        values = sorted({max((mask.bit_count() for mask in masks.values())) / oracle.size
+                         for masks in oracle.token_masks} - {1.0}, reverse=True)
+        result[fmt] = values[:3]
+    return result
 
 
 def substitutions() -> dict:
@@ -247,7 +260,7 @@ def run() -> dict:
         "tokenizer": TOKENIZER,
         "methodology": {
             "model_training": False, "neural_inference": False,
-            "rounds": "Exact expectations for named idealized samplers on the fixed public canvas; not inference steps or latency.",
+            "rounds": "Exact expectations for named idealized samplers on the fixed public canvas; not inference steps or latency. Threshold rounds are means over valid outputs only.",
             "version_tag": f"Only the codec's mandatory prefixes {ENGLISH_TAG!r} and {M_TAG!r} are removed; bodies are retokenized.",
             "concise_english": "Labels unquoted, version tag removed, unspecified evidence unmarked, other evidence as Directly/Reportedly/Presumably. Injective on this world only; not a codec.",
         },
@@ -256,6 +269,7 @@ def run() -> dict:
         "label_sensitivity_fixed_canvas": label_sensitivity(),
         "drop_one_meaning_fixed_canvas": prior_perturbation(),
         "confidence_threshold_sampler_fixed_canvas": threshold_sampler(),
+        "max_uncertain_token_marginals_independent_864": max_uncertain_marginals(),
         "single_token_substitutions_independent_864": substitutions(),
     }
 
