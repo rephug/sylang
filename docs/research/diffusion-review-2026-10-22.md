@@ -1,9 +1,5 @@
 # Independent review: Sylang diffusion research of 2026-10-20
 
-> **Status: draft in progress.** Sections 9 and 12 (next experiment and
-> recommendation) are still being finalised. Everything else has been through
-> adversarial verification.
-
 Review date: **2026-10-22**. Reviewed commit:
 `4a621c7ee71547d06215c86a665421dd538e2e14` (branch
 `codex/sylang-diffusion-research-20261021`, draft PR rephug/sylang#4).
@@ -443,7 +439,191 @@ has been tested with a model.
 
 ## 9. Proposed next experiment
 
-*To be completed.*
+The full pre-registerable design is in
+[`docs/plans/diffusion-next-experiment-2026-10-22.md`](../plans/diffusion-next-experiment-2026-10-22.md).
+Three review agents drafted independent designs: CPU-only, a single rented
+GPU, and pretrained Dream-7B against Qwen2.5-7B. A judge agent scored them,
+merged them and re-checked their arithmetic. This section summarises the
+result.
+
+**Smallest decisive experiment: a matched from-scratch screen, CPU first,
+US$0.** From-scratch training is the setting most favourable to M, because
+English and JSON get no pretraining advantage. It controls training exposure
+and compute end to end. A rented GPU adds little for 4M-parameter models,
+whose batch-1 latency is dominated by kernel-launch overhead. The pretrained
+pair is kept as the only paid follow-up.
+
+**Hypotheses**
+
+- **H1-align (primary).** Some field-aligned output (M, or the generic
+  controls C or F below), decoded by a masked-diffusion model (MDM), meets all
+  three conditions against both concise English and named JSON at matched
+  exact-AST accuracy:
+  - at most 0.80× the denoising passes;
+  - at most 0.90× the within-family latency;
+  - no more than 2 percentage points of accuracy lost.
+- **H1-M (Sylang-specific).** M meets H1-align and is also at least 10% faster
+  than both generic controls.
+- **H0.** Format changes passes at matched accuracy by less than 10%, and
+  latency differences follow output length.
+
+**Arms (8 cells).** Every cell uses the same 3.93M-parameter prefix-LM
+transformer (d = 256, 4 layers), the same exact Qwen3 token IDs remapped to a
+compact vocabulary, and the same data order and step count.
+
+- Autoregressive (AR) × {concise English E, named JSON J, M}.
+- MDM × {E, J, M, C, F}.
+  - C is a generic code line, e.g. `Bumche s Vondu - p c r`.
+  - F is C with fixed-width name slots.
+
+No version tag appears anywhere the model reads or writes. Decoders re-add tags
+outside the model, and that time is counted. AR-C and AR-F are not trained,
+because AR passes equal output length.
+
+**Task and data**
+
+- **Task: PARSE.** The input is 1–4 English clauses; the output is the same
+  records in the cell's format. The input is identical for every arm.
+- **Neutral input wording.** The input lexicon shares no words with any
+  output: `notice`/`assist`/`hold`, `kept`, `never`, `Word has it that` and so
+  on. An audit requires at most 5% overlap of non-name tokens, so no arm can
+  copy its input.
+- **Names.** Multi-token pseudo-names of 1–5 tokens, quoted in half the
+  inputs, split by hash into train, dev and test.
+- **Held-out compositions.** Three combinations never appear in training.
+- **Test panels.**
+  - iid: 2,000 items (primary);
+  - unseen compositions: 1,000;
+  - longer records (K = 5–6): 500.
+
+**Training exposure and compute**
+
+- 128k or 256k items per run, chosen by a pre-registered rule.
+- Checkpoints at equal exposure (items) and at equal compute (25–375 TFLOP).
+- Paired seeds in three looks:
+  - seed 0 is a futility check;
+  - seeds 1–2 give the first decision;
+  - seeds 3–5 are added only for unresolved contrasts.
+- A calibration gate requires at least 7 of 8 runs to learn. In earlier
+  project work, only 2 of 5 seeds learned.
+
+**Measurements**
+
+- **Correctness.** Whole-output exact AST through `sylang_core` (primary),
+  per-field errors, silent errors and validity.
+- **Decoding work.** Denoising passes and positions processed.
+- **Latency.** Actual wall-clock time per request, from raw string through
+  tokenize, prefill, decode, detokenize, re-adding the tag, parse and validate.
+  Measured on the owner's server, interleaved, in two sessions, reporting p50
+  and p95.
+- **Samplers.** Fixed tokens per step (LLaDA-style), confidence threshold
+  (Fast-dLLM-style), entropy bound, and semi-autoregressive blocks of 16.
+- **Resource cost.** Training FLOPs, core-hours, energy, and cost per 1,000
+  correct answers.
+
+**Analysis**
+
+- **Matched accuracy.** The highest of 95% or 90% reached by 2 of 3 seeds in
+  each of AR-E, AR-M, MDM-E and MDM-M.
+- **Statistics.** Per-seed log ratios with two-sided 90% paired intervals; a
+  cluster bootstrap as a sensitivity check.
+- **Corrected interaction ratio.** The report's ratio I is above 1 even with
+  no real effect whenever M is longer. On this task its no-effect value is
+  I₀ = 1.38 in passes for M against concise English, so only I/I₀ is
+  interpreted.
+- **Simulated behaviour of the decision rule.** P(success) is 0.014 with no
+  true effect and 0.98 with a true 1.5× pass reduction.
+
+**Success (PROCEED).** All of the following must hold:
+
+- Passes:
+  - k_M/k_E ≤ 0.80 and k_M/k_J ≤ 0.80, each with the 90% upper bound below 1.00;
+  - at most 0.90 under the non-selected samplers.
+- Latency:
+  - within-MDM T_M/T_E ≤ 0.90 and T_M/T_J ≤ 0.90, each with the upper bound below 1.00;
+  - p95 ratio at most 1.00;
+  - modelled 7B ratio at most 0.90.
+- Accuracy:
+  - M − E lower bound at least −2 pp on the iid panel, in both families;
+  - at least −3 pp on unseen compositions;
+  - silent-error excess at most +1 pp.
+
+A result is labelled Sylang-specific only if M is also at least 10% faster
+than C and F. Otherwise it is "field-aligned, generic". PROCEED licenses only
+the owner-approved seed-0 stage of Dream-v0-Base-7B against Qwen2.5-7B (about
+US$6–7 on one 48 GB GPU).
+
+**Stop.** Any one of these ends further diffusion work on M, and the negative
+result is published:
+
+- **Seed-0 futility.** Every aligned format needs at least 1.10× English's
+  passes and has no accuracy gain of 3 pp or more.
+- **No pass reduction.** The best aligned format's 90% lower bound of k/k_E is
+  at least 0.90. If that also holds for F, stop the whole alignment line.
+- **No latency reduction.** The lower bound of T_M/T_E within MDM is at least
+  0.95.
+- **Accuracy loss.** The upper bound of M − E is below −2 pp in either
+  family.
+- **Unresolved.** After the extension seeds, neither success nor any of the
+  stop conditions above.
+
+**Revise the hypothesis**
+
+| If | Then |
+| --- | --- |
+| M beats named JSON but not English | The claim becomes "compact positional output beats named JSON". It is Sylang-specific only if M also beats C; add a tuple-JSON arm |
+| Passes improve but latency does not | Test a shorter aligned surface |
+| Only F wins | Redesign M with fixed-width literal slots |
+| The benefit appears only early in training | Test underdetermined generation; make no latency claim |
+| I/I₀ lies in [0.8, 1.25] and AR-M is at least as good as AR-E | General compactness, not diffusion; pursue it through the AR pilot on rephug/sylang#3 |
+| The MDM never learns | Inconclusive, not support for H0 |
+
+**Pre-registered expectation.** On this task M's output is 38% longer than
+concise English (46.5 against 33.7 tokens per item). M must therefore cut
+passes to about 0.80× just to break even on CPU latency, and the exact-marginal
+oracle gives about 0.81×. The expected outcome is STOP, or the "beats named
+JSON only" revision.
+
+**Cost and hardware**
+
+- **Compute.** About 18.6 PFLOP for the core stages: 29–52 h on four
+  single-thread processes at 25–45 GFLOP/s each. Worst case about 35 PFLOP
+  (54–98 h). Latency measurement adds at most 4 h.
+- **Engineering.** 4–6 days, about 3,000 lines including tests.
+- **Money.** US$0. Optionally the same code can run on free Lightning L4
+  credits, about 2–3 GPU-hours.
+- **Fit.** This review container cannot run it: it has no PyTorch, and
+  installing packages was outside the review's scope. The owner's 4-core
+  server can run it once a pinned PyTorch CPU wheel is installed.
+- **Owner approvals needed:** the install, the server reservation, the
+  extension stages, any GPU use, and the paid follow-up.
+
+**Smaller fallback (Tier-S, US$0, about one day).** Five cells: AR × {E, M} and
+MDM × {E, M, C}, with 3 seeds, about 10 PFLOP (16–29 h).
+
+- **It can establish:**
+  - the stop decisions;
+  - whether M beats the generic code C, i.e. Sylang-specific or generic.
+- **It cannot establish:**
+  - anything about JSON, so it can never return PROCEED;
+  - whether fixed width matters (there is no F);
+  - AR accuracy for C.
+
+An even smaller MDM-only variant (about 17 h) cannot measure AR accuracy or
+latency, so it does not meet the AR-against-diffusion requirement.
+
+**What even the full screen cannot establish**
+
+- Scale and serving:
+  - 7B behaviour, GPU serving, or Mercury latency;
+  - AR-against-MDM wall-clock ratios. On CPU an MDM step costs 9–20× an AR
+    step; at 7B on a GPU it is about 1–1.5×.
+- Pretraining effects: pretrained priors, legend costs, and the mnemonic value
+  of M's codes.
+- Tasks not covered: edit tasks, underdetermined generation, conditionals,
+  record counts above 6, natural input, Unicode.
+- Statistical resolution: effects smaller than about 20% in passes or 10% in
+  latency; an accuracy margin as tight as 1 pp.
 
 ## 10. Methodological flaws ranked by severity
 
@@ -510,7 +690,50 @@ reports' computations; they change what the computations can be taken to show.
 
 ## 12. Recommendation
 
-*To be completed.*
+**Revise the hypothesis.**
+
+- **Old claim:** Sylang M makes diffusion language models faster.
+- **Revised hypothesis:** an output encoding with one token per field and
+  fixed field widths lets a masked-diffusion decoder reach matched exact-AST
+  accuracy with at least 20% fewer passes than the strongest English and JSON
+  baselines. The effect must be larger than its length difference explains
+  (I/I₀ above 1), and Sylang M must beat a generic aligned code before any
+  credit goes to Sylang.
+- **Stop quoting** 19.5% and 11.66% as compactness against English, and
+  1 round against 4.69 as a parallel-decoding advantage.
+
+**Concrete next action.** No spending or training:
+
+1. **Correct the reports.** Add an erratum note at the top of both reports
+   pointing to this review. It should cover:
+   - the version-tag split;
+   - the label and prior sensitivity of the rounds table;
+   - the dependence on the sampler and on the exact-independence test;
+   - the substitution blind spot;
+   - the I₀ correction to the proposed AR-against-diffusion gate.
+
+   This review has not edited the reports.
+2. **Freeze the pre-registration.** Complete the offline steps in the
+   [plan](../plans/diffusion-next-experiment-2026-10-22.md):
+   - renderers and strict parsers for E, J, M, C and F;
+   - the neutral-input generator and the frozen panels with hashes;
+   - sampler conformance against `FiniteOracle`;
+   - the analysis code and every threshold.
+3. **Owner decision.** Install a pinned PyTorch CPU wheel on the server and
+   reserve the machine for about three days. Run the throughput benchmark,
+   then Stage 0 and looks 0–1.
+4. **Act on the pre-registered outcome:**
+   - STOP: close the diffusion line for M and publish the negative result.
+   - REVISE: follow the matching row of the table in section 9.
+   - PROCEED: run the owner-approved seed-0 stage of Dream-v0-Base-7B against
+     Qwen2.5-7B, about US$6–7.
+
+**Hold until step 4:** the paid Mercury 3 pilot and any GPU rental. Both also
+need the separate approval that `docs/decisions.md:51-53` requires for
+diffusion runtimes. The pretrained AR pilot on rephug/sylang#3 answers a
+different question: does a pretrained model read Sylang codes as well as JSON
+or English? Its own plan says its gate should be read before other spending.
+The two lines are compatible.
 
 ## Appendix: reproducing this review
 
