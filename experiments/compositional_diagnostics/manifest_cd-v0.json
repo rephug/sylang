@@ -1,0 +1,80 @@
+{
+ "codec_sha256": {
+  "copy_probe/sylang_batch.py": "530beeb556f2bf5158abbf237478a02d2789f95799cda6cc5183cde7ca9f5de4"
+ },
+ "config": {
+  "arms": [
+   "english",
+   "json",
+   "sylang2",
+   "sylang2g"
+  ],
+  "dev_families_per_qtype": 40,
+  "qtypes": [
+   "tense",
+   "aspect",
+   "evidence",
+   "profile",
+   "filter",
+   "join"
+  ],
+  "seed": 0,
+  "test_families_per_qtype": 100,
+  "variants": [
+   "base",
+   "relevant",
+   "irrelevant",
+   "rename",
+   "reorder",
+   "distractor"
+  ]
+ },
+ "counts": {
+  "dev_english.jsonl": 1440,
+  "dev_json.jsonl": 1440,
+  "dev_sylang2.jsonl": 1440,
+  "dev_sylang2g.jsonl": 1440,
+  "test_english.jsonl": 3600,
+  "test_json.jsonl": 3600,
+  "test_sylang2.jsonl": 3600,
+  "test_sylang2g.jsonl": 3600
+ },
+ "families": {
+  "dev": 240,
+  "test": 600
+ },
+ "generator_sha256": {
+  "families.py": "e5a511d7d2e6b374e2769983e3b342a01d1649cf9eb7729916744d0f9b4799f6",
+  "generate.py": "d7de16c5b644497a088d8a43db59844f26a4d3a5cd0de61447eaaaef7417db35",
+  "questions.py": "d0a240cd6dde07a9228409df25b9b216a667cef47eb52af0820b8e4c547654a4",
+  "render.py": "bdfa2393ee98c9053ed6b649b9ddc6ddc0a8d142a8cd69a31ed55fc621a6cc2c",
+  "schema.py": "1b5c83023e7bed98fc3ba27a4ff9d7d99ff0427ab66b18537d051500beb46ce6"
+ },
+ "redraws": {
+  "dev:aspect": 0,
+  "dev:evidence": 0,
+  "dev:filter": 0,
+  "dev:join": 0,
+  "dev:profile": 0,
+  "dev:tense": 0,
+  "test:aspect": 0,
+  "test:evidence": 0,
+  "test:filter": 0,
+  "test:join": 0,
+  "test:profile": 0,
+  "test:tense": 0
+ },
+ "sha256": {
+  "dev_english.jsonl": "fa273aa6968ce1ed4cb51b483dc18816582e8db9269305232de3343e9f754010",
+  "dev_json.jsonl": "d39947745b21f29a479ba075690d83364618ef2f95269358f9d9d33483024f56",
+  "dev_sylang2.jsonl": "8cffcc78a058b4dea96cefa2ba86907f28d5d0719b2b85575d8d30c7af798658",
+  "dev_sylang2g.jsonl": "ea4f648587a33d01bd7c5578489e0c9a6f14eb1f51114fc4224128878369888e",
+  "families.jsonl": "d593274041bc4314288ad7963b18d7fa13fccec30633567546e780e4ee7c4a05",
+  "legends.json": "ac885078bd9ef3ebf18659798c7a2f48878e3200be2bfbe7fd011c172679fb1b",
+  "test_english.jsonl": "f1e2d64322ae0b6d22cdc6bc5b0f85ed3c7f758b08ff7e76067fbcace0cf8de7",
+  "test_json.jsonl": "ee680a62e8c7e1022f16d47c0885f8dee9d81577dc2e1d5409455e46c10ff3d3",
+  "test_sylang2.jsonl": "3db93babcf752c7658d5878f4e94557828f8effab57cd27207cd44219d981463",
+  "test_sylang2g.jsonl": "fd1976fa27899cf5513be07235a19d376a9d11228ee3846891b727f24337ddc2"
+ },
+ "version": "cd-v0"
+}
