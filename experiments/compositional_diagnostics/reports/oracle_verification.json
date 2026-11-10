@@ -1,0 +1,44 @@
+{
+ "D1": {
+  "cases": 1296,
+  "distinct_answers": {
+   "aspect": 3,
+   "evidence": 4,
+   "filter": 7,
+   "join": 1,
+   "profile": 216,
+   "tense": 3
+  },
+  "evaluations": 733536,
+  "mismatches": 0,
+  "n_mismatch": 0,
+  "refused_absent_pair": 51840
+ },
+ "D2": {
+  "cases": 15360,
+  "distinct_answers": {
+   "aspect": 2,
+   "evidence": 2,
+   "filter": 22,
+   "join": 4,
+   "profile": 32,
+   "tense": 2
+  },
+  "evaluations": 3932160,
+  "mismatches": 0,
+  "n_mismatch": 0,
+  "refused_absent_pair": 491520
+ },
+ "D3": {
+  "cases": 10240,
+  "distinct_answers": {
+   "filter": 42,
+   "join": 7
+  },
+  "evaluations": 983040,
+  "mismatches": 0,
+  "n_mismatch": 0,
+  "refused_absent_pair": 0
+ },
+ "all_agree": true
+}
